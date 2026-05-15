@@ -5,7 +5,6 @@ const path = require('path');
 const { sql, connectDB } = require('./db');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
-const path = require('path');
 require('dotenv').config();
 
 const SECRET_KEY = 'TiMiFood_Secret_Key_2026';
