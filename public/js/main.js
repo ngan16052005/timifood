@@ -1413,55 +1413,43 @@ function startUserNotifications() {
     const currentUser = JSON.parse(localStorage.getItem('currentuser'));
     if (!currentUser) return;
 
-    // Hiển thị thông báo cũ ngay khi load
-    updateNotificationUI();
+    // Load initial notifications
+    syncNotificationsFromServer();
 
+    // Poll for new notifications every 3 seconds
     setInterval(async () => {
-        try {
-            const orders = await window.api.getOrders(true);
-            if (Array.isArray(orders)) {
-                orders.forEach(o => {
-                    const orderId = o.id;
-                    const currentStatus = o.trangthai;
+        await syncNotificationsFromServer();
+    }, 3000);
+}
 
-                    if (userOrderStatusSnapshot[orderId] !== undefined && 
-                        userOrderStatusSnapshot[orderId] !== currentStatus) {
-                        
-                        let title = "Cập nhật đơn hàng";
-                        let message = "";
-                        let type = "info";
+let lastNotificationId = null;
 
-                        if (currentStatus === 1) {
-                            message = `Đơn hàng ${orderId} của bạn đã được duyệt!`;
-                            type = "success";
-                        } else if (currentStatus === 2) {
-                            message = `Đơn hàng ${orderId} của bạn đã thanh toán thành công!`;
-                            type = "success";
-                        } else if (currentStatus === 3) {
-                            message = `Đơn hàng ${orderId} của bạn đã bị hủy.`;
-                            type = "error";
-                        }
-
-                        if (message) {
-                            // 1. Hiện Toast
-                            toast({ title: title, message: message, type: type, duration: 8000 });
-                            
-                            // 2. Thêm vào Hộp thư thông báo
-                            addNotification(title, message);
-                            
-                            // 3. Phát âm thanh
-                            playUserSound();
-                            
-                            // 4. Cập nhật giao diện đơn hàng
-                            if (typeof renderOrderProduct === 'function') renderOrderProduct();
-                        }
-                    }
-                    userOrderStatusSnapshot[orderId] = currentStatus;
-                });
-                isFirstUserLoad = false;
+async function syncNotificationsFromServer() {
+    try {
+        const serverNotis = await window.api.getNotifications();
+        if (Array.isArray(serverNotis)) {
+            // Check for new notifications to show toast/sound
+            if (serverNotis.length > 0) {
+                const latest = serverNotis[0];
+                if (lastNotificationId !== null && latest.id > lastNotificationId && !latest.isRead) {
+                    toast({ title: latest.title, message: latest.message, type: latest.type === 'order' ? 'success' : 'info', duration: 8000 });
+                    playUserSound();
+                }
+                lastNotificationId = latest.id;
             }
-        } catch (error) {}
-    }, 15000);
+
+            notifications = serverNotis.map(n => ({
+                id: n.id,
+                title: n.title,
+                message: n.message,
+                time: new Date(n.createdAt).toLocaleString('vi-VN'),
+                unread: !n.isRead
+            }));
+            updateNotificationUI();
+        }
+    } catch (error) {
+        console.error("Sync notifications error:", error);
+    }
 }
 
 function addNotification(title, msg) {
@@ -1510,18 +1498,26 @@ function updateNotificationUI() {
     `).join('');
 }
 
-function markAsRead(id) {
-    notifications = notifications.map(n => n.id === id ? { ...n, unread: false } : n);
-    localStorage.setItem('user_notifications', JSON.stringify(notifications));
-    updateNotificationUI();
+async function markAsRead(id) {
+    try {
+        await window.api.markNotificationAsRead(id);
+        notifications = notifications.map(n => n.id === id ? { ...n, unread: false } : n);
+        updateNotificationUI();
+    } catch (error) {
+        console.error("Mark as read error:", error);
+    }
 }
 
-function clearAllNotifications(event) {
+async function clearAllNotifications(event) {
     if (event) event.stopPropagation();
     if (confirm('Bạn có chắc muốn xóa tất cả thông báo?')) {
-        notifications = [];
-        localStorage.setItem('user_notifications', JSON.stringify(notifications));
-        updateNotificationUI();
+        try {
+            await window.api.deleteAllNotifications();
+            notifications = [];
+            updateNotificationUI();
+        } catch (error) {
+            console.error("Clear notifications error:", error);
+        }
     }
 }
 

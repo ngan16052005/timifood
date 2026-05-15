@@ -301,13 +301,26 @@ body,input,button,textarea,pre {
     background: white;
     width: 220px;
     border-radius: 12px;
-    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+    box-shadow: 0 10px 35px rgba(0,0,0,0.12);
     border: 1px solid #eee;
     padding: 10px;
     display: none;
     flex-direction: column;
     z-index: 1002;
     animation: fadeInDown 0.3s ease;
+}
+
+.admin-profile-dropdown::before {
+    content: '';
+    position: absolute;
+    top: -8px;
+    right: 30px;
+    width: 15px;
+    height: 15px;
+    background: #fff;
+    transform: rotate(45deg);
+    border-top: 1px solid #eee;
+    border-left: 1px solid #eee;
 }
 
 .admin-profile-dropdown.active {
@@ -393,7 +406,7 @@ body,input,button,textarea,pre {
 .admin-notification-dropdown {
     position: absolute;
     top: calc(100% + 15px);
-    right: -135px;
+    right: -20px;
     width: 340px;
     background: #fff;
     box-shadow: 0 10px 30px rgba(0,0,0,0.15);
@@ -414,7 +427,7 @@ body,input,button,textarea,pre {
     content: '';
     position: absolute;
     top: -8px;
-    right: 140px;
+    right: 25px;
     width: 15px;
     height: 15px;
     background: #fff;
@@ -1861,4 +1874,65 @@ label a {
 
 .btn-delete i {
     margin-right: 5px;
+}
+
+/* Header Clock */
+.admin-clock {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: rgba(255, 94, 58, 0.08);
+    padding: 8px 18px;
+    border-radius: 12px;
+    color: var(--red);
+    font-weight: 600;
+    font-size: 15px;
+    border: 1px solid rgba(255, 94, 58, 0.15);
+    margin-right: 15px;
+    transition: all 0.3s ease;
+}
+
+.admin-clock:hover {
+    background: rgba(255, 94, 58, 0.12);
+    transform: translateY(-1px);
+}
+
+.admin-clock i {
+    font-size: 18px;
+    color: var(--red) !important;
+}
+
+/* Admin Footer */
+.admin-footer {
+    padding: 30px 0;
+    margin-top: 50px;
+    border-top: 1px solid #eee;
+    background: #fff;
+    width: 100%;
+}
+
+.admin-footer-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    color: #666;
+    font-size: 14px;
+}
+
+.admin-footer-content b {
+    color: var(--red);
+}
+
+.admin-footer-links {
+    color: #999;
+    font-size: 13px;
+    display: flex;
+    gap: 20px;
+}
+
+@media (max-width: 992px) {
+    .admin-clock {
+        display: none;
+    }
 }

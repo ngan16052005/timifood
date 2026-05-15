@@ -66,6 +66,20 @@ async function updateDB() {
             )
         `);
 
+        // Create Notifications table
+        await pool.request().query(`
+            IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='Notifications' AND xtype='U')
+            CREATE TABLE Notifications (
+                id INT IDENTITY(1,1) PRIMARY KEY,
+                userPhone NVARCHAR(20),
+                title NVARCHAR(255),
+                message NVARCHAR(MAX),
+                type NVARCHAR(50),
+                isRead BIT DEFAULT 0,
+                createdAt DATETIME DEFAULT GETDATE()
+            )
+        `);
+
         console.log('Database schema updated successfully.');
 
         // Ensure some stock for products if they have 0 stock

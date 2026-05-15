@@ -1,4 +1,4 @@
-const BASE_URL = window.location.origin + '/api';
+const BASE_URL = 'http://localhost:3500/api';
 
 const getHeaders = () => {
     const token = localStorage.getItem('token');
@@ -132,7 +132,7 @@ window.api = {
                 method: 'PUT',
                 headers: getHeaders()
             });
-            
+
             const contentType = response.headers.get("content-type");
             if (!response.ok) {
                 if (contentType && contentType.indexOf("application/json") !== -1) {
@@ -528,6 +528,63 @@ window.api = {
         } catch (error) {
             console.error("Stock in error:", error);
             throw error;
+        }
+    },
+
+    getNotifications: async () => {
+        try {
+            const response = await fetch(`${BASE_URL}/notifications`, {
+                headers: getHeaders()
+            });
+            if (!response.ok) return [];
+            return await response.json();
+        } catch (error) {
+            console.error("Fetch notifications error:", error);
+            return [];
+        }
+    },
+
+    markNotificationAsRead: async (id) => {
+        try {
+            await fetch(`${BASE_URL}/notifications/${id}/read`, {
+                method: 'PUT',
+                headers: getHeaders()
+            });
+        } catch (error) {
+            console.error("Mark notification read error:", error);
+        }
+    },
+
+    markAllNotificationsAsRead: async () => {
+        try {
+            await fetch(`${BASE_URL}/notifications/read-all`, {
+                method: 'PUT',
+                headers: getHeaders()
+            });
+        } catch (error) {
+            console.error("Mark all read error:", error);
+        }
+    },
+
+    deleteNotification: async (id) => {
+        try {
+            await fetch(`${BASE_URL}/notifications/${id}`, {
+                method: 'DELETE',
+                headers: getHeaders()
+            });
+        } catch (error) {
+            console.error("Delete notification error:", error);
+        }
+    },
+
+    deleteAllNotifications: async () => {
+        try {
+            await fetch(`${BASE_URL}/notifications`, {
+                method: 'DELETE',
+                headers: getHeaders()
+            });
+        } catch (error) {
+            console.error("Delete all notifications error:", error);
         }
     }
 };

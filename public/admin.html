@@ -6,7 +6,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link href='/assets/img/favicon.png' rel='icon' type='image/x-icon' />
-    <link rel="stylesheet" href="/assets/css/admin.css">
+    <link rel="stylesheet" href="assets/css/admin.css">
     <link rel="stylesheet" href="/assets/css/toast-message.css">
     <link href="/assets/font/font-awesome-pro-v6-6.2.0/css/all.min.css" rel="stylesheet" type="text/css" />
     <link rel="stylesheet" href="/assets/css/admin-responsive.css">
@@ -37,6 +37,10 @@
         </div>
 
         <div class="header-right">
+            <div class="admin-clock" id="admin-clock">
+                <i class="fa-light fa-clock"></i>
+                <span id="current-time">00:00:00</span>
+            </div>
             <div class="admin-notification" id="admin-notification-btn">
                 <i class="fa-light fa-bell"></i>
                 <span class="admin-notification-count">0</span>
@@ -102,7 +106,7 @@
                     <li class="sidebar-list-item tab-content">
                         <a href="#" class="sidebar-link">
                             <div class="sidebar-icon"><i class="fa-light fa-users"></i></div>
-                            <div class="hidden-sidebar">Khách hàng</div>
+                            <div class="hidden-sidebar">Tài khoản</div>
                         </a>
                     </li>
                     <li class="sidebar-list-item tab-content">
@@ -148,10 +152,8 @@
                             <h2 id="amount-user">0</h2>
                             <div class="on-box">
                                 <img src="assets/img/admin/s1.png" alt="" style=" width: 200px;">
-                                <h3>Khách hàng</h3>
-                                <p>Sản phẩm là bất cứ cái gì có thể đưa vào thị trường để tạo sự chú ý, mua sắm, sử dụng
-                                    hay tiêu dùng nhằm thỏa mãn một nhu cầu hay ước muốn. Nó có thể là những vật thể,
-                                    dịch vụ, con người, địa điểm, tổ chức hoặc một ý tưởng.</p>
+                                <h3>Tài khoản</h3>
+                                <p>Hệ thống quản lý thông tin người dùng, bao gồm thông tin cá nhân, quyền hạn và trạng thái hoạt động của từng thành viên trong hệ thống.</p>
                             </div>
 
                         </div>
@@ -229,7 +231,7 @@
                         <form action="" class="form-search">
                             <span class="search-btn"><i class="fa-light fa-magnifying-glass"></i></span>
                             <input id="form-search-user" type="text" class="form-search-input"
-                                placeholder="Tìm kiếm khách hàng..." oninput="showUser()">
+                                placeholder="Tìm kiếm tài khoản..." oninput="showUser()">
                         </form>
                     </div>
                     <div class="admin-control-right">
@@ -246,7 +248,7 @@
                         <button class="btn-reset-order" onclick="cancelSearchUser()"><i
                                 class="fa-light fa-arrow-rotate-right"></i></button>
                         <button id="btn-add-user" class="btn-control-large" onclick="openCreateAccount()"><i
-                                class="fa-light fa-plus"></i> <span>Thêm khách hàng</span></button>
+                                class="fa-light fa-plus"></i> <span>Thêm tài khoản</span></button>
                     </div>
                 </div>
                 <div class="table">
@@ -698,6 +700,14 @@
             </div>
         </div>
     </div>
+    <footer class="admin-footer">
+        <div class="admin-footer-content">
+            <p>Copyright &copy; 2026 <b>TiMi Food</b>. All rights reserved.</p>
+            <div class="admin-footer-links">
+                <span>Hỗ trợ kỹ thuật: 0123 456 789</span>
+            </div>
+        </div>
+    </footer>
     <div id="toast"></div>
     <script src="/js/api.js"></script>
     <script src="/js/admin-noti.js"></script>

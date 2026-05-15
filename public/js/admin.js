@@ -28,15 +28,97 @@ window.onload = async () => {
         });
     }
 
+    // Initialize Notification System UI
+    const adminNotiBtn = document.getElementById('admin-notification-btn');
+    const adminNotiDropdown = document.getElementById('admin-notification-dropdown');
+
+    if (adminNotiBtn && adminNotiDropdown) {
+        if (typeof updateAdminNotificationUI === 'function') {
+            updateAdminNotificationUI();
+        }
+
+        adminNotiBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            adminNotiDropdown.classList.toggle('active');
+        });
+
+        document.addEventListener('click', (e) => {
+            if (!adminNotiBtn.contains(e.target)) {
+                adminNotiDropdown.classList.remove('active');
+            }
+        });
+
+        adminNotiDropdown.addEventListener('click', (e) => {
+            e.stopPropagation();
+        });
+    }
+
+    // Profile Dropdown Toggle
+    const adminProfileBtn = document.getElementById('admin-profile-btn');
+    const adminProfileDropdown = document.getElementById('admin-profile-dropdown');
+
+    if (adminProfileBtn && adminProfileDropdown) {
+        adminProfileBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            adminProfileBtn.classList.toggle('active');
+            adminProfileDropdown.classList.toggle('active');
+        });
+
+        document.addEventListener('click', (e) => {
+            if (!adminProfileBtn.contains(e.target)) {
+                adminProfileBtn.classList.remove('active');
+                adminProfileDropdown.classList.remove('active');
+            }
+        });
+    }
+
+    // Header Title and Quick Search
+    const sidebarLinks = document.querySelectorAll('.sidebar-link');
+    const headerTitle = document.getElementById('admin-header-title');
+    
+    sidebarLinks.forEach(link => {
+        link.addEventListener('click', function() {
+            const sidebarText = this.querySelector('.hidden-sidebar');
+            if (sidebarText && headerTitle) {
+                const sectionName = sidebarText.innerText;
+                if (sectionName !== 'Đăng xuất' && sectionName !== 'Trang chủ') {
+                    headerTitle.innerText = sectionName;
+                }
+            }
+        });
+    });
+
+    const quickSearch = document.getElementById('quick-search-admin');
+    if (quickSearch) {
+        quickSearch.addEventListener('input', async (e) => {
+            const query = e.target.value.toLowerCase();
+            if (query.length > 0) {
+                const orderTab = document.querySelector('.sidebar-list-item:nth-child(4)');
+                if (orderTab && !orderTab.classList.contains('active')) {
+                    orderTab.click();
+                }
+                const searchInput = document.getElementById('form-search-order');
+                if (searchInput) {
+                    searchInput.value = query;
+                    findOrder();
+                }
+            }
+        });
+    }
+
     try {
         await initAdmin();
     } catch (err) {
         console.error("Admin init failed:", err);
     }
 
-    // Set admin name
-    if (currentUser && document.getElementById("name-acc")) {
-        document.getElementById("name-acc").innerHTML = currentUser.fullname;
+    // Set admin names
+    if (currentUser) {
+        const nameAcc = document.getElementById("name-acc");
+        if (nameAcc) nameAcc.innerHTML = currentUser.fullname;
+        
+        const topName = document.getElementById('admin-top-name');
+        if (topName) topName.innerText = currentUser.fullname;
     }
 };
 
@@ -47,8 +129,8 @@ function applyPermissions(userType) {
     if (userType == 2) { // Nhân viên (Staff)
         console.log("Quyền hạn: Nhân viên - Xử lý đơn hàng & Khuyến mãi");
         
-        // Các index menu cần ẩn: 0 (Tổng quát), 1 (Sản phẩm), 2 (Khách hàng), 5 (Thống kê)
-        const forbiddenIndexes = [0, 1, 2, 5];
+        // Các index menu cần ẩn: 0 (Tổng quát), 1 (Sản phẩm), 2 (Tài khoản), 4 (Nhập kho), 6 (Thống kê)
+        const forbiddenIndexes = [0, 1, 2, 4, 6];
         forbiddenIndexes.forEach(index => {
             if (sidebarItems[index]) sidebarItems[index].style.display = 'none';
         });
@@ -86,6 +168,23 @@ const sections = document.querySelectorAll(".section");
 
 for (let i = 0; i < sidebars.length; i++) {
     sidebars[i].onclick = async function () {
+        const currentUser = JSON.parse(localStorage.getItem("currentuser"));
+        const isAdmin = currentUser && currentUser.userType == 1;
+        const isStaff = currentUser && currentUser.userType == 2;
+
+        // Kiểm tra quyền truy cập cho nhân viên
+        const forbiddenForStaff = [0, 1, 2, 4, 6];
+        if (isStaff && forbiddenForStaff.includes(i)) {
+            toast({ title: 'Từ chối', message: 'Bạn không có quyền truy cập mục này!', type: 'error', duration: 3000 });
+            return;
+        }
+
+        // Kiểm tra an toàn cho các trường hợp khác (không phải admin/staff)
+        if (!isAdmin && !isStaff) {
+            window.location.href = "index.html";
+            return;
+        }
+
         document.querySelector(".sidebar-list-item.active").classList.remove("active");
         document.querySelector(".section.active").classList.remove("active");
         sidebars[i].classList.add("active");
@@ -302,11 +401,28 @@ async function initAdmin() {
                     });
                     latestOrderId = Math.max(...ids);
                 }
+                // Start clock
+                updateClock();
+                setInterval(updateClock, 1000);
+
+                // Initial check for notifications
                 startOrderNotification();
                 isFirstLoad = false;
             }
     } catch (error) {
         console.error("Failed to initialize admin stats:", error);
+    }
+}
+
+function updateClock() {
+    const now = new Date();
+    const hours = String(now.getHours()).padStart(2, '0');
+    const minutes = String(now.getMinutes()).padStart(2, '0');
+    const seconds = String(now.getSeconds()).padStart(2, '0');
+    const timeString = `${hours}:${minutes}:${seconds}`;
+    const clockElement = document.getElementById('current-time');
+    if (clockElement) {
+        clockElement.textContent = timeString;
     }
 }
 
@@ -373,123 +489,7 @@ function startOrderNotification() {
 }
 
 
-// Initialization and Event Listeners
-window.onload = async () => {
-    if (!checkLogin()) return;
-    const currentUser = JSON.parse(localStorage.getItem("currentuser"));
-    applyPermissions(currentUser.userType);
-
-    const logoutBtn = document.getElementById("logout-acc");
-    if (logoutBtn) {
-        logoutBtn.addEventListener('click', (e) => {
-            e.preventDefault();
-            localStorage.removeItem("currentuser");
-            localStorage.removeItem("token");
-            window.location.href = "index.html";
-        });
-    }
-
-    const adminNotiBtn = document.getElementById('admin-notification-btn');
-    const adminNotiDropdown = document.getElementById('admin-notification-dropdown');
-
-    if (adminNotiBtn && adminNotiDropdown) {
-        // Initialize UI
-        if (typeof updateAdminNotificationUI === 'function') {
-            updateAdminNotificationUI();
-        }
-
-        adminNotiBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            const isActive = adminNotiDropdown.classList.contains('active');
-            adminNotiDropdown.classList.toggle('active');
-            
-            // If opening, mark all as read
-            if (!isActive && typeof markAdminNotificationsAsRead === 'function') {
-                markAdminNotificationsAsRead();
-            }
-        });
-
-        document.addEventListener('click', (e) => {
-            if (!adminNotiBtn.contains(e.target)) {
-                adminNotiDropdown.classList.remove('active');
-            }
-        });
-
-        adminNotiDropdown.addEventListener('click', (e) => {
-            e.stopPropagation();
-        });
-    }
-
-    // Profile Dropdown Toggle
-    const adminProfileBtn = document.getElementById('admin-profile-btn');
-    const adminProfileDropdown = document.getElementById('admin-profile-dropdown');
-
-    if (adminProfileBtn && adminProfileDropdown) {
-        adminProfileBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            adminProfileBtn.classList.toggle('active');
-            adminProfileDropdown.classList.toggle('active');
-        });
-
-        document.addEventListener('click', (e) => {
-            if (!adminProfileBtn.contains(e.target)) {
-                adminProfileBtn.classList.remove('active');
-                adminProfileDropdown.classList.remove('active');
-            }
-        });
-    }
-
-    try {
-        await initAdmin();
-    } catch (err) {
-        console.error("Admin init failed:", err);
-    }
-
-    if (currentUser && document.getElementById("name-acc")) {
-        document.getElementById("name-acc").innerHTML = currentUser.fullname;
-    }
-    
-    // Update name in top header as well
-    const topName = document.getElementById('admin-top-name');
-    if (topName && currentUser) {
-        topName.innerText = currentUser.fullname;
-    }
-
-    // Dynamic Header Title Update
-    const sidebarLinks = document.querySelectorAll('.sidebar-link');
-    const headerTitle = document.getElementById('admin-header-title');
-    
-    sidebarLinks.forEach(link => {
-        link.addEventListener('click', function() {
-            const sectionName = this.querySelector('.hidden-sidebar').innerText;
-            if (headerTitle && sectionName !== 'Đăng xuất' && sectionName !== 'Trang chủ') {
-                headerTitle.innerText = sectionName;
-            }
-        });
-    });
-
-    // Global Quick Search Logic
-    const quickSearch = document.getElementById('quick-search-admin');
-    if (quickSearch) {
-        quickSearch.addEventListener('input', async (e) => {
-            const query = e.target.value.toLowerCase();
-            // Tự động chuyển về tab Đơn hàng để hiển thị kết quả nếu đang tìm kiếm
-            if (query.length > 0) {
-                const orderTab = document.querySelector('.sidebar-list-item:nth-child(4)'); // Index of Orders tab
-                if (orderTab && !orderTab.classList.contains('active')) {
-                    orderTab.click();
-                }
-                
-                // Trigger search in order section
-                const searchInput = document.getElementById('form-search-order');
-                if (searchInput) {
-                    searchInput.value = query;
-                    findOrder();
-                }
-            }
-        });
-    }
-};
+// Redundant window.onload removed and merged into the main one at the top.
 
 
 
@@ -1795,13 +1795,14 @@ async function showReviews() {
                 
                 const displayDate = r.reviewDate ? new Date(r.reviewDate).toLocaleDateString('vi-VN') : '---';
                 
+                const commentText = r.comment || "";
                 html += `
                 <tr>
                     <td>${r.id}</td>
                     <td><strong>${r.productTitle}</strong></td>
                     <td>${r.customerName}</td>
                     <td><div class="stars-display">${stars}</div></td>
-                    <td title="${r.comment}">${r.comment.length > 50 ? r.comment.substring(0, 50) + '...' : r.comment}</td>
+                    <td title="${commentText}">${commentText.length > 50 ? commentText.substring(0, 50) + '...' : commentText}</td>
                     <td>${displayDate}</td>
                     <td class="control">
                         <button class="btn-delete" onclick="deleteReviewAdmin(${r.id})">

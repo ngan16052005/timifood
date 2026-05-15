@@ -1,31 +1,42 @@
 
 // Admin Notifications Logic
-let adminNotifications = JSON.parse(localStorage.getItem('adminNotifications')) || [];
+let adminNotifications = [];
+let lastAdminNotiId = null;
 
-function addAdminNotification(title, message, type = 'info') {
-    console.log(`[Notification] Adding: ${title} - ${message}`);
-    const newNoti = {
-        id: Date.now(),
-        title: title,
-        message: message,
-        time: new Date().toLocaleString('vi-VN'),
-        type: type,
-        read: false
-    };
-    adminNotifications.unshift(newNoti);
-    if (adminNotifications.length > 50) adminNotifications.pop();
-    
-    localStorage.setItem('adminNotifications', JSON.stringify(adminNotifications));
-    updateAdminNotificationUI();
-    
-    // Play sound alert
-    if (title.toLowerCase().includes('đơn hàng mới')) {
-        playNotificationSound('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3');
-    } else if (title.toLowerCase().includes('hủy')) {
-        playNotificationSound('https://assets.mixkit.co/active_storage/sfx/1110/1110-preview.mp3');
+async function syncAdminNotifications() {
+    try {
+        const serverNotis = await window.api.getNotifications();
+        if (Array.isArray(serverNotis)) {
+            // Check for new notifications to show sound
+            if (serverNotis.length > 0) {
+                const latest = serverNotis[0];
+                if (lastAdminNotiId !== null && latest.id > lastAdminNotiId && !latest.isRead) {
+                    if (latest.title.toLowerCase().includes('đơn hàng mới')) {
+                        playNotificationSound('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3');
+                    } else if (latest.title.toLowerCase().includes('hủy')) {
+                        playNotificationSound('https://assets.mixkit.co/active_storage/sfx/1110/1110-preview.mp3');
+                    }
+                }
+                lastAdminNotiId = latest.id;
+            }
+
+            adminNotifications = serverNotis.map(n => ({
+                id: n.id,
+                title: n.title,
+                message: n.message,
+                time: new Date(n.createdAt).toLocaleString('vi-VN'),
+                type: n.type,
+                read: n.isRead
+            }));
+            updateAdminNotificationUI();
+        }
+    } catch (error) {
+        console.error("Sync admin notifications error:", error);
     }
 }
 
+// Start syncing periodically every 3 seconds
+setInterval(syncAdminNotifications, 3000);
 
 function updateAdminNotificationUI() {
     const list = document.querySelector('.admin-notification-list');
@@ -55,25 +66,43 @@ function updateAdminNotificationUI() {
     `).join('');
 }
 
-function markAdminNotificationsAsRead() {
-    adminNotifications = adminNotifications.map(n => ({ ...n, read: true }));
-    localStorage.setItem('adminNotifications', JSON.stringify(adminNotifications));
-    updateAdminNotificationUI();
+async function markAdminNotificationsAsRead() {
+    try {
+        await window.api.markAllNotificationsAsRead();
+        adminNotifications = adminNotifications.map(n => ({ ...n, read: true }));
+        updateAdminNotificationUI();
+    } catch (error) {
+        console.error("Mark all as read error:", error);
+    }
 }
 
-function clearAllAdminNotifications(event) {
+async function markAsRead(id) {
+    try {
+        await window.api.markNotificationAsRead(id);
+        adminNotifications = adminNotifications.map(n => n.id === id ? { ...n, read: true } : n);
+        updateAdminNotificationUI();
+    } catch (error) {
+        console.error("Mark as read error:", error);
+    }
+}
+
+async function clearAllAdminNotifications(event) {
     if (event) event.stopPropagation();
-    adminNotifications = [];
-    localStorage.setItem('adminNotifications', JSON.stringify(adminNotifications));
-    updateAdminNotificationUI();
+    if (confirm("Bạn có muốn xóa tất cả thông báo?")) {
+        try {
+            await window.api.deleteAllNotifications();
+            adminNotifications = [];
+            updateAdminNotificationUI();
+        } catch (error) {
+            console.error("Delete all notifications error:", error);
+        }
+    }
 }
 
-
-function markAsRead(id) {
-    adminNotifications = adminNotifications.map(n => n.id === id ? { ...n, read: true } : n);
-    localStorage.setItem('adminNotifications', JSON.stringify(adminNotifications));
-    updateAdminNotificationUI();
-}
+// Initialization
+window.addEventListener('DOMContentLoaded', () => {
+    syncAdminNotifications();
+});
 
 let audioUnlocked = false;
 
