@@ -2,7 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
 const path = require('path');
-const { sql, connectDB } = require('./db');
+const { pool, connectDB } = require('./db');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 require('dotenv').config();
@@ -29,14 +29,13 @@ app.use((req, res, next) => {
     next();
 });
 
-let pool;
 // Initialize database connection
 async function initDB() {
     try {
-        pool = await connectDB();
-        console.log('Database connected successfully');
+        await connectDB();
+        console.log('Hệ thống đã sẵn sàng');
     } catch (err) {
-        console.error('Database connection failed:', err);
+        console.error('Không thể khởi động Database:', err);
     }
 }
 
@@ -102,17 +101,16 @@ app.get('/api/products', async (req, res) => {
             FROM Products p
             LEFT JOIN Reviews r ON p.id = r.productId
         `;
-        let request = pool.request();
-
+        let params = [];
         if (search) {
-            query += ' WHERE p.title LIKE @search OR p.description LIKE @search';
-            request.input('search', sql.NVarChar, `%${search}%`);
+            query += ' WHERE p.title ILIKE $1 OR p.description ILIKE $1';
+            params.push(`%${search}%`);
         }
 
         query += ' GROUP BY p.id, p.title, p.price, p.img, p.category, p.status, p.description, p.stock';
 
-        const result = await request.query(query);
-        const products = result.recordset.map(p => ({
+        const result = await pool.query(query, params);
+        const products = result.rows.map(p => ({
             ...p,
             desc: p.description
         }));
@@ -126,18 +124,13 @@ app.get('/api/products', async (req, res) => {
 app.post('/api/products', authenticateToken, isAdmin, async (req, res) => {
     try {
         const prod = req.body;
-        const maxIdResult = await pool.request().query('SELECT MAX(id) as maxId FROM Products');
-        const nextId = (maxIdResult.recordset[0].maxId || 0) + 1;
+        const maxIdResult = await pool.query('SELECT MAX(id) as "maxId" FROM Products');
+        const nextId = (parseInt(maxIdResult.rows[0].maxId) || 0) + 1;
 
-        await pool.request()
-            .input('id', sql.Int, nextId)
-            .input('title', sql.NVarChar, prod.title)
-            .input('img', sql.NVarChar, prod.img)
-            .input('category', sql.NVarChar, prod.category)
-            .input('price', sql.Int, parseInt(prod.price))
-            .input('description', sql.NVarChar, prod.description)
-            .input('stock', sql.Int, parseInt(prod.stock) || 0)
-            .query('INSERT INTO Products (id, title, img, category, price, description, status, stock) VALUES (@id, @title, @img, @category, @price, @description, 1, @stock)');
+        await pool.query(
+            'INSERT INTO Products (id, title, img, category, price, description, status, stock) VALUES ($1, $2, $3, $4, $5, $6, 1, $7)',
+            [nextId, prod.title, prod.img, prod.category, parseInt(prod.price), prod.description, parseInt(prod.stock) || 0]
+        );
         res.status(201).json({ success: true, message: 'Product added successfully', id: nextId });
     } catch (err) {
         res.status(500).json({ message: 'Error adding product' });
@@ -149,16 +142,10 @@ app.put('/api/products/:id', authenticateToken, isAdmin, async (req, res) => {
     try {
         const id = parseInt(req.params.id);
         const prod = req.body;
-        await pool.request()
-            .input('id', sql.Int, id)
-            .input('title', sql.NVarChar, prod.title)
-            .input('img', sql.NVarChar, prod.img)
-            .input('category', sql.NVarChar, prod.category)
-            .input('price', sql.Int, parseInt(prod.price))
-            .input('description', sql.NVarChar, prod.description)
-            .input('status', sql.Int, parseInt(prod.status))
-            .input('stock', sql.Int, parseInt(prod.stock) || 0)
-            .query('UPDATE Products SET title=@title, img=@img, category=@category, price=@price, description=@description, status=@status, stock=@stock WHERE id=@id');
+        await pool.query(
+            'UPDATE Products SET title=$1, img=$2, category=$3, price=$4, description=$5, status=$6, stock=$7 WHERE id=$8',
+            [prod.title, prod.img, prod.category, parseInt(prod.price), prod.description, parseInt(prod.status), parseInt(prod.stock) || 0, id]
+        );
         res.json({ success: true, message: 'Product updated successfully' });
     } catch (err) {
         res.status(500).json({ message: 'Error updating product' });
@@ -170,17 +157,13 @@ app.delete('/api/products/:id', authenticateToken, isAdmin, async (req, res) => 
     try {
         const id = parseInt(req.params.id);
         // Check if product is in any order first
-        const checkOrder = await pool.request()
-            .input('id', sql.Int, id)
-            .query('SELECT TOP 1 * FROM OrderDetails WHERE productId=@id');
+        const checkOrder = await pool.query('SELECT * FROM OrderDetails WHERE productId=$1 LIMIT 1', [id]);
 
-        if (checkOrder.recordset.length > 0) {
+        if (checkOrder.rows.length > 0) {
             return res.status(400).json({ message: 'Không thể xóa vĩnh viễn sản phẩm này vì đã có trong lịch sử đơn hàng. Vui lòng sử dụng chức năng Ẩn.' });
         }
 
-        await pool.request()
-            .input('id', sql.Int, id)
-            .query('DELETE FROM Products WHERE id=@id');
+        await pool.query('DELETE FROM Products WHERE id=$1', [id]);
         res.json({ success: true, message: 'Product deleted permanently' });
     } catch (err) {
         res.status(500).json({ message: 'Error deleting product' });
@@ -191,12 +174,10 @@ app.delete('/api/products/:id', authenticateToken, isAdmin, async (req, res) => 
 app.post('/api/login', async (req, res) => {
     try {
         const { username, password } = req.body;
-        const result = await pool.request()
-            .input('phone', sql.NVarChar, username)
-            .query('SELECT * FROM Users WHERE phone=@phone');
+        const result = await pool.query('SELECT * FROM Users WHERE phone=$1', [username]);
 
-        if (result.recordset.length > 0) {
-            const user = result.recordset[0];
+        if (result.rows.length > 0) {
+            const user = result.rows[0];
 
             let isMatch = false;
             try {
@@ -209,10 +190,7 @@ app.post('/api/login', async (req, res) => {
             if (!isMatch && user.password === password) {
                 console.log(`Migrating password for user: ${user.phone}`);
                 const hashedPassword = await bcrypt.hash(password, 10);
-                await pool.request()
-                    .input('phone', sql.NVarChar, user.phone)
-                    .input('password', sql.NVarChar, hashedPassword)
-                    .query('UPDATE Users SET password=@password WHERE phone=@phone');
+                await pool.query('UPDATE Users SET password=$1 WHERE phone=$2', [hashedPassword, user.phone]);
                 isMatch = true;
             }
 
@@ -242,25 +220,18 @@ app.post('/api/login', async (req, res) => {
 app.post('/api/register', async (req, res) => {
     try {
         const newUser = req.body;
-        const checkUser = await pool.request()
-            .input('phone', sql.NVarChar, newUser.phone)
-            .query('SELECT * FROM Users WHERE phone=@phone');
+        const checkUser = await pool.query('SELECT * FROM Users WHERE phone=$1', [newUser.phone]);
 
-        if (checkUser.recordset.length > 0) {
+        if (checkUser.rows.length > 0) {
             return res.status(400).json({ message: 'User already exists' });
         }
 
         const hashedPassword = await bcrypt.hash(newUser.password, 10);
 
-        await pool.request()
-            .input('fullname', sql.NVarChar, newUser.fullname)
-            .input('phone', sql.NVarChar, newUser.phone)
-            .input('password', sql.NVarChar, hashedPassword)
-            .input('address', sql.NVarChar, newUser.address || '')
-            .input('email', sql.NVarChar, newUser.email || '')
-            .input('status', sql.Int, 1)
-            .input('userType', sql.Int, 0)
-            .query('INSERT INTO Users (fullname, phone, password, address, email, status, userType) VALUES (@fullname, @phone, @password, @address, @email, @status, @userType)');
+        await pool.query(
+            'INSERT INTO Users (fullname, phone, password, address, email, status, "userType") VALUES ($1, $2, $3, $4, $5, $6, $7)',
+            [newUser.fullname, newUser.phone, hashedPassword, newUser.address || '', newUser.email || '', 1, 0]
+        );
 
         // Create JWT Token for the new user
         const token = jwt.sign(
@@ -287,8 +258,8 @@ app.post('/api/register', async (req, res) => {
 app.get('/api/users', authenticateToken, isAdmin, async (req, res) => {
     try {
         // Using global pool
-        const result = await pool.request().query('SELECT * FROM Users ORDER BY userType DESC, joinDate DESC');
-        const users = result.recordset.map(u => ({
+        const result = await pool.query('SELECT * FROM Users ORDER BY "userType" DESC, "joinDate" DESC');
+        const users = result.rows.map(u => ({
             ...u,
             join: u.joinDate
         }));
@@ -339,13 +310,11 @@ app.delete('/api/users/:phone', authenticateToken, isAdmin, async (req, res) => 
 app.get('/api/cart/:phone', authenticateToken, async (req, res) => {
     try {
         const { phone } = req.params;
-        const result = await pool.request()
-            .input('phone', sql.NVarChar, phone)
-            .query('SELECT cartData FROM Users WHERE phone=@phone');
+        const result = await pool.query('SELECT "cartData" FROM Users WHERE phone=$1', [phone]);
 
-        if (result.recordset.length > 0) {
-            const cartData = result.recordset[0].cartData;
-            res.json(cartData ? JSON.parse(cartData) : []);
+        if (result.rows.length > 0) {
+            const cartData = result.rows[0].cartData;
+            res.json(cartData ? (typeof cartData === 'string' ? JSON.parse(cartData) : cartData) : []);
         } else {
             res.status(404).json({ message: 'User not found' });
         }
@@ -359,10 +328,7 @@ app.post('/api/cart/:phone', authenticateToken, async (req, res) => {
     try {
         const { phone } = req.params;
         const cart = req.body;
-        await pool.request()
-            .input('phone', sql.NVarChar, phone)
-            .input('cartData', sql.NVarChar, JSON.stringify(cart))
-            .query('UPDATE Users SET cartData=@cartData WHERE phone=@phone');
+        await pool.query('UPDATE Users SET "cartData"=$1 WHERE phone=$2', [JSON.stringify(cart), phone]);
         res.json({ message: 'Cart updated' });
     } catch (err) {
         res.status(500).json({ message: 'Error updating cart' });
@@ -374,84 +340,61 @@ app.post('/api/cart/:phone', authenticateToken, async (req, res) => {
 // Create order (Protected)
 app.post('/api/orders', authenticateToken, async (req, res) => {
     console.log('Received order request:', JSON.stringify(req.body, null, 2));
-    const transaction = new sql.Transaction(pool);
+    const client = await pool.connect();
     try {
         const order = req.body;
         if (!order || !order.chitiet || !Array.isArray(order.chitiet)) {
             throw new Error('Invalid order data: missing chitiet array');
         }
 
-        // Generate Order ID if not provided or to ensure uniqueness
-        const countResult = await pool.request().query('SELECT MAX(CAST(SUBSTRING(id, 3, LEN(id)) AS INT)) as maxId FROM Orders');
-        const maxId = countResult.recordset[0].maxId || 0;
-        const finalId = 'DH' + (maxId + 1).toString().padStart(3, '0');
+        // Generate Order ID
+        const countResult = await client.query('SELECT MAX(CAST(SUBSTRING(id, 3, LENGTH(id)) AS INT)) as "maxId" FROM Orders');
+        const maxId = countResult.rows[0].maxId || 0;
+        const finalId = 'DH' + (parseInt(maxId) + 1).toString().padStart(3, '0');
 
-        await transaction.begin();
+        await client.query('BEGIN');
 
-        const orderRequest = new sql.Request(transaction);
         console.log('Inserting order:', finalId);
-        await orderRequest
-            .input('id', sql.NVarChar, finalId)
-            .input('customerPhone', sql.NVarChar, order.khachhang)
-            .input('totalPrice', sql.Float, order.tongtien)
-            .input('deliveryType', sql.NVarChar, order.hinhthucgiao)
-            .input('deliveryTime', sql.NVarChar, order.thoigiangiao)
-            .input('deliveryDate', sql.DateTime, order.ngaygiaohang ? new Date(order.ngaygiaohang) : null)
-            .input('receiverName', sql.NVarChar, order.tenguoinhan)
-            .input('receiverPhone', sql.NVarChar, order.sdtnhan)
-            .input('receiverAddress', sql.NVarChar, order.diachinhan)
-            .input('note', sql.NVarChar, order.ghichu || '')
-            .input('voucherCode', sql.NVarChar, order.voucherCode || null)
-            .input('discountAmount', sql.Int, parseInt(order.discountAmount) || 0)
-            .input('shippingFee', sql.Int, parseInt(order.shippingFee) || 0)
-            .input('status', sql.Int, 0)
-            .query(`INSERT INTO Orders (id, customerPhone, totalPrice, deliveryType, deliveryTime, deliveryDate, receiverName, receiverPhone, receiverAddress, note, voucherCode, discountAmount, shippingFee, orderDate, status) 
-                    VALUES (@id, @customerPhone, @totalPrice, @deliveryType, @deliveryTime, @deliveryDate, @receiverName, @receiverPhone, @receiverAddress, @note, @voucherCode, @discountAmount, @shippingFee, GETDATE(), @status)`);
+        await client.query(
+            `INSERT INTO Orders (id, "customerPhone", "totalPrice", "deliveryType", "deliveryTime", "deliveryDate", "receiverName", "receiverPhone", "receiverAddress", note, "voucherCode", "discountAmount", "shippingFee", "orderDate", status) 
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, NOW(), $14)`,
+            [
+                finalId, order.khachhang, order.tongtien, order.hinhthucgiao, order.thoigiangiao,
+                order.ngaygiaohang ? new Date(order.ngaygiaohang) : null,
+                order.tenguoinhan, order.sdtnhan, order.diachinhan, order.ghichu || '',
+                order.voucherCode || null, parseInt(order.discountAmount) || 0,
+                parseInt(order.shippingFee) || 0, 0
+            ]
+        );
 
         console.log('Inserting details for order:', finalId);
         for (const item of order.chitiet) {
             // Check stock first
-            const checkStockReq = new sql.Request(transaction);
-            const stockResult = await checkStockReq
-                .input('pId', sql.Int, parseInt(item.id))
-                .query('SELECT stock, title FROM Products WHERE id = @pId');
-
-            const product = stockResult.recordset[0];
+            const stockResult = await client.query('SELECT stock, title FROM Products WHERE id = $1', [parseInt(item.id)]);
+            const product = stockResult.rows[0];
+            
             if (!product || product.stock < parseInt(item.soluong)) {
                 throw new Error(`Sản phẩm "${product ? product.title : item.id}" không đủ số lượng trong kho!`);
             }
 
             // Insert order details
-            const detailRequest = new sql.Request(transaction);
-            await detailRequest
-                .input('orderId', sql.NVarChar, finalId)
-                .input('productId', sql.Int, parseInt(item.id))
-                .input('price', sql.Float, parseFloat(item.price))
-                .input('quantity', sql.Int, parseInt(item.soluong))
-                .input('note', sql.NVarChar, item.note || '')
-                .query(`INSERT INTO OrderDetails (orderId, productId, price, quantity, note) 
-                        VALUES (@orderId, @productId, @price, @quantity, @note)`);
+            await client.query(
+                'INSERT INTO OrderDetails ("orderId", "productId", price, quantity, note) VALUES ($1, $2, $3, $4, $5)',
+                [finalId, parseInt(item.id), parseFloat(item.price), parseInt(item.soluong), item.note || '']
+            );
 
             // Decrease stock
-            const updateStockReq = new sql.Request(transaction);
-            await updateStockReq
-                .input('pId', sql.Int, parseInt(item.id))
-                .input('q', sql.Int, parseInt(item.soluong))
-                .query('UPDATE Products SET stock = stock - @q WHERE id = @pId');
+            await client.query('UPDATE Products SET stock = stock - $1 WHERE id = $2', [parseInt(item.soluong), parseInt(item.id)]);
         }
 
-        await transaction.commit();
+        await client.query('COMMIT');
         res.status(201).json({ success: true, message: 'Order created successfully' });
     } catch (err) {
-        try {
-            if (transaction && transaction._aborted === false && transaction._committed === false) {
-                await transaction.rollback();
-            }
-        } catch (rollbackErr) {
-            console.error('Rollback Error:', rollbackErr);
-        }
+        await client.query('ROLLBACK');
         console.error('Order Error:', err);
         res.status(500).json({ message: 'Error creating order', error: err.message });
+    } finally {
+        client.release();
     }
 });
 
@@ -459,23 +402,24 @@ app.post('/api/orders', authenticateToken, async (req, res) => {
 app.get('/api/orders', authenticateToken, async (req, res) => {
     try {
         let query = 'SELECT * FROM Orders';
-        const request = pool.request();
+        let params = [];
 
         // If not staff/admin, filter by user's phone
         if (req.user.userType === 0) {
-            query += ' WHERE customerPhone = @phone';
-            request.input('phone', sql.NVarChar, req.user.phone);
+            query += ' WHERE "customerPhone" = $1';
+            params.push(req.user.phone);
         }
 
-        const result = await request.query(query);
-        const orders = result.recordset || [];
+        const result = await pool.query(query, params);
+        const orders = result.rows || [];
 
-        // Fetch details for each order to include in the response
+        // Fetch details for each order
         for (let order of orders) {
-            const detailsResult = await pool.request()
-                .input('orderId', sql.NVarChar, order.id)
-                .query('SELECT od.*, p.title, p.img FROM OrderDetails od JOIN Products p ON od.productId = p.id WHERE od.orderId = @orderId');
-            order.chitiet = JSON.stringify(detailsResult.recordset.map(d => ({
+            const detailsResult = await pool.query(
+                'SELECT od.*, p.title, p.img FROM OrderDetails od JOIN Products p ON od."productId" = p.id WHERE od."orderId" = $1',
+                [order.id]
+            );
+            order.chitiet = JSON.stringify(detailsResult.rows.map(d => ({
                 ...d,
                 soluong: d.quantity,
                 price: d.price
@@ -511,10 +455,11 @@ app.get('/api/orders', authenticateToken, async (req, res) => {
 // Get order details
 app.get('/api/orders/:id/details', async (req, res) => {
     try {
-        const result = await pool.request()
-            .input('orderId', sql.NVarChar, req.params.id)
-            .query('SELECT od.*, p.title, p.img FROM OrderDetails od JOIN Products p ON od.productId = p.id WHERE od.orderId = @orderId');
-        res.json(result.recordset.map(d => ({
+        const result = await pool.query(
+            'SELECT od.*, p.title, p.img FROM OrderDetails od JOIN Products p ON od."productId" = p.id WHERE od."orderId" = $1',
+            [req.params.id]
+        );
+        res.json(result.rows.map(d => ({
             ...d,
             id: d.productId,
             soluong: d.quantity
@@ -561,23 +506,21 @@ app.put('/api/orders/:id/cancel', authenticateToken, async (req, res) => {
 
 // Update order (User only, status 0 only)
 app.put('/api/orders/:id/update', authenticateToken, async (req, res) => {
-    const transaction = new sql.Transaction(pool);
+    const client = await pool.connect();
     try {
         const { id } = req.params;
         const { note, chitiet, shippingFee, discountAmount } = req.body;
-        const items = chitiet; // Map to items for compatibility with existing logic
+        const items = chitiet; 
         const userPhone = req.user.phone;
 
         // 1. Check permissions
-        const orderCheck = await pool.request()
-            .input('id', sql.NVarChar, id)
-            .query('SELECT customerPhone, status FROM Orders WHERE id = @id');
+        const orderCheck = await client.query('SELECT "customerPhone", status FROM Orders WHERE id = $1', [id]);
 
-        if (orderCheck.recordset.length === 0) {
+        if (orderCheck.rows.length === 0) {
             return res.status(404).json({ message: 'Không tìm thấy đơn hàng' });
         }
 
-        const order = orderCheck.recordset[0];
+        const order = orderCheck.rows[0];
         if (order.customerPhone !== userPhone) {
             return res.status(403).json({ message: 'Bạn không có quyền sửa đơn hàng này' });
         }
@@ -586,7 +529,7 @@ app.put('/api/orders/:id/update', authenticateToken, async (req, res) => {
             return res.status(400).json({ message: 'Chỉ có thể sửa đơn hàng đang chờ xử lý' });
         }
 
-        await transaction.begin();
+        await client.query('BEGIN');
 
         if (!items || !Array.isArray(items)) {
             throw new Error('Danh sách món ăn không hợp lệ');
@@ -602,44 +545,30 @@ app.put('/api/orders/:id/update', authenticateToken, async (req, res) => {
         newTotalPrice = newTotalPrice + (shippingFee || 0) - (discountAmount || 0);
 
         // 3. Update Orders table
-        await transaction.request()
-            .input('id', sql.NVarChar, id)
-            .input('note', sql.NVarChar, note || '')
-            .input('totalPrice', sql.Float, newTotalPrice)
-            .query('UPDATE Orders SET note = @note, totalPrice = @totalPrice WHERE id = @id');
+        await client.query('UPDATE Orders SET note = $1, "totalPrice" = $2 WHERE id = $3', [note || '', newTotalPrice, id]);
 
         // 4. Update OrderDetails table
-        await transaction.request()
-            .input('orderId', sql.NVarChar, id)
-            .query('DELETE FROM OrderDetails WHERE orderId = @orderId');
+        await client.query('DELETE FROM OrderDetails WHERE "orderId" = $1', [id]);
 
         for (const item of items) {
             const itemPrice = item.price || item.priceValue || 0;
             const itemQty = item.quantity || item.soluong || 0;
 
-            await transaction.request()
-                .input('orderId', sql.NVarChar, id)
-                .input('productId', sql.Int, item.id)
-                .input('quantity', sql.Int, itemQty)
-                .input('price', sql.Float, itemPrice)
-                .input('note', sql.NVarChar, item.note || '')
-                .query(`INSERT INTO OrderDetails (orderId, productId, quantity, price, note) 
-                        VALUES (@orderId, @productId, @quantity, @price, @note)`);
+            await client.query(
+                'INSERT INTO OrderDetails ("orderId", "productId", quantity, price, note) VALUES ($1, $2, $3, $4, $5)',
+                [id, item.id, itemQty, itemPrice, item.note || '']
+            );
         }
 
-
-        await transaction.commit();
+        await client.query('COMMIT');
         res.json({ success: true, message: 'Cập nhật đơn hàng thành công', newTotalPrice });
     } catch (err) {
-        try {
-            await transaction.rollback();
-        } catch (e) {
-            // Ignore rollback errors if transaction hasn't started
-        }
+        await client.query('ROLLBACK');
         console.error("DETAILED Update order error:", err);
         res.status(500).json({ message: 'Lỗi server khi cập nhật đơn hàng: ' + err.message });
+    } finally {
+        client.release();
     }
-
 });
 
 // Update order status (Staff and Admin)
@@ -647,10 +576,7 @@ app.put('/api/orders/:id/status', authenticateToken, isStaffOrAdmin, async (req,
     try {
         const { id } = req.params;
         const { status } = req.body;
-        await pool.request()
-            .input('id', sql.NVarChar, id)
-            .input('status', sql.Int, status)
-            .query('UPDATE Orders SET status=@status WHERE id=@id');
+        await pool.query('UPDATE Orders SET status=$1 WHERE id=$2', [status, id]);
         res.json({ success: true, message: 'Order status updated' });
     } catch (err) {
         res.status(500).json({ message: 'Error updating order status' });
@@ -659,28 +585,22 @@ app.put('/api/orders/:id/status', authenticateToken, isStaffOrAdmin, async (req,
 
 // Delete order (Admin)
 app.delete('/api/orders/:id', authenticateToken, async (req, res) => {
-    if (!pool) {
-        return res.status(500).json({ message: 'Database not connected' });
-    }
-    const transaction = new sql.Transaction(pool);
+    const client = await pool.connect();
     try {
         const { id } = req.params;
         console.log(`Attempting to delete order: ${id}`);
-        await transaction.begin();
-        const request = new sql.Request(transaction);
-        await request.input('orderId', sql.NVarChar, id)
-            .query('DELETE FROM OrderDetails WHERE orderId=@orderId; DELETE FROM Orders WHERE id=@orderId;');
-        await transaction.commit();
+        await client.query('BEGIN');
+        await client.query('DELETE FROM OrderDetails WHERE "orderId"=$1', [id]);
+        await client.query('DELETE FROM Orders WHERE id=$1', [id]);
+        await client.query('COMMIT');
         console.log(`Successfully deleted order: ${id}`);
         res.json({ success: true, message: 'Order deleted successfully' });
     } catch (err) {
+        await client.query('ROLLBACK');
         console.error(`Error deleting order ${req.params.id}:`, err);
-        try {
-            if (transaction) await transaction.rollback();
-        } catch (rollbackErr) {
-            console.error('Rollback Error:', rollbackErr);
-        }
         res.status(500).json({ message: 'Error deleting order', error: err.message });
+    } finally {
+        client.release();
     }
 });
 // --- VOUCHER MANAGEMENT ---
@@ -689,8 +609,8 @@ app.delete('/api/orders/:id', authenticateToken, async (req, res) => {
 app.get('/api/vouchers', authenticateToken, isStaffOrAdmin, async (req, res) => {
     try {
         // Using global pool
-        const result = await pool.request().query('SELECT * FROM Vouchers ORDER BY expiryDate DESC');
-        res.json(result.recordset);
+        const result = await pool.query('SELECT * FROM Vouchers ORDER BY "expiryDate" DESC');
+        res.json(result.rows);
     } catch (error) {
         console.error("Get vouchers error:", error);
         res.status(500).json({ message: 'Lỗi server khi lấy danh sách voucher' });
@@ -702,12 +622,13 @@ app.get('/api/vouchers/:code', async (req, res) => {
     try {
         const { code } = req.params;
         // Using global pool
-        const result = await pool.request()
-            .input('code', sql.NVarChar, code)
-            .query('SELECT * FROM Vouchers WHERE code = @code AND status = 1 AND CAST(expiryDate AS DATE) >= CAST(GETDATE() AS DATE)');
+        const result = await pool.query(
+            'SELECT * FROM Vouchers WHERE code = $1 AND status = 1 AND CAST("expiryDate" AS DATE) >= CURRENT_DATE',
+            [code]
+        );
 
-        if (result.recordset && result.recordset.length > 0) {
-            res.json({ success: true, voucher: result.recordset[0] });
+        if (result.rows && result.rows.length > 0) {
+            res.json({ success: true, voucher: result.rows[0] });
         } else {
             res.json({ success: false, message: 'Mã giảm giá không tồn tại hoặc đã hết hạn' });
         }
@@ -722,18 +643,14 @@ app.post('/api/vouchers', authenticateToken, isAdmin, async (req, res) => {
     try {
         const { code, discountValue, discountType, minOrder, maxDiscount, expiryDate } = req.body;
         // Using global pool
-        await pool.request()
-            .input('code', sql.NVarChar, code)
-            .input('discountValue', sql.Int, discountValue)
-            .input('discountType', sql.Int, discountType)
-            .input('minOrder', sql.Int, minOrder)
-            .input('maxDiscount', sql.Int, maxDiscount)
-            .input('expiryDate', sql.DateTime, expiryDate)
-            .query('INSERT INTO Vouchers (code, discountValue, discountType, minOrder, maxDiscount, expiryDate, status) VALUES (@code, @discountValue, @discountType, @minOrder, @maxDiscount, @expiryDate, 1)');
+        await pool.query(
+            'INSERT INTO Vouchers (code, "discountValue", "discountType", "minOrder", "maxDiscount", "expiryDate", status) VALUES ($1, $2, $3, $4, $5, $6, 1)',
+            [code, discountValue, discountType, minOrder, maxDiscount, expiryDate]
+        );
         res.json({ success: true, message: 'Tạo mã giảm giá thành công' });
     } catch (error) {
         console.error("Create voucher error:", error);
-        if (error.number === 2627) { // SQL Server primary key violation
+        if (error.code === '23505') { // Postgres unique violation
             res.status(400).json({ message: 'Mã giảm giá này đã tồn tại!' });
         } else {
             res.status(500).json({ message: 'Lỗi server: ' + error.message });
@@ -747,10 +664,7 @@ app.put('/api/vouchers/:code', authenticateToken, isAdmin, async (req, res) => {
         const { code } = req.params;
         const { status } = req.body;
         // Using global pool
-        await pool.request()
-            .input('code', sql.NVarChar, code)
-            .input('status', sql.Int, status)
-            .query('UPDATE Vouchers SET status = @status WHERE code = @code');
+        await pool.query('UPDATE Vouchers SET status = $1 WHERE code = $2', [status, code]);
         res.json({ success: true, message: 'Cập nhật trạng thái voucher thành công' });
     } catch (error) {
         console.error("Update voucher error:", error);
@@ -798,19 +712,17 @@ app.post('/api/reviews', authenticateToken, async (req, res) => {
         // Using global pool
 
         // Kiểm tra xem khách hàng đã mua sản phẩm này chưa
-        const purchaseCheck = await pool.request()
-            .input('phone', sql.NVarChar, customerPhone)
-            .input('productId', sql.Int, productId)
-            .query(`
-                SELECT TOP 1 d.productId 
+        const purchaseCheck = await pool.query(`
+                SELECT d."productId" 
                 FROM Orders o 
-                JOIN OrderDetails d ON o.id = d.orderId 
-                WHERE o.customerPhone = @phone 
-                AND d.productId = @productId 
+                JOIN OrderDetails d ON o.id = d."orderId" 
+                WHERE o."customerPhone" = $1 
+                AND d."productId" = $2 
                 AND o.status = 1
-            `);
+                LIMIT 1
+            `, [customerPhone, productId]);
 
-        if (purchaseCheck.recordset.length === 0) {
+        if (purchaseCheck.rows.length === 0) {
             return res.status(403).json({
                 success: false,
                 message: 'Bạn chỉ có thể đánh giá sản phẩm sau khi đã mua và nhận hàng thành công!'
@@ -821,21 +733,16 @@ app.post('/api/reviews', authenticateToken, async (req, res) => {
 
         // Nếu trong token thiếu fullname, truy vấn lại từ DB
         if (!customerName) {
-            const userResult = await pool.request()
-                .input('phone', sql.NVarChar, customerPhone)
-                .query('SELECT fullname FROM Users WHERE phone = @phone');
-            if (userResult.recordset.length > 0) {
-                customerName = userResult.recordset[0].fullname;
+            const userResult = await pool.query('SELECT fullname FROM Users WHERE phone = $1', [customerPhone]);
+            if (userResult.rows.length > 0) {
+                customerName = userResult.rows[0].fullname;
             }
         }
 
-        await pool.request()
-            .input('productId', sql.Int, productId)
-            .input('customerPhone', sql.NVarChar, customerPhone)
-            .input('customerName', sql.NVarChar, customerName || 'Khách hàng')
-            .input('rating', sql.Int, rating)
-            .input('comment', sql.NVarChar, comment)
-            .query('INSERT INTO Reviews (productId, customerPhone, customerName, rating, comment) VALUES (@productId, @customerPhone, @customerName, @rating, @comment)');
+        await pool.query(
+            'INSERT INTO Reviews ("productId", "customerPhone", "customerName", rating, comment) VALUES ($1, $2, $3, $4, $5)',
+            [productId, customerPhone, customerName || 'Khách hàng', rating, comment]
+        );
 
         res.json({ success: true, message: 'Đánh giá của bạn đã được gửi!' });
     } catch (error) {
@@ -849,43 +756,42 @@ app.post('/api/reviews', authenticateToken, async (req, res) => {
 // Get advanced statistics for charts
 app.get('/api/admin/stats/report', authenticateToken, isAdmin, async (req, res) => {
     try {
-        // Using global pool
-
         // 1. Top 5 Best Sellers
-        const topProducts = await pool.request().query(`
-            SELECT TOP 5 p.title, SUM(od.quantity) as totalQuantity, SUM(od.quantity * od.price) as totalRevenue
+        const topProducts = await pool.query(`
+            SELECT p.title, SUM(od.quantity) as "totalQuantity", SUM(od.quantity * od.price) as "totalRevenue"
             FROM OrderDetails od
-            JOIN Products p ON od.productId = p.id
-            JOIN Orders o ON od.orderId = o.id
-            WHERE o.status = 2 -- Only Paid orders
+            JOIN Products p ON od."productId" = p.id
+            JOIN Orders o ON od."orderId" = o.id
+            WHERE o.status = 2
             GROUP BY p.id, p.title
-            ORDER BY totalQuantity DESC
+            ORDER BY "totalQuantity" DESC
+            LIMIT 5
         `);
 
         // 2. Monthly Revenue (Current Year)
-        const monthlyRevenue = await pool.request().query(`
-            SELECT MONTH(CAST(o.deliveryDate AS DATE)) as month, SUM(o.totalPrice) as revenue
+        const monthlyRevenue = await pool.query(`
+            SELECT EXTRACT(MONTH FROM o."deliveryDate") as month, SUM(o."totalPrice") as revenue
             FROM Orders o
             WHERE o.status = 2 
-            AND YEAR(CAST(o.deliveryDate AS DATE)) = YEAR(GETDATE())
-            GROUP BY MONTH(CAST(o.deliveryDate AS DATE))
+            AND EXTRACT(YEAR FROM o."deliveryDate") = EXTRACT(YEAR FROM NOW())
+            GROUP BY month
             ORDER BY month ASC
         `);
 
         // 3. Category Distribution
-        const categoryStats = await pool.request().query(`
+        const categoryStats = await pool.query(`
             SELECT p.category, SUM(od.quantity * od.price) as revenue
             FROM OrderDetails od
-            JOIN Products p ON od.productId = p.id
-            JOIN Orders o ON od.orderId = o.id
+            JOIN Products p ON od."productId" = p.id
+            JOIN Orders o ON od."orderId" = o.id
             WHERE o.status = 2
             GROUP BY p.category
         `);
 
         res.json({
-            topProducts: topProducts.recordset,
-            monthlyRevenue: monthlyRevenue.recordset,
-            categoryStats: categoryStats.recordset
+            topProducts: topProducts.rows,
+            monthlyRevenue: monthlyRevenue.rows,
+            categoryStats: categoryStats.rows
         });
     } catch (error) {
         console.error("Admin stats report error:", error);
@@ -900,15 +806,13 @@ app.get('/api/admin/stats/report', authenticateToken, isAdmin, async (req, res) 
 // Get all reviews for admin
 app.get('/api/admin/reviews', authenticateToken, isAdmin, async (req, res) => {
     try {
-        // Using global pool
-        const result = await pool.request()
-            .query(`
-                SELECT r.*, p.title as productTitle 
+        const result = await pool.query(`
+                SELECT r.*, p.title as "productTitle" 
                 FROM Reviews r 
-                JOIN Products p ON r.productId = p.id 
-                ORDER BY r.reviewDate DESC
+                JOIN Products p ON r."productId" = p.id 
+                ORDER BY r."reviewDate" DESC
             `);
-        res.json(result.recordset);
+        res.json(result.rows);
     } catch (error) {
         console.error("Admin get reviews error:", error);
         res.status(500).json({ message: 'Lỗi server khi lấy danh sách đánh giá' });
@@ -919,10 +823,7 @@ app.get('/api/admin/reviews', authenticateToken, isAdmin, async (req, res) => {
 app.delete('/api/admin/reviews/:id', authenticateToken, isAdmin, async (req, res) => {
     try {
         const { id } = req.params;
-        // Using global pool
-        await pool.request()
-            .input('id', sql.Int, id)
-            .query('DELETE FROM Reviews WHERE id = @id');
+        await pool.query('DELETE FROM Reviews WHERE id = $1', [id]);
         res.json({ success: true, message: 'Xóa đánh giá thành công' });
     } catch (error) {
         console.error("Admin delete review error:", error);
@@ -937,14 +838,13 @@ app.delete('/api/admin/reviews/:id', authenticateToken, isAdmin, async (req, res
 // Get Stock History
 app.get('/api/admin/stock-history', authenticateToken, isAdmin, async (req, res) => {
     try {
-        // Using global pool
-        const result = await pool.request().query(`
-            SELECT sh.*, p.title as productTitle 
+        const result = await pool.query(`
+            SELECT sh.*, p.title as "productTitle" 
             FROM StockHistory sh 
-            JOIN Products p ON sh.productId = p.id 
-            ORDER BY sh.importDate DESC
+            JOIN Products p ON sh."productId" = p.id 
+            ORDER BY sh."importDate" DESC
         `);
-        res.json(result.recordset);
+        res.json(result.rows);
     } catch (err) {
         console.error("Fetch stock history error:", err);
         res.status(500).json({ message: 'Error fetching stock history' });
@@ -953,36 +853,32 @@ app.get('/api/admin/stock-history', authenticateToken, isAdmin, async (req, res)
 
 // Record Stock In
 app.post('/api/admin/stock-in', authenticateToken, isAdmin, async (req, res) => {
+    const client = await pool.connect();
     try {
         const { productId, quantity, note } = req.body;
-        // Using global pool
-        const transaction = new sql.Transaction(pool);
-
-        await transaction.begin();
+        await client.query('BEGIN');
 
         try {
             // 1. Record history
-            await transaction.request()
-                .input('productId', sql.Int, productId)
-                .input('quantity', sql.Int, quantity)
-                .input('note', sql.NVarChar, note)
-                .query('INSERT INTO StockHistory (productId, quantity, note) VALUES (@productId, @quantity, @note)');
+            await client.query(
+                'INSERT INTO StockHistory ("productId", quantity, note) VALUES ($1, $2, $3)',
+                [productId, quantity, note]
+            );
 
             // 2. Update Product stock
-            await transaction.request()
-                .input('productId', sql.Int, productId)
-                .input('quantity', sql.Int, quantity)
-                .query('UPDATE Products SET stock = stock + @quantity WHERE id = @productId');
+            await client.query('UPDATE Products SET stock = stock + $1 WHERE id = $2', [quantity, productId]);
 
-            await transaction.commit();
+            await client.query('COMMIT');
             res.status(201).json({ success: true, message: 'Nhập kho thành công!' });
         } catch (err) {
-            await transaction.rollback();
+            await client.query('ROLLBACK');
             throw err;
         }
     } catch (err) {
         console.error("Stock in error:", err);
         res.status(500).json({ message: 'Lỗi khi cập nhật kho hàng' });
+    } finally {
+        client.release();
     }
 });
 
