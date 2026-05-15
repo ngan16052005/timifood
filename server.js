@@ -5,6 +5,7 @@ const path = require('path');
 const { sql, connectDB } = require('./db');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
+const path = require('path');
 require('dotenv').config();
 
 const SECRET_KEY = 'TiMiFood_Secret_Key_2026';
@@ -991,5 +992,9 @@ app.use(express.static(path.join(__dirname, './')));
 if (process.env.NODE_ENV !== 'production') {
     startServer();
 }
+
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'index.html'));
+});
 
 module.exports = app; // Dòng này là QUAN TRỌNG NHẤT để Vercel chạy được
