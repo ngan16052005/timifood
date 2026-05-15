@@ -30,22 +30,25 @@ app.use((req, res, next) => {
 });
 
 let pool;
-async function startServer() {
+// Initialize database connection
+async function initDB() {
     try {
         pool = await connectDB();
-        if (!pool) {
-            console.error('Could not connect to database. Server starting without DB...');
-        }
-
-        app.listen(PORT, () => {
-            console.log(`Server is running on http://localhost:${PORT}`);
-        }).on('error', (err) => {
-            console.error('Server failed to start:', err);
-        });
+        console.log('Database connected successfully');
     } catch (err) {
-        console.error('Start server error:', err);
+        console.error('Database connection failed:', err);
     }
 }
+
+initDB();
+
+if (process.env.NODE_ENV !== 'production') {
+    const PORT = process.env.PORT || 3000;
+    app.listen(PORT, () => {
+        console.log(`Server is running on http://localhost:${PORT}`);
+    });
+}
+
 
 process.on('unhandledRejection', (reason, promise) => {
     console.error('Unhandled Rejection at:', promise, 'reason:', reason);
@@ -986,14 +989,15 @@ app.post('/api/admin/stock-in', authenticateToken, isAdmin, async (req, res) => 
 // --- END STOCK MANAGEMENT ---
 
 // Serve static files
-app.use(express.static(path.join(__dirname, './')));
-
-if (process.env.NODE_ENV !== 'production') {
-    startServer();
-}
+app.use(express.static(path.join(__dirname, 'public')));
 
 app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'index.html'));
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-module.exports = app; // Dòng này là QUAN TRỌNG NHẤT để Vercel chạy được
+app.get('/admin', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'admin.html'));
+});
+
+module.exports = app;
+
