@@ -4,9 +4,18 @@ require('dotenv').config();
 const isProduction = process.env.NODE_ENV === 'production';
 
 // Cấu hình kết nối linh hoạt giữa Local và Vercel
-const connectionConfig = isProduction ? {
-    connectionString: process.env.POSTGRES_URL + "?sslmode=require",
-} : {
+const getProductionConfig = () => {
+    const connectionString = process.env.POSTGRES_URL;
+    if (!connectionString) return {};
+    
+    const finalConnectionString = connectionString.includes('sslmode=') 
+        ? connectionString 
+        : connectionString + (connectionString.includes('?') ? '&' : '?') + "sslmode=require";
+        
+    return { connectionString: finalConnectionString };
+};
+
+const connectionConfig = isProduction ? getProductionConfig() : {
     user: process.env.DB_USER || 'postgres',
     password: process.env.DB_PASSWORD || '123456',
     host: process.env.DB_SERVER || 'localhost',
