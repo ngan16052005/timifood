@@ -96,10 +96,10 @@ app.get('/api/products', async (req, res) => {
         // Using global pool
         let query = `
             SELECT p.*, 
-                   COALESCE(AVG(CAST(r.rating AS FLOAT)), 0) as avgRating,
-                   COUNT(r.id) as reviewCount
+                   COALESCE(AVG(CAST(r.rating AS FLOAT)), 0) as "avgRating",
+                   COUNT(r.id) as "reviewCount"
             FROM Products p
-            LEFT JOIN Reviews r ON p.id = r.productId
+            LEFT JOIN Reviews r ON p.id = r."productId"
         `;
         let params = [];
         if (search) {
@@ -157,13 +157,11 @@ app.delete('/api/products/:id', authenticateToken, isAdmin, async (req, res) => 
     try {
         const id = parseInt(req.params.id);
         // Check if product is in any order first
-        const checkOrder = await pool.query('SELECT * FROM OrderDetails WHERE productId=$1 LIMIT 1', [id]);
-
+        const checkOrder = await pool.query('SELECT * FROM OrderDetails WHERE "productId"=$1 LIMIT 1', [id]);
         if (checkOrder.rows.length > 0) {
-            return res.status(400).json({ message: 'Không thể xóa vĩnh viễn sản phẩm này vì đã có trong lịch sử đơn hàng. Vui lòng sử dụng chức năng Ẩn.' });
+            return res.status(400).json({ message: 'Không thể xóa sản phẩm đã có trong đơn hàng' });
         }
-
-        await pool.query('DELETE FROM Products WHERE id=$1', [id]);
+        await pool.query('DELETE FROM Products WHERE id = $1', [id]);
         res.json({ success: true, message: 'Product deleted permanently' });
     } catch (err) {
         res.status(500).json({ message: 'Error deleting product' });
@@ -273,16 +271,11 @@ app.get('/api/users', authenticateToken, isAdmin, async (req, res) => {
 app.put('/api/users/:phone', authenticateToken, isAdmin, async (req, res) => {
     try {
         const { phone } = req.params;
-        const { fullname, password, status, userType } = req.body;
-        // Using global pool
-
-        await pool.request()
-            .input('phone', sql.NVarChar, phone)
-            .input('fullname', sql.NVarChar, fullname)
-            .input('password', sql.NVarChar, password)
-            .input('status', sql.Int, status)
-            .input('userType', sql.Int, userType)
-            .query('UPDATE Users SET fullname = @fullname, password = @password, status = @status, userType = @userType WHERE phone = @phone');
+        const { fullname, password, status, "userType" } = req.body;
+        await pool.query(
+            'UPDATE Users SET fullname = $1, password = $2, status = $3, "userType" = $4 WHERE phone = $5',
+            [fullname, password, status, "userType", phone]
+        );
 
         res.json({ success: true, message: 'Cập nhật tài khoản thành công' });
     } catch (error) {
@@ -295,9 +288,7 @@ app.put('/api/users/:phone', authenticateToken, isAdmin, async (req, res) => {
 app.delete('/api/users/:phone', authenticateToken, isAdmin, async (req, res) => {
     try {
         const { phone } = req.params;
-        await pool.request()
-            .input('phone', sql.NVarChar, phone)
-            .query('DELETE FROM Users WHERE phone=@phone');
+        await pool.query('DELETE FROM Users WHERE phone=$1', [phone]);
         res.json({ message: 'User deleted' });
     } catch (err) {
         res.status(500).json({ message: 'Error deleting user' });
@@ -311,7 +302,6 @@ app.get('/api/cart/:phone', authenticateToken, async (req, res) => {
     try {
         const { phone } = req.params;
         const result = await pool.query('SELECT "cartData" FROM Users WHERE phone=$1', [phone]);
-
         if (result.rows.length > 0) {
             const cartData = result.rows[0].cartData;
             res.json(cartData ? (typeof cartData === 'string' ? JSON.parse(cartData) : cartData) : []);
@@ -514,6 +504,16 @@ app.put('/api/orders/:id/update', authenticateToken, async (req, res) => {
         const userPhone = req.user.phone;
 
         // 1. Check permissions
+        const voucherResult = await pool.query('SELECT * FROM Vouchers WHERE code = $1 AND status = 1', [req.body.voucherCode]);
+        if (req.body.voucherCode && voucherResult.rows.length === 0) {
+            return res.status(404).json({ message: 'Voucher không hợp lệ hoặc đã hết hạn' });
+        }
+        const voucher = voucherResult.rows[0];
+        // Check expiryDate
+        if (voucher && voucher.expiryDate && new Date(voucher.expiryDate) < new Date()) {
+            return res.status(400).json({ message: 'Voucher đã hết hạn sử dụng' });
+        }
+        
         const orderCheck = await client.query('SELECT "customerPhone", status FROM Orders WHERE id = $1', [id]);
 
         if (orderCheck.rows.length === 0) {
@@ -677,9 +677,7 @@ app.delete('/api/vouchers/:code', authenticateToken, isAdmin, async (req, res) =
     try {
         const { code } = req.params;
         // Using global pool
-        await pool.request()
-            .input('code', sql.NVarChar, code)
-            .query('DELETE FROM Vouchers WHERE code = @code');
+        await pool.query('DELETE FROM Vouchers WHERE code = $1', [code]);
         res.json({ success: true, message: 'Xóa mã giảm giá thành công' });
     } catch (error) {
         console.error("Delete voucher error:", error);
@@ -694,10 +692,8 @@ app.get('/api/products/:id/reviews', async (req, res) => {
     try {
         const { id } = req.params;
         // Using global pool
-        const result = await pool.request()
-            .input('productId', sql.Int, id)
-            .query('SELECT * FROM Reviews WHERE productId = @productId ORDER BY reviewDate DESC');
-        res.json(result.recordset);
+        const result = await pool.query('SELECT * FROM Reviews WHERE "productId" = $1 ORDER BY "reviewDate" DESC', [id]);
+        res.json(result.rows);
     } catch (error) {
         console.error("Get reviews error:", error);
         res.status(500).json({ message: 'Lỗi server khi lấy đánh giá' });
@@ -769,12 +765,13 @@ app.get('/api/admin/stats/report', authenticateToken, isAdmin, async (req, res) 
         `);
 
         // 2. Monthly Revenue (Current Year)
-        const monthlyRevenue = await pool.query(`
-            SELECT EXTRACT(MONTH FROM o."deliveryDate") as month, SUM(o."totalPrice") as revenue
-            FROM Orders o
-            WHERE o.status = 2 
-            AND EXTRACT(YEAR FROM o."deliveryDate") = EXTRACT(YEAR FROM NOW())
-            GROUP BY month
+        const revenueResult = await pool.query(`
+            SELECT 
+                EXTRACT(MONTH FROM "orderDate") as month, 
+                SUM("totalPrice") as revenue 
+            FROM Orders 
+            WHERE status = 2 AND EXTRACT(YEAR FROM "orderDate") = EXTRACT(YEAR FROM NOW())
+            GROUP BY EXTRACT(MONTH FROM "orderDate")
             ORDER BY month ASC
         `);
 
