@@ -1645,6 +1645,8 @@ updateAccount.addEventListener("click", async (e) => {
 
     if (fullname == "" || phone == "" || password == "") {
         toast({ title: 'Cảnh báo', message: 'Vui lòng nhập đầy đủ thông tin!', type: 'warning', duration: 3000 });
+    } else if (!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/.test(password)) {
+        toast({ title: 'Cảnh báo', message: 'Mật khẩu phải từ 8 ký tự, bao gồm chữ hoa, chữ thường và số!', type: 'warning', duration: 3000 });
     } else {
         try {
             await window.api.updateUser(phone, { fullname, password, status, userType: parseInt(userRole) });
@@ -1664,9 +1666,14 @@ addAccount.addEventListener("click", async (e) => {
     let phoneUser = document.getElementById('phone').value;
     let passwordUser = document.getElementById('password').value;
 
-    // Simple validation
-    if (fullNameUser.length < 3 || phoneUser.length != 10 || passwordUser.length < 6) {
-        toast({ title: 'Chú ý', message: 'Vui lòng kiểm tra lại thông tin nhập!', type: 'warning', duration: 3000 });
+    // Strong password validation
+    const strongPasswordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/;
+    if (fullNameUser.length < 3 || phoneUser.length != 10) {
+        toast({ title: 'Chú ý', message: 'Vui lòng kiểm tra lại tên và số điện thoại!', type: 'warning', duration: 3000 });
+        return;
+    }
+    if (!strongPasswordRegex.test(passwordUser)) {
+        toast({ title: 'Chú ý', message: 'Mật khẩu phải từ 8 ký tự, bao gồm chữ hoa, chữ thường và số!', type: 'warning', duration: 3000 });
         return;
     }
 

@@ -85,6 +85,8 @@ Dưới đây là danh sách đầy đủ các hạng mục đã hoàn thiện t
 - [x] Chuẩn hóa toàn bộ thông báo hệ thống (**Toast Messages**) sang tiếng Việt chuyên nghiệp.
 - [x] Kiểm tra và xác nhận tính ổn định của API đổi mật khẩu và bảo mật người dùng.
 - [x] Rà soát và đồng bộ hóa ngôn ngữ (Success -> Thành công, Error -> Lỗi) trên toàn bộ ứng dụng.
+- [x] Nâng cấp độ mạnh mật khẩu (**Strong Password Policy**): Tối thiểu 8 ký tự, bao gồm chữ hoa, chữ thường và số.
+- [x] Tự động hóa việc băm mật khẩu (Hashing) khi cập nhật tài khoản từ trang Quản trị.
 
 ---
 *Cập nhật lần cuối: 16/05/2026 bởi hgbaodev & AI Assistant.*

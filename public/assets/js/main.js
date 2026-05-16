@@ -629,6 +629,10 @@ signupButton.addEventListener('click', async () => {
     let passwordUser = document.getElementById('password').value;
     let passwordConfirmation = document.getElementById('password_confirmation').value;
     let checkSignup = document.getElementById('checkbox-signup').checked;
+    
+    // Password strength regex: min 8 chars, at least 1 upper, 1 lower, 1 digit
+    const strongPasswordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/;
+
     // Check validate
     if (fullNameUser.length == 0) {
         document.querySelector('.form-message-name').innerHTML = 'Vui lòng nhập họ vâ tên';
@@ -649,8 +653,8 @@ signupButton.addEventListener('click', async () => {
     }
     if (passwordUser.length == 0) {
         document.querySelector('.form-message-password').innerHTML = 'Vui lòng nhập mật khẩu';
-    } else if (passwordUser.length < 6) {
-        document.querySelector('.form-message-password').innerHTML = 'Vui lòng nhập mật khẩu lớn hơn 6 kí tự';
+    } else if (!strongPasswordRegex.test(passwordUser)) {
+        document.querySelector('.form-message-password').innerHTML = 'Mật khẩu phải từ 8 ký tự, bao gồm chữ hoa, chữ thường và số';
         document.getElementById('password').value = '';
     } else {
         document.querySelector('.form-message-password').innerHTML = '';
@@ -900,8 +904,8 @@ async function changePassword() {
         document.querySelector('.password-cur-info-error').innerHTML = 'Vui lòng nhập mật khẩu hiện tại';
         return;
     }
-    if (passwordAfter.value.length < 6) {
-        document.querySelector('.password-after-info-error').innerHTML = 'Mật khẩu mới phải từ 6 ký tự';
+    if (passwordAfter.value.length < 8 || !/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/.test(passwordAfter.value)) {
+        document.querySelector('.password-after-info-error').innerHTML = 'Mật khẩu mới phải từ 8 ký tự, bao gồm chữ hoa, chữ thường và số';
         return;
     }
     if (passwordAfter.value != passwordConfirm.value) {

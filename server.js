@@ -465,12 +465,17 @@ app.put('/api/users/:phone', authenticateToken, isAdmin, async (req, res) => {
     try {
         const { phone } = req.params;
         const { fullname, password, status, userType } = req.body;
-        // Using global pool
+        
+        // Hash password if it's not already hashed (bcrypt hashes start with $2)
+        let finalPassword = password;
+        if (password && !password.startsWith('$2')) {
+            finalPassword = await bcrypt.hash(password, 10);
+        }
 
         await pool.request()
             .input('phone', sql.NVarChar, phone)
             .input('fullname', sql.NVarChar, fullname)
-            .input('password', sql.NVarChar, password)
+            .input('password', sql.NVarChar, finalPassword)
             .input('status', sql.Int, status)
             .input('userType', sql.Int, userType)
             .query('UPDATE Users SET fullname = @fullname, password = @password, status = @status, userType = @userType WHERE phone = @phone');
