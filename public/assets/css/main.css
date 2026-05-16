@@ -960,7 +960,8 @@ header {
     opacity: 0;
     pointer-events: none;
     transition: opacity 0.3s ease;
-    z-index: 1000; /* Increased to be above checkout-page */
+    z-index: 1000;
+    /* Increased to be above checkout-page */
 }
 
 .modal.open {
@@ -1745,7 +1746,7 @@ input[type=number] {
 .order-history-card {
     background: #fff;
     border-radius: 12px;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
     margin-bottom: 25px;
     border: 1px solid #eee;
     transition: transform 0.2s;
@@ -1786,9 +1787,23 @@ input[type=number] {
     letter-spacing: 0.5px;
 }
 
-.status-completed { background: #eefdf3; color: #1ea34d; border: 1px solid #c8e6d1; }
-.status-pending { background: #fff9e6; color: #d4a017; border: 1px solid #f5e7b8; }
-.status-shipping { background: #e6f4ff; color: #096dd9; border: 1px solid #bae7ff; }
+.status-completed {
+    background: #eefdf3;
+    color: #1ea34d;
+    border: 1px solid #c8e6d1;
+}
+
+.status-pending {
+    background: #fff9e6;
+    color: #d4a017;
+    border: 1px solid #f5e7b8;
+}
+
+.status-shipping {
+    background: #e6f4ff;
+    color: #096dd9;
+    border: 1px solid #bae7ff;
+}
 
 .order-history-body {
     padding: 20px;
@@ -2501,7 +2516,8 @@ input[type=number] {
     align-items: center;
 }
 
-.choise-time, .choise-time-pickup {
+.choise-time,
+.choise-time-pickup {
     font-size: 14px;
     border: 1px solid var(--red);
     height: 32px;
@@ -2557,7 +2573,7 @@ input[type=number] {
     flex: 1;
 }
 
-.payment-item i, 
+.payment-item i,
 .payment-item img {
     width: 32px;
     height: 32px;
