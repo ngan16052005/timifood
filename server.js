@@ -1280,6 +1280,89 @@ app.delete('/api/notifications', authenticateToken, async (req, res) => {
 
 // --- END NOTIFICATION MANAGEMENT ---
 
+// --- CATEGORY MANAGEMENT ---
+// Get all categories (Public)
+app.get('/api/categories', async (req, res) => {
+    try {
+        const result = await pool.request().query('SELECT * FROM Categories ORDER BY name ASC');
+        res.json(result.recordset);
+    } catch (err) {
+        console.error("Fetch categories error:", err);
+        res.status(500).json({ message: 'Lỗi khi tải danh mục' });
+    }
+});
+
+// Add category (Admin only)
+app.post('/api/categories', authenticateToken, isAdmin, async (req, res) => {
+    try {
+        const { name } = req.body;
+        if (!name) return res.status(400).json({ message: 'Tên danh mục không được để trống' });
+
+        await pool.request()
+            .input('name', sql.NVarChar, name)
+            .query('INSERT INTO Categories (name) VALUES (@name)');
+        
+        res.status(201).json({ success: true, message: 'Thêm danh mục thành công' });
+    } catch (err) {
+        if (err.number === 2627) { // Unique constraint violation
+            return res.status(400).json({ message: 'Tên danh mục đã tồn tại' });
+        }
+        console.error("Add category error:", err);
+        res.status(500).json({ message: 'Lỗi khi thêm danh mục' });
+    }
+});
+
+// Update category (Admin only)
+app.put('/api/categories/:id', authenticateToken, isAdmin, async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { name } = req.body;
+        
+        await pool.request()
+            .input('id', sql.Int, id)
+            .input('name', sql.NVarChar, name)
+            .query('UPDATE Categories SET name = @name WHERE id = @id');
+        
+        res.json({ success: true, message: 'Cập nhật danh mục thành công' });
+    } catch (err) {
+        console.error("Update category error:", err);
+        res.status(500).json({ message: 'Lỗi khi cập nhật danh mục' });
+    }
+});
+
+// Delete category (Admin only)
+app.delete('/api/categories/:id', authenticateToken, isAdmin, async (req, res) => {
+    try {
+        const { id } = req.params;
+        
+        // Check if category is in use
+        const catCheck = await pool.request()
+            .input('id', sql.Int, id)
+            .query('SELECT name FROM Categories WHERE id = @id');
+        
+        if (catCheck.recordset.length === 0) return res.status(404).json({ message: 'Không tìm thấy danh mục' });
+        
+        const catName = catCheck.recordset[0].name;
+        const productCheck = await pool.request()
+            .input('name', sql.NVarChar, catName)
+            .query('SELECT COUNT(*) as count FROM Products WHERE category = @name');
+        
+        if (productCheck.recordset[0].count > 0) {
+            return res.status(400).json({ message: 'Không thể xóa danh mục đang có sản phẩm' });
+        }
+
+        await pool.request()
+            .input('id', sql.Int, id)
+            .query('DELETE FROM Categories WHERE id = @id');
+        
+        res.json({ success: true, message: 'Xóa danh mục thành công' });
+    } catch (err) {
+        console.error("Delete category error:", err);
+        res.status(500).json({ message: 'Lỗi khi xóa danh mục' });
+    }
+});
+// --- END CATEGORY MANAGEMENT ---
+
 // Serve static files
 app.use(express.static(path.join(__dirname, 'public')));
 

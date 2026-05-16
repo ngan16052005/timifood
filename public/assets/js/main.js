@@ -1640,4 +1640,67 @@ window.addEventListener('load', () => {
     }
 });
 
+// --- DYNAMIC CATEGORY LOADING ---
+async function loadCategories() {
+    try {
+        const categories = await window.api.getCategories();
+        
+        // 1. Top Menu
+        const mainMenu = document.getElementById("main-menu-categories");
+        if (mainMenu) {
+            // Keep "Trang chủ"
+            let html = '<li class="menu-list-item"><a href="index.html" class="menu-link">Trang chủ</a></li>';
+            categories.forEach(cat => {
+                html += `
+                    <li class="menu-list-item" onclick="showCategory('${cat.name}')">
+                        <a href="javascript:;" class="menu-link">${cat.name}</a>
+                    </li>
+                `;
+            });
+            // Add "Khác"
+            html += `
+                <li class="menu-list-item" onclick="showCategory('Món khác')">
+                    <a href="javascript:;" class="menu-link">Món khác</a>
+                </li>
+            `;
+            mainMenu.innerHTML = html;
+        }
+
+        // 2. Advanced Search Select
+        const searchSelect = document.getElementById("advanced-search-category-select");
+        if (searchSelect) {
+            let html = '<option>Tất cả</option>';
+            categories.forEach(cat => {
+                html += `<option>${cat.name}</option>`;
+            });
+            html += `<option>Món khác</option>`;
+            searchSelect.innerHTML = html;
+        }
+
+        // 3. Footer Categories
+        const footerMenu = document.getElementById("footer-categories");
+        if (footerMenu) {
+            let html = "";
+            // Show only first 5 categories in footer to keep it neat
+            categories.slice(0, 5).forEach(cat => {
+                html += `
+                    <li class="widget-contact-item">
+                        <a href="javascript:;" onclick="showCategory('${cat.name}')">
+                            <i class="fa-regular fa-arrow-right"></i>
+                            <span>${cat.name}</span>
+                        </a>
+                    </li>
+                `;
+            });
+            footerMenu.innerHTML = html;
+        }
+    } catch (error) {
+        console.error("Load categories error:", error);
+    }
+}
+
+// Call on load
+document.addEventListener('DOMContentLoaded', loadCategories);
+
+
 

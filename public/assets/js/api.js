@@ -586,5 +586,79 @@ window.api = {
         } catch (error) {
             console.error("Delete all notifications error:", error);
         }
+    },
+
+    // --- CATEGORIES ---
+    getCategories: async () => {
+        try {
+            const response = await fetch(`${BASE_URL}/categories`);
+            if (!response.ok) throw new Error('Failed to fetch categories');
+            return await response.json();
+        } catch (error) {
+            console.error("Get categories error:", error);
+            throw error;
+        }
+    },
+
+    addCategory: async (name) => {
+        showLoader();
+        try {
+            const response = await fetch(`${BASE_URL}/categories`, {
+                method: 'POST',
+                headers: getHeaders(),
+                body: JSON.stringify({ name })
+            });
+            if (!response.ok) {
+                const err = await response.json();
+                throw new Error(err.message || 'Lỗi khi thêm danh mục');
+            }
+            return await response.json();
+        } catch (error) {
+            console.error("Add category error:", error);
+            throw error;
+        } finally {
+            hideLoader();
+        }
+    },
+
+    updateCategory: async (id, name) => {
+        showLoader();
+        try {
+            const response = await fetch(`${BASE_URL}/categories/${id}`, {
+                method: 'PUT',
+                headers: getHeaders(),
+                body: JSON.stringify({ name })
+            });
+            if (!response.ok) {
+                const err = await response.json();
+                throw new Error(err.message || 'Lỗi khi cập nhật danh mục');
+            }
+            return await response.json();
+        } catch (error) {
+            console.error("Update category error:", error);
+            throw error;
+        } finally {
+            hideLoader();
+        }
+    },
+
+    deleteCategory: async (id) => {
+        showLoader();
+        try {
+            const response = await fetch(`${BASE_URL}/categories/${id}`, {
+                method: 'DELETE',
+                headers: getHeaders()
+            });
+            if (!response.ok) {
+                const err = await response.json();
+                throw new Error(err.message || 'Lỗi khi xóa danh mục');
+            }
+            return await response.json();
+        } catch (error) {
+            console.error("Delete category error:", error);
+            throw error;
+        } finally {
+            hideLoader();
+        }
     }
 };

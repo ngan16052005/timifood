@@ -93,7 +93,7 @@ window.onload = async () => {
         quickSearch.addEventListener('input', async (e) => {
             const query = e.target.value.toLowerCase();
             if (query.length > 0) {
-                const orderTab = document.querySelector('.sidebar-list-item:nth-child(4)');
+                const orderTab = document.querySelector('.sidebar-list-item:nth-child(5)');
                 if (orderTab && !orderTab.classList.contains('active')) {
                     orderTab.click();
                 }
@@ -129,17 +129,17 @@ function applyPermissions(userType) {
     if (userType == 2) { // Nhân viên (Staff)
         console.log("Quyền hạn: Nhân viên - Xử lý đơn hàng & Khuyến mãi");
         
-        // Các index menu cần ẩn: 0 (Tổng quát), 1 (Sản phẩm), 2 (Tài khoản), 4 (Nhập kho), 6 (Thống kê)
-        const forbiddenIndexes = [0, 1, 2, 4, 6];
+        // Các index menu cần ẩn: 0: Tổng quát, 1: Sản phẩm, 2: Danh mục, 3: Tài khoản, 5: Nhập kho, 7: Thống kê
+        const forbiddenIndexes = [0, 1, 2, 3, 5, 7];
         forbiddenIndexes.forEach(index => {
             if (sidebarItems[index]) sidebarItems[index].style.display = 'none';
         });
 
-        // Tự động chuyển sang mục Đơn hàng (Index 3)
+        // Tự động chuyển sang mục Đơn hàng (Index 4)
         if (!document.querySelector(".sidebar-list-item.active")) {
-            if (sidebarItems[3] && sections[3]) {
-                sidebarItems[3].classList.add("active");
-                sections[3].classList.add("active");
+            if (sidebarItems[4] && sections[4]) {
+                sidebarItems[4].classList.add("active");
+                sections[4].classList.add("active");
             }
         }
     }
@@ -173,7 +173,8 @@ for (let i = 0; i < sidebars.length; i++) {
         const isStaff = currentUser && currentUser.userType == 2;
 
         // Kiểm tra quyền truy cập cho nhân viên
-        const forbiddenForStaff = [0, 1, 2, 4, 6];
+        // Cập nhật index mới: [0: Tổng quát, 1: Sản phẩm, 2: Danh mục, 3: Tài khoản, 5: Nhập kho, 7: Thống kê] là cấm Staff
+        const forbiddenForStaff = [0, 1, 2, 3, 5, 7];
         if (isStaff && forbiddenForStaff.includes(i)) {
             toast({ title: 'Từ chối', message: 'Bạn không có quyền truy cập mục này!', type: 'error', duration: 3000 });
             return;
@@ -190,18 +191,23 @@ for (let i = 0; i < sidebars.length; i++) {
         sidebars[i].classList.add("active");
         sections[i].classList.add("active");
         
-        // Nếu là tab Nhập kho (Index 4)
-        if (i === 4) {
+        // Nếu là tab Danh mục (Index 2)
+        if (i === 2) {
+            await showCategories();
+        }
+
+        // Nếu là tab Nhập kho (Index 5)
+        if (i === 5) {
             await showStockHistory();
         }
 
-        // Nếu là tab Thống kê (Index 6)
-        if (i === 6) {
+        // Nếu là tab Thống kê (Index 7)
+        if (i === 7) {
             await thongKe(0);
         }
 
-        // Nếu là tab Đánh giá (Index 7)
-        if (i === 7) {
+        // Nếu là tab Đánh giá (Index 8)
+        if (i === 8) {
             await showReviews();
         }
     };
@@ -2036,4 +2042,119 @@ async function submitStockIn() {
         toast({ title: "Lỗi", message: error.message || "Không thể nhập hàng!", type: "error", duration: 3000 });
     }
 }
+// --- CATEGORY MANAGEMENT FUNCTIONS ---
+async function showCategories() {
+    try {
+        const categories = await window.api.getCategories();
+        let html = "";
+        categories.forEach(cat => {
+            html += `
+                <tr>
+                    <td>${cat.id}</td>
+                    <td>${cat.name}</td>
+                    <td>
+                        <button class="btn-edit" onclick="openEditCategoryModal(${cat.id}, '${cat.name}')">
+                            <i class="fa-light fa-pen-to-square"></i>
+                        </button>
+                        <button class="btn-delete" onclick="deleteCategory(${cat.id})">
+                            <i class="fa-light fa-trash"></i>
+                        </button>
+                    </td>
+                </tr>
+            `;
+        });
+        document.getElementById("show-categories").innerHTML = html;
+    } catch (error) {
+        console.error("Show categories error:", error);
+    }
+}
 
+function openAddCategoryModal() {
+    document.querySelector(".category-title").innerText = "THÊM DANH MỤC";
+    document.getElementById("category-submit-text").innerText = "XÁC NHẬN THÊM";
+    document.getElementById("category-id").value = "";
+    document.getElementById("category-name").value = "";
+    document.querySelector(".category-modal").classList.add("open");
+}
+
+function openEditCategoryModal(id, name) {
+    document.querySelector(".category-title").innerText = "CHỈNH SỬA DANH MỤC";
+    document.getElementById("category-submit-text").innerText = "XÁC NHẬN LƯU";
+    document.getElementById("category-id").value = id;
+    document.getElementById("category-name").value = name;
+    document.querySelector(".category-modal").classList.add("open");
+}
+
+function closeCategoryModal() {
+    document.querySelector(".category-modal").classList.remove("open");
+}
+
+async function submitCategory() {
+    const id = document.getElementById("category-id").value;
+    const name = document.getElementById("category-name").value.trim();
+
+    if (!name) {
+        toast({ title: "Lỗi", message: "Tên danh mục không được để trống!", type: "error" });
+        return;
+    }
+
+    try {
+        if (id) {
+            await window.api.updateCategory(id, name);
+            toast({ title: "Thành công", message: "Cập nhật danh mục thành công!", type: "success" });
+        } else {
+            await window.api.addCategory(name);
+            toast({ title: "Thành công", message: "Thêm danh mục mới thành công!", type: "success" });
+        }
+        closeCategoryModal();
+        await showCategories();
+        await loadCategoriesToSelect(); // Update selects in forms
+    } catch (error) {
+        toast({ title: "Lỗi", message: error.message || "Lỗi xử lý danh mục!", type: "error" });
+    }
+}
+
+async function deleteCategory(id) {
+    if (!confirm("Bạn có chắc chắn muốn xóa danh mục này?")) return;
+
+    try {
+        await window.api.deleteCategory(id);
+        toast({ title: "Thành công", message: "Xóa danh mục thành công!", type: "success" });
+        await showCategories();
+        await loadCategoriesToSelect();
+    } catch (error) {
+        toast({ title: "Lỗi", message: error.message || "Lỗi khi xóa danh mục!", type: "error" });
+    }
+}
+
+async function loadCategoriesToSelect() {
+    try {
+        const categories = await window.api.getCategories();
+        
+        // 1. Add/Edit Product Modal Select
+        const chonMonSelect = document.getElementById("chon-mon");
+        if (chonMonSelect) {
+            let html = categories.map(cat => `<option>${cat.name}</option>`).join("");
+            chonMonSelect.innerHTML = html;
+        }
+
+        // 2. Statistics Filter Select
+        const theLoaiTkSelect = document.getElementById("the-loai-tk");
+        if (theLoaiTkSelect) {
+            let html = '<option>Tất cả</option>' + categories.map(cat => `<option>${cat.name}</option>`).join("") + '<option>Món khác</option>';
+            theLoaiTkSelect.innerHTML = html;
+        }
+
+        // 3. Main Product Filter (if exists in admin or shared logic)
+        // ...
+    } catch (error) {
+        console.error("Load categories to select error:", error);
+    }
+}
+
+// Update initialization to load dynamic categories
+const originalOnload = window.onload;
+window.onload = async () => {
+    if (originalOnload) await originalOnload();
+    await loadCategoriesToSelect();
+};

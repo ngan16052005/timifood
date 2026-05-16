@@ -105,6 +105,12 @@
                     </li>
                     <li class="sidebar-list-item tab-content">
                         <a href="#" class="sidebar-link">
+                            <div class="sidebar-icon"><i class="fa-light fa-layer-group"></i></div>
+                            <div class="hidden-sidebar">Danh mục</div>
+                        </a>
+                    </li>
+                    <li class="sidebar-list-item tab-content">
+                        <a href="#" class="sidebar-link">
                             <div class="sidebar-icon"><i class="fa-light fa-users"></i></div>
                             <div class="hidden-sidebar">Tài khoản</div>
                         </a>
@@ -215,6 +221,32 @@
                 <div class="page-nav">
                     <ul class="page-nav-list">
                     </ul>
+                </div>
+            </div>
+            <!-- Categories -->
+            <div class="section">
+                <div class="admin-control">
+                    <div class="admin-control-left">
+                        <h3 class="title-section">Quản lý danh mục sản phẩm</h3>
+                    </div>
+                    <div class="admin-control-right">
+                        <button class="btn-control-large" onclick="openAddCategoryModal()">
+                            <i class="fa-light fa-plus"></i> <span>Thêm danh mục</span>
+                        </button>
+                    </div>
+                </div>
+                <div class="table">
+                    <table width="100%">
+                        <thead>
+                            <tr>
+                                <td style="width: 100px;">ID</td>
+                                <td>Tên danh mục</td>
+                                <td style="width: 200px;">Thao tác</td>
+                            </tr>
+                        </thead>
+                        <tbody id="show-categories">
+                        </tbody>
+                    </table>
                 </div>
             </div>
             <!-- Account  -->
@@ -516,6 +548,7 @@
                     </table>
                 </div>
             </div>
+
         </main>
     </div>
     <div class="modal add-product">
@@ -738,6 +771,26 @@
                     </div>
                     <button type="button" class="form-submit" onclick="submitStockIn()">
                         <i class="fa-light fa-plus"></i> <span>XÁC NHẬN NHẬP KHO</span>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Category Modal -->
+    <div class="modal category-modal">
+        <div class="modal-container">
+            <h3 class="modal-container-title category-title">THÊM DANH MỤC</h3>
+            <button class="modal-close" onclick="closeCategoryModal()"><i class="fa-regular fa-xmark"></i></button>
+            <div class="modal-content">
+                <form id="category-form">
+                    <input type="hidden" id="category-id">
+                    <div class="form-group">
+                        <label for="category-name" class="form-label">Tên danh mục</label>
+                        <input id="category-name" type="text" placeholder="Nhập tên danh mục (VD: Món mới...)" class="form-control">
+                    </div>
+                    <button type="button" class="form-submit" onclick="submitCategory()">
+                        <i class="fa-light fa-check"></i> <span id="category-submit-text">XÁC NHẬN</span>
                     </button>
                 </form>
             </div>

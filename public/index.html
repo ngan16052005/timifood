@@ -105,22 +105,9 @@
     </header>
     <nav class="header-bottom">
         <div class="container">
-            <ul class="menu-list">
+            <ul class="menu-list" id="main-menu-categories">
                 <li class="menu-list-item"><a href="index.html" class="menu-link">Trang chủ</a></li>
-                <li class="menu-list-item" onclick="showCategory('Món chay')"><a href="javascript:;"
-                        class="menu-link">Món chay</a></li>
-                <li class="menu-list-item" onclick="showCategory('Món mặn')"><a href="javascript:;"
-                        class="menu-link">Món mặn</a></li>
-                <li class="menu-list-item" onclick="showCategory('Món lẩu')"><a href="javascript:;"
-                        class="menu-link">Món lẩu</a></li>
-                <li class="menu-list-item" onclick="showCategory('Món ăn vặt')"><a href="javascript:;"
-                        class="menu-link">Món ăn vặt</a></li>
-                <li class="menu-list-item" onclick="showCategory('Món tráng miệng')"><a href="javascript:;"
-                        class="menu-link">Món tráng miệng</a></li>
-                <li class="menu-list-item" onclick="showCategory('Nước uống')"><a href="javascript:;"
-                        class="menu-link">Nước uống</a></li>
-                <li class="menu-list-item" onclick="showCategory('Món khác')"><a href="javascript:;"
-                        class="menu-link">Món khác</a></li>
+                <!-- Dynamic categories will be loaded here -->
             </ul>
         </div>
     </nav>
@@ -130,12 +117,7 @@
                 <span>Phân loại </span>
                 <select name="" id="advanced-search-category-select" onchange="searchProducts()">
                     <option>Tất cả</option>
-                    <option>Món chay</option>
-                    <option>Món mặn</option>
-                    <option>Món lẩu</option>
-                    <option>Món ăn vặt</option>
-                    <option>Món tráng miệng</option>
-                    <option>Nước uống</option>
+                    <!-- Dynamic categories will be loaded here -->
                 </select>
             </div>
             <div class="advanced-search-price">
@@ -517,39 +499,9 @@
                     </div>
                     <div class="widget-row-col">
                         <h3 class="widget-title">Thực đơn</h3>
-                        <ul class="widget-contact">
-                            <li class="widget-contact-item">
-                                <a href="javascript:;" onclick="showCategory('Điểm tâm')">
-                                    <i class="fa-regular fa-arrow-right"></i>
-                                    <span>Điểm tâm</span>
-                                </a>
-                            </li>
-                            <li class="widget-contact-item">
-                                <a href="javascript:;" onclick="showCategory('Món chay')">
-                                    <i class="fa-regular fa-arrow-right"></i>
-                                    <span>Món chay</span>
-                                </a>
-                            </li>
-                            <li class="widget-contact-item">
-                                <a href="javascript:;" onclick="showCategory('Món mặn')">
-                                    <i class="fa-regular fa-arrow-right"></i>
-                                    <span>Món mặn</span>
-                                </a>
-                            </li>
-                            <li class="widget-contact-item">
-                                <a href="javascript:;" onclick="showCategory('Nước uống')">
-                                    <i class="fa-regular fa-arrow-right"></i>
-                                    <span>Nước uống</span>
-                                </a>
-                            </li>
-                            <li class="widget-contact-item">
-                                <a href="javascript:;" onclick="showCategory('Món tráng miệng')">
-                                    <i class="fa-regular fa-arrow-right"></i>
-                                    <span>Tráng miệng</span>
-                                </a>
-                            </li>
+                        <ul class="widget-contact" id="footer-categories">
+                            <!-- Dynamic categories will be loaded here -->
                         </ul>
-
                     </div>
                     <div class="widget-row-col-1">
                         <h3 class="widget-title">Liên hệ</h3>

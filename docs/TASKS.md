@@ -62,10 +62,15 @@ Dưới đây là danh sách đầy đủ các hạng mục đã hoàn thiện t
 - [x] Mô phỏng thanh toán VNPAY/MoMo với giao diện QR Code.
 - [x] Tích hợp Nodemailer: Tự động gửi Email xác nhận và cập nhật trạng thái đơn.
 
-## ✅ Giai đoạn 12: Tối ưu hóa Toàn diện (Final Polishing)
+## ✅ Giai đoạn 12: Tối ưu hóa Toàn diện & Nâng cấp Chuyên sâu (Final Polishing)
 - [x] Đồng bộ múi giờ toàn hệ thống (Fix lỗi lệch +7h).
 - [x] Thêm chọn giờ cho hình thức "Tự đến lấy" và đồng bộ UI Dropdown.
 - [x] Phân loại âm thanh thông báo Admin (Đơn mới / Đơn hủy).
+- [x] Triển khai tính năng **In hóa đơn (Print Invoice)** chuyên nghiệp cho Admin.
+- [x] Xây dựng hệ thống **Quản lý danh mục (Category Management)** động:
+    - [x] Cơ sở dữ liệu bảng `Categories`.
+    - [x] Giao diện Admin: Thêm, Sửa, Xóa danh mục.
+    - [x] Đồng bộ danh mục động lên Menu, Bộ lọc và Footer trang người dùng.
 - [x] Dọn dẹp mã lỗi Console và tối ưu hóa hiệu suất ứng dụng.
 
 ---
