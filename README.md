@@ -114,7 +114,18 @@
 - **Ràng buộc Uy tín (Verified Purchase):** Chỉ cho phép khách hàng đã mua và nhận hàng thành công mới được quyền đánh giá, loại bỏ hoàn toàn các bình luận ảo.
 - **Trải nghiệm thông minh:** Tự động ẩn form đánh giá với khách vãng lai (kèm lời mời đăng nhập) và cơ chế tự động lấy tên thật từ Database để đảm bảo thông tin luôn chính xác.
 
+### ✅ Giai đoạn 10: Quản trị Kho hàng & Hệ thống Thông báo Toàn diện
+- **Quản lý tồn kho (Inventory Control):**
+    - Triển khai tính năng **Nhập kho (Stock In)** chuyên nghiệp với ghi nhận số lượng và ghi chú chi tiết.
+    - Hệ thống **Lịch sử nhập kho (Stock History)** giúp theo dõi biến động hàng hóa theo thời gian.
+    - Tự động cảnh báo và ngăn chặn đặt hàng khi sản phẩm hết hàng (Out of stock).
+- **Hệ thống Thông báo (In-app Notifications):**
+    - Xây dựng trung tâm thông báo nội bộ cho từng người dùng.
+    - Thông báo xác nhận đơn hàng, cập nhật trạng thái giao hàng được gửi tự động.
+    - Admin nhận thông báo tức thì khi có đơn hàng mới hoặc phản hồi từ khách hàng.
+    - Hỗ trợ đánh dấu "Đã đọc", "Xóa tất cả" giúp quản lý thông báo gọn gàng.
+- **Quản trị Đánh giá nâng cao:** Admin có quyền kiểm soát tuyệt đối các bình luận, hỗ trợ xóa các nội dung không phù hợp để duy trì môi trường mua sắm văn minh.
+- **Di trú dữ liệu an toàn:** Cơ chế tự động nâng cấp (migration) mật khẩu cũ sang dạng mã hóa Bcrypt ngay khi người dùng đăng nhập, đảm bảo bảo mật mà không gây gián đoạn trải nghiệm.
+
 ---
 *Dự án hiện đã tích hợp đầy đủ các tính năng của một sàn thương mại điện tử thực thụ, đặt uy tín và tương tác với khách hàng lên hàng đầu.*
-
->>>>>>> 0264aba (Dự án TiMiFood - Lần đẩy code đầu tiên)
