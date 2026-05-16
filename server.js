@@ -357,30 +357,30 @@ app.post('/api/login', async (req, res) => {
 // Send OTP via Email
 app.post('/api/send-otp', async (req, res) => {
     try {
-        const { phone } = req.body;
+        const { email } = req.body;
+        if (!email) return res.status(400).json({ success: false, message: 'Vui lòng nhập Email' });
+
         const result = await pool.request()
-            .input('phone', sql.NVarChar, phone)
-            .query('SELECT email FROM Users WHERE phone = @phone');
+            .input('email', sql.NVarChar, email)
+            .query('SELECT phone FROM Users WHERE email = @email');
         
         if (result.recordset.length === 0) {
-            return res.status(404).json({ success: false, message: 'Số điện thoại chưa được đăng ký' });
+            return res.status(404).json({ success: false, message: 'Email này chưa được đăng ký tài khoản' });
         }
 
-        const email = result.recordset[0].email;
-        if (!email) {
-            return res.status(400).json({ success: false, message: 'Tài khoản này chưa cập nhật Email' });
-        }
-
+        const phone = result.recordset[0].phone;
         const otp = Math.floor(100000 + Math.random() * 900000).toString();
         const expiry = Date.now() + 5 * 60 * 1000; // 5 mins
-        otpStore.set(phone, { otp, expiry });
+        
+        // Use email as key in otpStore
+        otpStore.set(email, { otp, phone, expiry });
 
-        console.log(`[OTP DEBUG] Phone: ${phone}, Email: ${email}, OTP: ${otp}`);
+        console.log(`[OTP DEBUG] Email: ${email}, Phone: ${phone}, OTP: ${otp}`);
 
         // Send actual email if configured
         if (process.env.EMAIL_USER && process.env.EMAIL_PASS) {
             const mailOptions = {
-                from: process.env.EMAIL_USER,
+                from: process.env.MAIL_FROM || process.env.EMAIL_USER,
                 to: email,
                 subject: '[TiMiFood] Mã xác thực khôi phục mật khẩu',
                 html: `<h3>Mã OTP của bạn là: <b style="color: #ff5e3a; font-size: 24px;">${otp}</b></h3>
@@ -397,13 +397,25 @@ app.post('/api/send-otp', async (req, res) => {
     }
 });
 
+// Verify OTP only
+app.post('/api/verify-otp', (req, res) => {
+    const { email, otp } = req.body;
+    const stored = otpStore.get(email);
+    
+    if (!stored || stored.otp !== otp || Date.now() > stored.expiry) {
+        return res.status(400).json({ success: false, message: 'Mã OTP không đúng hoặc đã hết hạn' });
+    }
+    
+    res.json({ success: true, message: 'Mã xác thực chính xác' });
+});
+
 // Reset Password with OTP
 app.post('/api/reset-password', async (req, res) => {
     try {
-        const { phone, otp, newPassword } = req.body;
+        const { email, otp, newPassword } = req.body;
         
         // Verify OTP
-        const stored = otpStore.get(phone);
+        const stored = otpStore.get(email);
         if (!stored || stored.otp !== otp || Date.now() > stored.expiry) {
             return res.status(400).json({ success: false, message: 'Mã OTP không đúng hoặc đã hết hạn' });
         }
@@ -417,11 +429,11 @@ app.post('/api/reset-password', async (req, res) => {
         const hashedPassword = await bcrypt.hash(newPassword, 10);
         
         await pool.request()
-            .input('phone', sql.NVarChar, phone)
+            .input('phone', sql.NVarChar, stored.phone)
             .input('password', sql.NVarChar, hashedPassword)
             .query('UPDATE Users SET password = @password WHERE phone = @phone');
         
-        otpStore.delete(phone); // Clear OTP after success
+        otpStore.delete(email); // Clear OTP after success
         res.json({ success: true, message: 'Password updated successfully' });
     } catch (err) {
         console.error("Reset password error:", err);
@@ -542,32 +554,66 @@ app.get('/api/users', authenticateToken, isAdmin, async (req, res) => {
     }
 });
 
-// Update user (Admin only)
-app.put('/api/users/:phone', authenticateToken, isAdmin, async (req, res) => {
+// Update user (Admin or Owner)
+app.put('/api/users/:phone', authenticateToken, async (req, res) => {
     try {
         const { phone } = req.params;
-        const { fullname, password, status, userType } = req.body;
+        const { fullname, email, address, password, status, userType } = req.body;
         
-        // Hash password if it's not already hashed (bcrypt hashes start with $2)
+        // Security check: Only Admin can update other users or change status/userType
+        if (req.user.userType !== 1 && req.user.phone !== phone) {
+            return res.status(403).json({ message: 'Bạn không có quyền cập nhật thông tin này' });
+        }
+
+        // If not admin, force these to remain unchanged (or use current values)
+        let finalStatus = status;
+        let finalUserType = userType;
+        if (req.user.userType !== 1) {
+            // Regular users cannot change their own status or type
+            const currentUser = await pool.request()
+                .input('phone', sql.NVarChar, phone)
+                .query('SELECT status, userType, password FROM Users WHERE phone=@phone');
+            if (currentUser.recordset.length > 0) {
+                finalStatus = currentUser.recordset[0].status;
+                finalUserType = currentUser.recordset[0].userType;
+            }
+        }
+        
+        // Hash password if it's not already hashed
         let finalPassword = password;
         if (password && !password.startsWith('$2')) {
-            // Backend strong password validation
             const strongPasswordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/;
             if (!strongPasswordRegex.test(password)) {
                 return res.status(400).json({ message: 'Mật khẩu phải từ 8 ký tự, bao gồm chữ hoa, chữ thường và số' });
             }
             finalPassword = await bcrypt.hash(password, 10);
+        } else if (!password) {
+            // If password is not provided, keep current password
+            const currentUser = await pool.request()
+                .input('phone', sql.NVarChar, phone)
+                .query('SELECT password FROM Users WHERE phone=@phone');
+            if (currentUser.recordset.length > 0) {
+                finalPassword = currentUser.recordset[0].password;
+            }
         }
 
         await pool.request()
             .input('phone', sql.NVarChar, phone)
             .input('fullname', sql.NVarChar, fullname)
+            .input('email', sql.NVarChar, email || '')
+            .input('address', sql.NVarChar, address || '')
             .input('password', sql.NVarChar, finalPassword)
-            .input('status', sql.Int, status)
-            .input('userType', sql.Int, userType)
-            .query('UPDATE Users SET fullname = @fullname, password = @password, status = @status, userType = @userType WHERE phone = @phone');
+            .input('status', sql.Int, finalStatus)
+            .input('userType', sql.Int, finalUserType)
+            .query('UPDATE Users SET fullname = @fullname, email = @email, address = @address, password = @password, status = @status, userType = @userType WHERE phone = @phone');
 
-        res.json({ success: true, message: 'Cập nhật tài khoản thành công' });
+        // Fetch and return the updated user (without password)
+        const updatedUserResult = await pool.request()
+            .input('phone', sql.NVarChar, phone)
+            .query('SELECT * FROM Users WHERE phone = @phone');
+        
+        const { password: _, ...userWithoutPassword } = updatedUserResult.recordset[0];
+        res.json({ success: true, message: 'Cập nhật thành công', user: userWithoutPassword });
     } catch (error) {
         console.error("Update user error:", error);
         res.status(500).json({ message: 'Lỗi server khi cập nhật tài khoản' });
