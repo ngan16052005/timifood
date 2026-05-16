@@ -15,8 +15,9 @@ File này chứa các quy tắc, phong cách lập trình và những lưu ý qu
 - **Dữ liệu:** Luôn ưu tiên lấy dữ liệu động từ Database thay vì hardcode.
 
 ## 📝 Ghi chú riêng từ người dùng
-**Không được xoá code khi chưa kiểm tra kỹ lưỡng.Không được tự ý thay đổi cấu trúc HTML, CSS, JS khi chưa có sự cho phép của người dùng, luôn thông báo cho người dùng khi thực hiện thay đổi lớn, luôn hỏi lại khi không chắc chắn.**
+**Đặc biệt lưu ý: Hãy đọc lại README.md, SCRATCH.md, TASKS.md, NOTES_FOR_AI.md sau mỗi lần cập nhật và khi bắt đầu phiên làm việc để hiểu rõ hơn về dự án.**
 **Luôn giao tiếp với người dùng bằng Tiếng Việt.**
+**Không được xoá code khi chưa kiểm tra kỹ lưỡng.Không được tự ý thay đổi cấu trúc HTML, CSS, JS khi chưa có sự cho phép của người dùng, luôn thông báo cho người dùng khi thực hiện thay đổi lớn, luôn hỏi lại khi không chắc chắn.**
 **Luôn ưu tiên sửa đổi code trực tiếp và giữ nguyên cấu trúc, không tạo code mới nếu không cần thiết.**
 **Luôn cập nhật các file .md trong quá trình phát triển và khi hoàn thành, đặc biệt là file TASKS.md, SCRATCH.md và README.md**
 **Luôn ưu tiên các thay đổi nhỏ và dần dần để người dùng dễ kiểm soát, không thực hiện thay đổi lớn.**
