@@ -405,8 +405,8 @@ async function initAdmin() {
                 updateClock();
                 setInterval(updateClock, 1000);
 
-                // Initial check for notifications
-                startOrderNotification();
+                // Initial check for order list refresh
+                startOrderListPolling();
                 isFirstLoad = false;
             }
     } catch (error) {
@@ -426,53 +426,19 @@ function updateClock() {
     }
 }
 
-
-
-
-function startOrderNotification() {
-    console.log("%c TiMiFood Notification System: Đã khởi chạy!", "color: #00ff00; font-weight: bold;");
-    if (typeof updateAdminNotificationUI === 'function') updateAdminNotificationUI();
-
+function startOrderListPolling() {
     setInterval(async () => {
         try {
             const orders = await window.api.getOrders(true);
-            if (Array.isArray(orders) && orders.length > 0) {
-                let hasNewOrder = false;
-                let cancelledOrderId = null;
-
-                orders.forEach(o => {
-                    const orderId = o.id;
-                    const currentStatus = o.trangthai;
-                    const numericId = parseInt(orderId.replace('DH', '')) || 0;
-
-                    // Detect new orders
-                    if (numericId > latestOrderId) {
-                        hasNewOrder = true;
-                        latestOrderId = numericId;
-                        addAdminNotification('Đơn hàng mới', `Mã đơn: ${orderId} vừa được đặt.`);
-                    }
-
-                    // Detect cancellations
-                    if (orderStatusSnapshot[orderId] !== undefined && 
-                        orderStatusSnapshot[orderId] !== 3 && 
-                        currentStatus === 3) {
-                        cancelledOrderId = orderId;
-                        addAdminNotification('Đơn hàng hủy', `Khách hàng vừa hủy đơn ${orderId}.`, 'warning');
-                    }
-                    orderStatusSnapshot[orderId] = currentStatus;
-                });
-
-                if (hasNewOrder && !isFirstLoad) {
-                    toast({ title: 'Đơn hàng mới', message: 'Bạn vừa nhận được một đơn hàng mới!', type: 'info', duration: 8000 });
+            if (Array.isArray(orders)) {
+                const currentOrderCount = orders.length;
+                const lastKnownCount = parseInt(localStorage.getItem('admin_last_order_count')) || 0;
+                
+                if (currentOrderCount !== lastKnownCount) {
+                    localStorage.setItem('admin_last_order_count', currentOrderCount);
                     if (typeof showOrder === 'function') showOrder(orders);
-                }
-
-                if (cancelledOrderId && !isFirstLoad) {
-                    toast({ title: 'Đơn hàng đã hủy', message: `Đơn hàng ${cancelledOrderId} vừa bị hủy!`, type: 'warning', duration: 8000 });
-                    if (typeof showOrder === 'function') showOrder(orders);
-                }
-
-                if ((hasNewOrder || cancelledOrderId) && !isFirstLoad) {
+                    
+                    // Update stats if we are on dashboard
                     const currentUser = JSON.parse(localStorage.getItem("currentuser"));
                     if (currentUser && currentUser.userType == 1) {
                         const doanhThuEl = document.getElementById("doanh-thu");
@@ -480,12 +446,11 @@ function startOrderNotification() {
                         if (typeof thongKe === 'function') await thongKe();
                     }
                 }
-                isFirstLoad = false;
             }
         } catch (error) {
-            console.error("Order check failed:", error);
+            console.error("Order list polling failed:", error);
         }
-    }, 5000); // Check every 5 seconds
+    }, 5000);
 }
 
 
@@ -772,7 +737,7 @@ async function deleteOrderAdmin(id) {
 // Format Date
 function formatDate(date) {
     if (!date) return "Chưa rõ";
-    let fm = new Date(date);
+    let fm = new Date(date.toString().replace('Z', ''));
     if (isNaN(fm.getTime())) return "Chưa rõ";
     let yyyy = fm.getFullYear();
     let mm = fm.getMonth() + 1;
@@ -924,10 +889,174 @@ async function detailOrder(id) {
             </div>
         </div>
         <div class="modal-detail-bottom-right">
+            <button class="modal-detail-btn btn-print" onclick="printOrderAdmin('${order.id}')">In hóa đơn</button>
             <button class="modal-detail-btn ${classDetailBtn}" ${onclickBtn}>${textDetailBtn}</button>
         </div>`;
     } catch (error) {
         console.error("Error showing order detail:", error);
+    }
+}
+
+async function printOrderAdmin(id) {
+    try {
+        const orders = await window.api.getOrders();
+        const products = await window.api.getProducts();
+        let order = orders.find((item) => item.id == id);
+        let ctDon = await window.api.getOrderDetails(id);
+
+        if (!order) return;
+
+        let itemsHtml = "";
+        ctDon.forEach((item, index) => {
+            let detaiSP = products.find(p => p.id == item.id);
+            itemsHtml += `
+                <tr>
+                    <td style="padding: 12px 5px; color: #666;">${index + 1}</td>
+                    <td style="padding: 12px 5px;">
+                        <div style="font-weight: 600; color: #333;">${detaiSP ? detaiSP.title : 'Sản phẩm đã xóa'}</div>
+                        <div style="font-size: 11px; color: #888;">${item.note ? 'Ghi chú: ' + item.note : ''}</div>
+                    </td>
+                    <td style="padding: 12px 5px; text-align: center;">${item.soluong}</td>
+                    <td style="padding: 12px 5px; text-align: right;">${vnd(item.price)}</td>
+                    <td style="padding: 12px 5px; text-align: right; font-weight: 600;">${vnd(item.price * item.soluong)}</td>
+                </tr>
+            `;
+        });
+
+        const printWindow = window.open('', '_blank');
+        printWindow.document.write(`
+            <html>
+                <head>
+                    <title>Hóa đơn TiMi Food - ${order.id}</title>
+                    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+                    <style>
+                        * { box-sizing: border-box; -webkit-print-color-adjust: exact; }
+                        body { font-family: 'Inter', sans-serif; line-height: 1.6; color: #1a1a1a; padding: 40px; background: #fff; margin: 0; }
+                        .bill-container { max-width: 800px; margin: 0 auto; position: relative; }
+                        
+                        /* Header */
+                        .header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 50px; border-bottom: 4px solid #f0f0f0; padding-bottom: 20px; }
+                        .brand h1 { margin: 0; font-size: 32px; font-weight: 800; color: #b5292f; letter-spacing: -1px; }
+                        .brand p { margin: 5px 0 0; font-size: 13px; color: #666; font-weight: 500; }
+                        .order-meta { text-align: right; }
+                        .order-meta h2 { margin: 0; font-size: 20px; color: #333; }
+                        .order-meta p { margin: 2px 0; font-size: 13px; color: #888; }
+
+                        /* Info Sections */
+                        .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; margin-bottom: 40px; }
+                        .info-box h3 { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: #999; margin-bottom: 10px; border-bottom: 1px solid #eee; padding-bottom: 5px; }
+                        .info-box p { margin: 4px 0; font-size: 14px; }
+                        .info-box strong { color: #333; }
+
+                        /* Table */
+                        table { width: 100%; border-collapse: collapse; margin-bottom: 30px; }
+                        table th { background: #f9f9f9; padding: 12px 5px; text-align: left; font-size: 12px; text-transform: uppercase; color: #666; border-bottom: 2px solid #eee; }
+                        table tr { border-bottom: 1px solid #f0f0f0; }
+                        
+                        /* Totals */
+                        .totals { margin-left: auto; width: 300px; }
+                        .total-item { display: flex; justify-content: space-between; padding: 8px 0; font-size: 14px; }
+                        .total-item.grand-total { border-top: 2px solid #333; margin-top: 10px; padding-top: 15px; font-size: 20px; font-weight: 800; color: #b5292f; }
+
+                        /* Stamp */
+                        .stamp { position: absolute; top: 150px; right: 50px; transform: rotate(-15deg); border: 4px double #27ae60; color: #27ae60; font-size: 24px; font-weight: 800; padding: 10px 20px; border-radius: 10px; opacity: 0.3; text-transform: uppercase; pointer-events: none; }
+                        ${order.trangthai != 2 ? '.stamp { display: none; }' : ''}
+
+                        /* Footer */
+                        .footer { margin-top: 60px; text-align: center; border-top: 1px dashed #eee; padding-top: 30px; }
+                        .footer p { margin: 5px 0; font-size: 13px; color: #888; }
+                        .footer .thanks { font-size: 16px; font-weight: 600; color: #333; margin-bottom: 10px; }
+
+                        @media print {
+                            body { padding: 0; }
+                            .bill-container { max-width: 100%; }
+                        }
+                    </style>
+                </head>
+                <body>
+                    <div class="bill-container">
+                        <div class="stamp">ĐÃ THANH TOÁN</div>
+                        
+                        <div class="header">
+                            <div class="brand">
+                                <h1>TIMI FOOD</h1>
+                                <p>Tinh hoa ẩm thực Việt - Phục vụ tận tâm</p>
+                            </div>
+                            <div class="order-meta">
+                                <h2>HÓA ĐƠN BÁN HÀNG</h2>
+                                <p>Mã đơn: <strong>${order.id}</strong></p>
+                                <p>Ngày: ${formatDate(order.thoigiandat)}</p>
+                            </div>
+                        </div>
+
+                        <div class="info-grid">
+                            <div class="info-box">
+                                <h3>ĐƠN VỊ CUNG CẤP</h3>
+                                <p><strong>TiMi Food Chi Nhánh Hải Phòng</strong></p>
+                                <p>Địa chỉ: 165 Trần Quốc Chẩn, Chu Văn An, Hải Phòng</p>
+                                <p>Hotline: 0345.975.990</p>
+                                <p>Website: timifood.com.vn</p>
+                            </div>
+                            <div class="info-box">
+                                <h3>THÔNG TIN KHÁCH HÀNG</h3>
+                                <p><strong>Khách hàng:</strong> ${order.tenguoinhan}</p>
+                                <p><strong>Điện thoại:</strong> ${order.sdtnhan}</p>
+                                <p><strong>Địa chỉ:</strong> ${order.diachinhan}</p>
+                                <p><strong>Hình thức:</strong> ${order.hinhthucgiao}</p>
+                            </div>
+                        </div>
+
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th style="width: 40px;">STT</th>
+                                    <th>CHI TIẾT MÓN ĂN</th>
+                                    <th style="width: 60px; text-align: center;">SL</th>
+                                    <th style="width: 120px; text-align: right;">ĐƠN GIÁ</th>
+                                    <th style="width: 140px; text-align: right;">THÀNH TIỀN</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${itemsHtml}
+                            </tbody>
+                        </table>
+
+                        <div class="totals">
+                            <div class="total-item">
+                                <span>Tiền hàng:</span>
+                                <span>${vnd(order.tongtien - (order.hinhthucgiao == "Tự đến lấy" ? 0 : 30000))}</span>
+                            </div>
+                            <div class="total-item">
+                                <span>Phí vận chuyển:</span>
+                                <span>${order.hinhthucgiao == "Tự đến lấy" ? "0đ" : vnd(30000)}</span>
+                            </div>
+                            <div class="total-item grand-total">
+                                <span>TỔNG CỘNG:</span>
+                                <span>${vnd(order.tongtien)}</span>
+                            </div>
+                        </div>
+
+                        <div class="footer">
+                            <p class="thanks">Cảm ơn quý khách đã tin tưởng và ủng hộ!</p>
+                            <p>Vui lòng giữ lại hóa đơn để đối soát khi cần thiết.</p>
+                            <p style="margin-top: 15px; font-weight: 600;">TiMi Food - Ăn ngon, sống khỏe!</p>
+                        </div>
+                    </div>
+                    <script>
+                        window.onload = function() { 
+                            setTimeout(() => {
+                                window.print(); 
+                                window.close(); 
+                            }, 500);
+                        }
+                    </script>
+                </body>
+            </html>
+        `);
+        printWindow.document.close();
+    } catch (error) {
+        console.error("Print error:", error);
+        toast({ title: 'Lỗi', message: 'Không thể khởi tạo bản in!', type: 'error' });
     }
 }
 
@@ -953,15 +1082,15 @@ async function findOrder() {
 
         if (timeStart != "" && timeEnd == "") {
             result = result.filter((item) => {
-                return new Date(item.thoigiandat) >= new Date(timeStart).setHours(0, 0, 0);
+                return new Date(item.thoigiandat.replace('Z', '')) >= new Date(timeStart).setHours(0, 0, 0);
             });
         } else if (timeStart == "" && timeEnd != "") {
             result = result.filter((item) => {
-                return new Date(item.thoigiandat) <= new Date(timeEnd).setHours(23, 59, 59);
+                return new Date(item.thoigiandat.replace('Z', '')) <= new Date(timeEnd).setHours(23, 59, 59);
             });
         } else if (timeStart != "" && timeEnd != "") {
             result = result.filter((item) => {
-                return (new Date(item.thoigiandat) >= new Date(timeStart).setHours(0, 0, 0) && new Date(item.thoigiandat) <= new Date(timeEnd).setHours(23, 59, 59)
+                return (new Date(item.thoigiandat.replace('Z', '')) >= new Date(timeStart).setHours(0, 0, 0) && new Date(item.thoigiandat.replace('Z', '')) <= new Date(timeEnd).setHours(23, 59, 59)
                 );
             });
         }
@@ -1033,15 +1162,15 @@ async function thongKe(mode) {
 
         if (timeStart != "" && timeEnd == "") {
             result = result.filter((item) => {
-                return new Date(item.time) > new Date(timeStart).setHours(0, 0, 0);
+                return new Date(item.time.replace('Z', '')) > new Date(timeStart).setHours(0, 0, 0);
             });
         } else if (timeStart == "" && timeEnd != "") {
             result = result.filter((item) => {
-                return new Date(item.time) < new Date(timeEnd).setHours(23, 59, 59);
+                return new Date(item.time.replace('Z', '')) < new Date(timeEnd).setHours(23, 59, 59);
             });
         } else if (timeStart != "" && timeEnd != "") {
             result = result.filter((item) => {
-                return (new Date(item.time) > new Date(timeStart).setHours(0, 0, 0) && new Date(item.time) < new Date(timeEnd).setHours(23, 59, 59)
+                return (new Date(item.time.replace('Z', '')) > new Date(timeStart).setHours(0, 0, 0) && new Date(item.time.replace('Z', '')) < new Date(timeEnd).setHours(23, 59, 59)
                 );
             });
         }
@@ -1435,15 +1564,15 @@ async function showUser() {
 
         if (timeStart != "" && timeEnd == "") {
             result = result.filter((item) => {
-                return new Date(item.join) >= new Date(timeStart).setHours(0, 0, 0);
+                return new Date(item.join.replace('Z', '')) >= new Date(timeStart).setHours(0, 0, 0);
             });
         } else if (timeStart == "" && timeEnd != "") {
             result = result.filter((item) => {
-                return new Date(item.join) <= new Date(timeEnd).setHours(23, 59, 59);
+                return new Date(item.join.replace('Z', '')) <= new Date(timeEnd).setHours(23, 59, 59);
             });
         } else if (timeStart != "" && timeEnd != "") {
             result = result.filter((item) => {
-                return (new Date(item.join) >= new Date(timeStart).setHours(0, 0, 0) && new Date(item.join) <= new Date(timeEnd).setHours(23, 59, 59)
+                return (new Date(item.join.replace('Z', '')) >= new Date(timeStart).setHours(0, 0, 0) && new Date(item.join.replace('Z', '')) <= new Date(timeEnd).setHours(23, 59, 59)
                 );
             });
         }
@@ -1793,7 +1922,7 @@ async function showReviews() {
                     i < r.rating ? '<i class="fa-solid fa-star" style="color: #ffc107;"></i>' : '<i class="fa-regular fa-star"></i>'
                 ).join('');
                 
-                const displayDate = r.reviewDate ? new Date(r.reviewDate).toLocaleDateString('vi-VN') : '---';
+                const displayDate = r.reviewDate ? new Date(r.reviewDate.replace('Z', '')).toLocaleDateString('vi-VN') : '---';
                 
                 const commentText = r.comment || "";
                 html += `
@@ -1853,7 +1982,7 @@ async function showStockHistory() {
                     <td>#${item.id}</td>
                     <td>${item.productTitle}</td>
                     <td style="color: #00b894; font-weight: bold;">+${item.quantity}</td>
-                    <td>${new Date(item.importDate).toLocaleString('vi-VN')}</td>
+                    <td>${new Date(item.importDate.replace('Z', '')).toLocaleString('vi-VN')}</td>
                     <td>${item.note || '-'}</td>
                 </tr>`;
             });

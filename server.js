@@ -2,7 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
 const path = require('path');
-const { sql, connectDB } = require('./db');
+const { sql, connectDB } = require('./src/config/db');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 require('dotenv').config();
@@ -176,6 +176,35 @@ async function sendOrderEmail(orderId, customerEmail, statusName, orderDetails) 
         console.error("[Email] Failed to send email:", error);
     }
 }
+
+// Delete order (Customer can delete history of completed/cancelled orders)
+app.delete('/api/orders/:id', authenticateToken, async (req, res) => {
+    try {
+        const id = req.params.id;
+        
+        // Transaction to delete both details and the order
+        const transaction = new sql.Transaction(pool);
+        await transaction.begin();
+        try {
+            await transaction.request()
+                .input('orderId', sql.NVarChar, id)
+                .query('DELETE FROM OrderDetails WHERE orderId = @orderId');
+            
+            await transaction.request()
+                .input('id', sql.NVarChar, id)
+                .query('DELETE FROM Orders WHERE id = @id');
+            
+            await transaction.commit();
+            res.json({ success: true, message: 'Order deleted successfully' });
+        } catch (err) {
+            await transaction.rollback();
+            throw err;
+        }
+    } catch (err) {
+        console.error("Delete order error:", err);
+        res.status(500).json({ message: 'Error deleting order' });
+    }
+});
 
 // --- API ENDPOINTS ---
 
@@ -667,6 +696,9 @@ app.put('/api/orders/:id/cancel', authenticateToken, async (req, res) => {
         await pool.request()
             .input('id', sql.NVarChar, id)
             .query('UPDATE Orders SET status = 3 WHERE id = @id'); // 3 = Cancelled
+
+        // Notify Admin about the cancellation
+        await createNotification("ADMIN", "Đơn hàng hủy", `Đơn hàng #${id} đã bị khách hàng (${userPhone}) hủy!`, "cancel");
 
         res.json({ success: true, message: 'Đã hủy đơn hàng thành công' });
     } catch (err) {

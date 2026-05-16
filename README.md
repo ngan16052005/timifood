@@ -138,5 +138,16 @@
     - Tự động gửi email xác nhận đơn hàng ngay khi khách hàng đặt hàng thành công.
     - Gửi email thông báo cập nhật trạng thái đơn hàng (xác nhận, đang giao, hoàn thành) để khách hàng luôn chủ động nắm bắt thông tin.
 
+### ✅ Giai đoạn 12: Tối ưu hóa & Hoàn thiện Hệ thống (Final Polishing)
+- **Đồng bộ Múi giờ Toàn diện:** Khắc phục triệt để lỗi lệch +7h bằng cách chuẩn hóa việc xử lý chuỗi thời gian từ Database lên giao diện (Admin & Client), đảm bảo tính chính xác tuyệt đối của dữ liệu.
+- **Tối ưu hóa Quy trình Thanh toán (Checkout Optimization):**
+    - Bổ sung tính năng chọn thời gian cho hình thức **Tự đến lấy**, giúp đa dạng hóa lựa chọn cho khách hàng.
+    - Đồng bộ giao diện (UI/UX) Dropdown chọn giờ, tạo cảm giác chuyên nghiệp và thống nhất trên toàn ứng dụng.
+    - Sửa đổi thông tin chi nhánh và địa chỉ phù hợp với thực tế vận hành tại Hải Phòng.
+- **Nâng cấp Hệ thống Cảnh báo Admin:**
+    - Cải tiến cơ chế **Toast Notification** và **Âm thanh thông báo**: Phân loại âm thanh riêng biệt cho đơn hàng mới (success) và đơn hàng bị hủy (warning).
+    - Tự động làm mới danh sách đơn hàng và số liệu doanh thu trong thời gian thực khi có biến động từ phía khách hàng.
+- **Tinh chỉnh Trải nghiệm Người dùng:** Loại bỏ các âm thanh không cần thiết ở phía Client để tăng tính riêng tư, chỉ giữ lại các thông báo thị giác (Toast) tinh tế.
+
 ---
-*Dự án hiện đã tích hợp đầy đủ các tính năng của một sàn thương mại điện tử thực thụ, đặt uy tín và tương tác với khách hàng lên hàng đầu.*
+*Dự án hiện đã đạt độ hoàn thiện cao nhất, sẵn sàng cho việc vận hành thực tế với hiệu suất và độ ổn định tối ưu.*

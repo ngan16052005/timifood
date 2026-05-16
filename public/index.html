@@ -6,11 +6,12 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TiMi Food</title>
-    <link href='/assets/img/favicon.png' rel='icon' type='image/x-icon' />
+    <link href='/assets/img/icons/favicon.png' rel='icon' type='image/x-icon' />
     <link rel="stylesheet" href="/assets/css/main.css">
     <link rel="stylesheet" href="/assets/css/home-responsive.css">
     <link rel="stylesheet" href="/assets/css/toast-message.css">
     <link rel="stylesheet" href="/assets/font/font-awesome-pro-v6-6.2.0/css/all.min.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
 </head>
 
 <body>
@@ -37,7 +38,7 @@
                 <div class="header-middle-left">
                     <div class="header-logo">
                         <a href="">
-                            <img src="/assets/img/timifood.png" alt="" class="header-logo-img">
+                            <img src="/assets/img/logos/timifood.png" alt="" class="header-logo-img">
                         </a>
                     </div>
                 </div>
@@ -160,19 +161,19 @@
             <div class="home-slider">
                 <div class="slider-wrapper">
                     <div class="slider-item active">
-                        <img src="/assets/img/banner-6.png" alt="Banner 6">
+                        <img src="/assets/img/banners/banner-6.png" alt="Banner 6">
                     </div>
                     <div class="slider-item">
-                        <img src="/assets/img/banner-2.png" alt="Banner 2">
+                        <img src="/assets/img/banners/banner-2.png" alt="Banner 2">
                     </div>
                     <div class="slider-item">
-                        <img src="/assets/img/banner-3.png" alt="Banner 3">
+                        <img src="/assets/img/banners/banner-3.png" alt="Banner 3">
                     </div>
                     <div class="slider-item">
-                        <img src="/assets/img/banner-4.png" alt="Banner 4">
+                        <img src="/assets/img/banners/banner-4.png" alt="Banner 4">
                     </div>
                     <div class="slider-item">
-                        <img src="/assets/img/banner-5.png" alt="Banner 5">
+                        <img src="/assets/img/banners/banner-5.png" alt="Banner 5">
                     </div>
                 </div>
                 <button class="slider-nav prev" onclick="changeSlide(-1)"><i
@@ -429,7 +430,7 @@
             <div class="footer-top">
                 <div class="footer-top-content">
                     <div class="footer-top-img">
-                        <img src="/assets/img/timifood.png" alt="">
+                        <img src="/assets/img/logos/timifood.png" alt="">
                     </div>
                     <div class="footer-top-subbox">
                         <div class="footer-top-subs">
@@ -633,7 +634,7 @@
                         <div class="content-group chk-ship" id="giaotannoi-group">
                             <p class="checkout-content-label">Thời gian giao hàng</p>
                             <div class="delivery-time">
-                                <input type="radio" name="giaongay" id="giaongay" class="radio">
+                                <input type="radio" name="giaongay" id="giaongay" class="radio" checked>
                                 <label for="giaongay">Giao ngay khi xong</label>
                             </div>
                             <div class="delivery-time">
@@ -674,12 +675,37 @@
                         <div class="content-group" id="tudenlay-group">
                             <p class="checkout-content-label">Lấy hàng tại chi nhánh</p>
                             <div class="delivery-time">
-                                <input type="radio" name="chinhanh" id="chinhanh-1" class="radio">
-                                <label for="chinhanh-1">273 An Dương Vương, Phường 3, Quận 5</label>
+                                <input type="radio" name="chinhanh" id="chinhanh-1" class="radio" checked>
+                                <label for="chinhanh-1">165 Trần Quốc Chẩn, Chu Văn An, Hải Phòng</label>
                             </div>
                             <div class="delivery-time">
                                 <input type="radio" name="chinhanh" id="chinhanh-2" class="radio">
-                                <label for="chinhanh-2">04 Tôn Đức Thắng, Phường Bến Nghé, Quận 1</label>
+                                <label for="chinhanh-2">76 Nguyễn Thị Duệ, Chu Văn An, Hải Phòng</label>
+                            </div>
+                            <p class="checkout-content-label" style="margin-top: 15px;">Thời gian đến lấy</p>
+                            <div class="delivery-time">
+                                <input type="radio" name="layngay" id="layngay" class="radio" checked>
+                                <label for="layngay">Chuẩn bị ngay (15-30 phút)</label>
+                            </div>
+                            <div class="delivery-time">
+                                <input type="radio" name="layngay" id="pickuptime" class="radio">
+                                <label for="pickuptime">Đến lấy vào giờ</label>
+                                <select class="choise-time-pickup">
+                                    <option data-hours="08" value="08:00" selected="selected">08:00 - 09:00</option>
+                                    <option data-hours="09" value="09:00">09:00 - 10:00</option>
+                                    <option data-hours="10" value="10:00">10:00 - 11:00</option>
+                                    <option data-hours="11" value="11:00">11:00 - 12:00</option>
+                                    <option data-hours="12" value="12:00">12:00 - 13:00</option>
+                                    <option data-hours="13" value="13:00">13:00 - 14:00</option>
+                                    <option data-hours="14" value="14:00">14:00 - 15:00</option>
+                                    <option data-hours="15" value="15:00">15:00 - 16:00</option>
+                                    <option data-hours="16" value="16:00">16:00 - 17:00</option>
+                                    <option data-hours="17" value="17:00">17:00 - 18:00</option>
+                                    <option data-hours="18" value="18:00">18:00 - 19:00</option>
+                                    <option data-hours="19" value="19:00">19:00 - 20:00</option>
+                                    <option data-hours="20" value="20:00">20:00 - 21:00</option>
+                                    <option data-hours="21" value="21:00">21:00 - 22:00</option>
+                                </select>
                             </div>
                         </div>
                         <div class="content-group">
@@ -705,16 +731,18 @@
                                         class="form-control">
                                     <span class="form-message"></span>
                                 </div>
-                                <div class="form-group">
+                                <div class="form-group form-group-address chk-ship">
                                     <input id="diachinhan" name="diachinhan" type="text" placeholder="Địa chỉ nhận hàng"
                                         class="form-control chk-ship">
+                                    <button type="button" class="btn-open-map chk-ship" onclick="openMapModal()" title="Chọn từ bản đồ">
+                                        <i class="fa-solid fa-map-location-dot"></i>
+                                    </button>
                                     <span class="form-message"></span>
                                 </div>
                             </form>
                         </div>
                     </div>
                 </div>
-            </div>
                 <div class="checkout-row">
                     <div class="checkout-col-title">
                         Phương thức thanh toán
@@ -724,15 +752,60 @@
                             <div class="payment-methods">
                                 <div class="payment-item active" data-payment="cash">
                                     <i class="fa-light fa-money-bill-1-wave"></i>
-                                    <span>Tiền mặt</span>
+                                    <div class="payment-info">
+                                        <span>Tiền mặt</span>
+                                        <p>Thanh toán khi nhận hàng (COD)</p>
+                                    </div>
                                 </div>
                                 <div class="payment-item" data-payment="vnpay">
-                                    <img src="/assets/img/vnpay-icon.png" alt="VNPAY">
-                                    <span>VNPAY</span>
+                                    <img src="/assets/img/icons/vnpay-icon.png" alt="VNPAY">
+                                    <div class="payment-info">
+                                        <span>VNPAY</span>
+                                        <p>Thanh toán qua ứng dụng ngân hàng, QR Code</p>
+                                    </div>
+                                    <div class="payment-qr-mini">
+                                        <img src="/assets/img/qrthanhtoan/qrvnpay.jpg" alt="QR VNPAY">
+                                        <div class="qr-info-details">
+                                            <div class="qr-info-item">
+                                                <span class="qr-info-label">Ngân hàng</span>
+                                                <span class="qr-info-value">MB Bank (Quân Đội)</span>
+                                            </div>
+                                            <div class="qr-info-item">
+                                                <span class="qr-info-label">Số tài khoản</span>
+                                                <span class="qr-info-value" style="color: var(--red);">24888816052005</span>
+                                            </div>
+                                            <div class="qr-info-item">
+                                                <span class="qr-info-label">Chủ tài khoản</span>
+                                                <span class="qr-info-value">NGUYEN VAN NGAN</span>
+                                            </div>
+                                            <p class="qr-info-note"><i class="fa-solid fa-qrcode"></i> Quét mã để thanh toán nhanh</p>
+                                        </div>
+                                    </div>
                                 </div>
                                 <div class="payment-item" data-payment="momo">
-                                    <img src="/assets/img/momo-icon.png" alt="MoMo">
-                                    <span>MoMo</span>
+                                    <img src="/assets/img/icons/momo-icon.png" alt="MoMo">
+                                    <div class="payment-info">
+                                        <span>MoMo</span>
+                                        <p>Thanh toán qua ví điện tử MoMo</p>
+                                    </div>
+                                    <div class="payment-qr-mini">
+                                        <img src="/assets/img/qrthanhtoan/qrmomo.jpg" alt="QR MoMo">
+                                        <div class="qr-info-details">
+                                            <div class="qr-info-item">
+                                                <span class="qr-info-label">Ví điện tử</span>
+                                                <span class="qr-info-value">MoMo (E-Wallet)</span>
+                                            </div>
+                                            <div class="qr-info-item">
+                                                <span class="qr-info-label">Số điện thoại</span>
+                                                <span class="qr-info-value" style="color: var(--red);">0345975990</span>
+                                            </div>
+                                            <div class="qr-info-item">
+                                                <span class="qr-info-label">Chủ tài khoản</span>
+                                                <span class="qr-info-value">NGUYEN VAN NGAN</span>
+                                            </div>
+                                            <p class="qr-info-note"><i class="fa-solid fa-qrcode"></i> Quét mã để thanh toán nhanh</p>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -825,12 +898,41 @@
             </footer>
         </div>
     </div>
+    <!-- Modal Bản đồ -->
+    <div class="modal modal-map" onclick="closeMapModal()">
+        <div class="modal-container" onclick="event.stopPropagation()" style="position: relative;">
+            <div class="modal-close" onclick="closeMapModal()" style="position: absolute; top: 15px; right: 15px; z-index: 10; width: 35px; height: 35px; background: rgba(0,0,0,0.1); display: flex; align-items: center; justify-content: center; border-radius: 50%; cursor: pointer; transition: all 0.3s;">
+                <i class="fa-regular fa-xmark" style="font-size: 18px; color: #333;"></i>
+            </div>
+            <header class="modal-header" style="flex-direction: column; height: auto; padding: 15px; align-items: flex-start; gap: 15px; padding-right: 60px;">
+                <div style="display: flex; justify-content: space-between; width: 100%; align-items: center;">
+                    <div class="modal-header-title" style="margin: 0;">Chọn vị trí giao hàng</div>
+                </div>
+                <div class="modal-search-map" style="width: 100%; display: flex; gap: 8px;">
+                    <input type="text" id="search-map-input" placeholder="Nhập địa chỉ, tên đường hoặc địa danh..." 
+                           style="flex: 1; padding: 10px 15px; border: 1px solid #ddd; border-radius: 6px; outline: none; font-size: 14px; box-shadow: inset 0 1px 3px rgba(0,0,0,0.05);">
+                    <button type="button" onclick="event.stopPropagation(); searchAddressOnMap();" style="background: var(--red); color: #fff; border: none; padding: 0 20px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.3s;">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                    </button>
+                </div>
+            </header>
+            <div class="modal-body" id="map-container" style="height: 400px;">
+                <!-- Bản đồ sẽ hiển thị ở đây -->
+            </div>
+            <footer class="modal-footer" style="padding: 15px; display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #eee;">
+                <p id="selected-address-preview" style="font-size: 13px; color: #666; margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 60%;">Vui lòng chọn vị trí trên bản đồ</p>
+                <button class="btn-confirm-address" onclick="confirmMapAddress()" style="background: var(--red); color: #fff; border: none; padding: 10px 20px; border-radius: 5px; font-weight: 600; cursor: pointer;">Xác nhận vị trí</button>
+            </footer>
+        </div>
+    </div>
+    
     <div id="toast"></div>
-    <script src="/js/api.js"></script>
-    <script src="/js/main.js"></script>
-    <script src="/js/checkout.js"></script>
-    <script src="/js/initialization.js"></script>
-    <script src="/js/toast-message.js"></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <script src="/assets/js/api.js"></script>
+    <script src="/assets/js/main.js"></script>
+    <script src="/assets/js/checkout.js"></script>
+    <script src="/assets/js/initialization.js"></script>
+    <script src="/assets/js/toast-message.js"></script>
 </body>
 
 </html>

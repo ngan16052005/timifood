@@ -112,6 +112,10 @@ async function thanhtoanpage(option, product) {
             item.style.display = "none";
         });
         tudenlayGroup.style.display = "block";
+        
+        // Khi tự đến lấy, mặc định lấy địa chỉ của chi nhánh đầu tiên hoặc xóa trắng để khách chọn
+        document.getElementById('diachinhan').value = ""; 
+        
         switch (option) {
             case 1:
                 const cartTotal = await getCartTotal();
@@ -130,6 +134,13 @@ async function thanhtoanpage(option, product) {
             item.style.display = "flex";
         });
         tudenlayGroup.style.display = "none";
+        
+        // Khôi phục lại địa chỉ của user nếu có
+        const currentUser = JSON.parse(localStorage.getItem('currentuser'));
+        if (currentUser && currentUser.address) {
+            document.getElementById('diachinhan').value = currentUser.address;
+        }
+
         switch (option) {
             case 1:
                 const cartTotal = await getCartTotal();
@@ -140,6 +151,17 @@ async function thanhtoanpage(option, product) {
                 break;
         }
     })
+
+    // Lắng nghe sự kiện chọn chi nhánh
+    let chinhanhRadios = document.querySelectorAll('input[name="chinhanh"]');
+    chinhanhRadios.forEach(radio => {
+        radio.addEventListener('change', function() {
+            if (this.checked) {
+                let label = document.querySelector(`label[for="${this.id}"]`).innerText;
+                document.getElementById('diachinhan').value = "Lấy tại chi nhánh: " + label;
+            }
+        });
+    });
 
     // Xu ly hinh thuc thanh toan
     let paymentItems = document.querySelectorAll('.payment-item');
@@ -179,12 +201,10 @@ async function showProductCart() {
                 </div>
                 <div class="bill-product-info">
                     <div class="bill-product-name">${detaiSP.title}</div>
-                    <div class="bill-product-control-qty">
-                        <div class="bill-product-qty">x${item.soluong}</div>
-                        <div class="bill-product-qty-btns">
-                            <button onclick="changeQtyCheckout(${index}, -1)"><i class="fa-regular fa-minus"></i></button>
-                            <button onclick="changeQtyCheckout(${index}, 1)"><i class="fa-regular fa-plus"></i></button>
-                        </div>
+                    <div class="checkout-product-qty">
+                        <button class="checkout-qty-btn" onclick="changeQtyCheckout(${index}, -1)"><i class="fa-regular fa-minus"></i></button>
+                        <input class="checkout-qty-input" type="text" value="${item.soluong}" readonly>
+                        <button class="checkout-qty-btn" onclick="changeQtyCheckout(${index}, 1)"><i class="fa-regular fa-plus"></i></button>
                     </div>
                     <div class="bill-product-price">${vnd(detaiSP.price * item.soluong)}</div>
                 </div>
@@ -242,11 +262,37 @@ function showProductBuyNow(product) {
         </div>
         <div class="bill-product-info">
             <div class="bill-product-name">${product.title}</div>
-            <div class="bill-product-qty">x${product.soluong}</div>
+            <div class="checkout-product-qty">
+                <button class="checkout-qty-btn" onclick="changeQtyBuyNow(-1)"><i class="fa-regular fa-minus"></i></button>
+                <input class="checkout-qty-input" type="text" value="${product.soluong}" readonly>
+                <button class="checkout-qty-btn" onclick="changeQtyBuyNow(1)"><i class="fa-regular fa-plus"></i></button>
+            </div>
             <div class="bill-product-price">${vnd(product.price * product.soluong)}</div>
         </div>
     </div>`;
     document.getElementById('list-order-checkout').innerHTML = html;
+}
+
+window.changeQtyBuyNow = function(delta) {
+    if (!currentCheckoutProduct) return;
+    
+    currentCheckoutProduct.soluong += delta;
+    if (currentCheckoutProduct.soluong < 1) {
+        currentCheckoutProduct.soluong = 1;
+    }
+
+    // Refresh UI
+    showProductBuyNow(currentCheckoutProduct);
+    
+    // Update Billing Summary
+    const itemTotal = currentCheckoutProduct.soluong * currentCheckoutProduct.price;
+    document.getElementById('checkout-cart-total').innerText = vnd(itemTotal);
+    document.querySelector('.total-bill-order .count').innerText = `${currentCheckoutProduct.soluong} món`;
+    
+    const giaotannoi = document.querySelector("#giaotannoi");
+    const shippingFee = (giaotannoi && giaotannoi.classList.contains("active")) ? PHIVANCHUYEN : 0;
+    
+    updateCheckoutTotal((itemTotal + shippingFee) - currentDiscount);
 }
 
 function updateCheckoutTotal(total) {
@@ -419,11 +465,11 @@ function openPaymentSim(method, amount) {
     amountVal.innerText = vnd(amount);
 
     if (method === 'momo') {
-        gateImg.src = '/assets/img/momo-icon.png';
-        qrImg.src = 'https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=MoMoPaymentSimulation';
+        gateImg.src = '/assets/img/icons/momo-icon.png';
+        qrImg.src = '/assets/img/qrthanhtoan/qrmomo.jpg';
     } else {
-        gateImg.src = '/assets/img/vnpay-icon.png';
-        qrImg.src = 'https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=VNPAYPaymentSimulation';
+        gateImg.src = '/assets/img/icons/vnpay-icon.png';
+        qrImg.src = '/assets/img/qrthanhtoan/qrvnpay.jpg';
     }
 
     modal.classList.add('open');
@@ -439,7 +485,10 @@ async function confirmPaymentSim() {
         try {
             const result = await window.api.createOrder(pendingOrderData);
             if (result.success) {
-                toast({ title: 'Thành công', message: 'Thanh toán và đặt hàng thành công!', type: 'success', duration: 3000 });
+                // Reliance on notification system to show the toast
+                if (typeof syncNotificationsFromServer === 'function') {
+                    syncNotificationsFromServer();
+                }
                 closePaymentSim();
                 closecheckout();
                 // Clear cart if ordered from cart
@@ -498,9 +547,9 @@ async function xulyDathang(product) {
         let chinhanh1 = document.querySelector("#chinhanh-1");
         let chinhanh2 = document.querySelector("#chinhanh-2");
         if (chinhanh1 && chinhanh1.checked) {
-            diachinhan = "273 An Dương Vương, Phường 3, Quận 5";
+            diachinhan = "165 Trần Quốc Chẩn, Chu Văn An, Hải Phòng";
         } else if (chinhanh2 && chinhanh2.checked) {
-            diachinhan = "04 Tôn Đức Thắng, Phường Bến Nghé, Quận 1";
+            diachinhan = "76 Nguyễn Thị Duệ, Chu Văn An, Hải Phòng";
         } else {
             toast({ title: 'Cảnh báo', message: 'Vui lòng chọn chi nhánh nhận hàng!', type: 'warning', duration: 3000 });
             return;
@@ -509,13 +558,26 @@ async function xulyDathang(product) {
     }
 
     // Thoi gian nhan hang
-    if (giaongay.checked) {
-        thoigiangiao = "Giao ngay khi xong";
-    } else if (giaovaogio.checked) {
-        thoigiangiao = document.querySelector(".choise-time").value;
+    if (giaotannoi.classList.contains("active")) {
+        if (giaongay && giaongay.checked) {
+            thoigiangiao = "Giao ngay khi xong";
+        } else if (giaovaogio && giaovaogio.checked) {
+            thoigiangiao = document.querySelector(".choise-time").value;
+        } else {
+            toast({ title: 'Cảnh báo', message: 'Vui lòng chọn thời gian nhận hàng!', type: 'warning', duration: 3000 });
+            return;
+        }
     } else {
-        toast({ title: 'Cảnh báo', message: 'Vui lòng chọn thời gian nhận hàng!', type: 'warning', duration: 3000 });
-        return;
+        let layngay = document.querySelector("#layngay");
+        let pickuptime = document.querySelector("#pickuptime");
+        if (layngay && layngay.checked) {
+            thoigiangiao = "Chuẩn bị ngay (15-30 phút)";
+        } else if (pickuptime && pickuptime.checked) {
+            thoigiangiao = document.querySelector(".choise-time-pickup").value;
+        } else {
+            toast({ title: 'Cảnh báo', message: 'Vui lòng chọn thời gian đến lấy!', type: 'warning', duration: 3000 });
+            return;
+        }
     }
 
     let tongtien = 0;
@@ -591,12 +653,20 @@ async function xulyDathang(product) {
         }
 
         if (result.success) {
-            toast({ 
-                title: 'Thành công', 
-                message: editingOrder ? 'Cập nhật đơn hàng thành công!' : 'Đặt hàng thành công!', 
-                type: 'success', 
-                duration: 3000 
-            });
+            if (editingOrder) {
+                toast({ 
+                    title: 'Thành công', 
+                    message: 'Cập nhật đơn hàng thành công!', 
+                    type: 'success', 
+                    duration: 3000 
+                });
+            } else {
+                // Đối với đặt hàng mới, hệ thống Notification sẽ tự động hiển thị Toast "Đơn hàng mới"
+                // Chúng ta chỉ cần ép buộc đồng bộ ngay lập tức để Toast hiện ra nhanh hơn
+                if (typeof syncNotificationsFromServer === 'function') {
+                    syncNotificationsFromServer();
+                }
+            }
             closecheckout();
             
             // Clear cart logic
@@ -632,5 +702,165 @@ async function xulyDathang(product) {
 document.addEventListener('click', (e) => {
     if (e.target.classList.contains('complete-checkout-btn')) {
         xulyDathang(currentCheckoutProduct);
+    }
+});
+
+// Map Integration Logic - Standardized & Improved
+let map = null;
+let mapMarker = null;
+let selectedAddress = "";
+
+// Custom Red Marker Icon
+const redIcon = L.icon({
+    iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png',
+    shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
+    iconSize: [25, 41],
+    iconAnchor: [12, 41],
+    popupAnchor: [1, -34],
+    shadowSize: [41, 41]
+});
+
+async function reverseGeocode(lat, lng) {
+    try {
+        document.getElementById('selected-address-preview').innerText = "Đang xác định địa chỉ...";
+        const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&accept-language=vi`);
+        const data = await response.json();
+        
+        if (data && data.address) {
+            const addr = data.address;
+            const components = [];
+            // Lọc địa chỉ tinh gọn cho Việt Nam
+            if (addr.house_number) components.push(addr.house_number);
+            if (addr.road) components.push(addr.road);
+            if (addr.suburb || addr.neighborhood) components.push(addr.suburb || addr.neighborhood);
+            if (addr.city_district || addr.district) components.push(addr.city_district || addr.district);
+            if (addr.city || addr.province || addr.state) components.push(addr.city || addr.province || addr.state);
+            
+            selectedAddress = components.join(', ');
+            document.getElementById('selected-address-preview').innerText = selectedAddress;
+        } else {
+            selectedAddress = data.display_name || `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+            document.getElementById('selected-address-preview').innerText = selectedAddress;
+        }
+    } catch (error) {
+        console.error("Geocoding error:", error);
+        selectedAddress = `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+        document.getElementById('selected-address-preview').innerText = "Vị trí: " + selectedAddress;
+    }
+}
+
+async function onMapClick(e) {
+    const { lat, lng } = e.latlng;
+    
+    // Smooth pan to the clicked location
+    map.flyTo(e.latlng, map.getZoom());
+    
+    if (mapMarker) {
+        mapMarker.setLatLng(e.latlng);
+    } else {
+        mapMarker = L.marker(e.latlng, { icon: redIcon }).addTo(map);
+    }
+
+    await reverseGeocode(lat, lng);
+}
+
+window.openMapModal = function() {
+    const modal = document.querySelector('.modal-map');
+    modal.classList.add('open');
+    
+    if (!map) {
+        // Default center: Ho Chi Minh City
+        map = L.map('map-container', {
+            zoomControl: true,
+            scrollWheelZoom: true
+        }).setView([10.762622, 106.660172], 13);
+        
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors'
+        }).addTo(map);
+
+        map.on('click', onMapClick);
+
+        // Location found handler
+        map.on('locationfound', function(e) {
+            map.flyTo(e.latlng, 16);
+            if (mapMarker) mapMarker.setLatLng(e.latlng);
+            else mapMarker = L.marker(e.latlng, { icon: redIcon }).addTo(map);
+            reverseGeocode(e.latlng.lat, e.latlng.lng);
+            toast({ title: 'Thành công', message: 'Đã tìm thấy vị trí của bạn!', type: 'success', duration: 2000 });
+        });
+
+        // Add a manual locate button
+        const locateControl = L.control({ position: 'topleft' });
+        locateControl.onAdd = function() {
+            const div = L.DomUtil.create('div', 'leaflet-bar leaflet-control');
+            div.innerHTML = '<a href="javascript:;" title="Vị trí của tôi" style="background-color: #fff; width: 30px; height: 30px; line-height: 30px; display: block; text-align: center; color: #333; border-radius: 4px;"><i class="fa-solid fa-crosshairs"></i></a>';
+            div.onclick = function(ev) {
+                ev.stopPropagation();
+                map.locate({ setView: false, enableHighAccuracy: true });
+            };
+            return div;
+        };
+        locateControl.addTo(map);
+    }
+
+    // Try to auto-locate on open
+    map.locate({ setView: false, enableHighAccuracy: true });
+
+    setTimeout(() => {
+        map.invalidateSize();
+    }, 400);
+}
+
+window.closeMapModal = function() {
+    document.querySelector('.modal-map').classList.remove('open');
+}
+
+window.confirmMapAddress = function() {
+    if (selectedAddress) {
+        document.getElementById('diachinhan').value = selectedAddress;
+        closeMapModal();
+    } else {
+        toast({ title: 'Thông báo', message: 'Vui lòng chọn một vị trí trên bản đồ!', type: 'warning', duration: 3000 });
+    }
+}
+
+window.searchAddressOnMap = async function(e) {
+    if (e) {
+        e.preventDefault();
+        e.stopPropagation();
+    }
+    const query = document.getElementById('search-map-input').value;
+    if (!query) return;
+
+    try {
+        // Focus search on Vietnam
+        const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&accept-language=vi&countrycodes=vn`);
+        const data = await response.json();
+
+        if (data && data.length > 0) {
+            const { lat, lon } = data[0];
+            const newLatLng = new L.LatLng(lat, lon);
+            
+            map.flyTo(newLatLng, 17); // Smooth fly to location
+            
+            if (mapMarker) {
+                mapMarker.setLatLng(newLatLng);
+            } else {
+                mapMarker = L.marker(newLatLng, { icon: redIcon }).addTo(map);
+            }
+
+            await reverseGeocode(lat, lon);
+        } else {
+            toast({ title: 'Thông báo', message: 'Không tìm thấy địa chỉ này. Thử từ khóa khác nhé!', type: 'info' });
+        }
+    } catch (error) {
+        console.error("Search error:", error);
+    }
+}
+
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && document.activeElement && document.activeElement.id === 'search-map-input') {
+        searchAddressOnMap(e);
     }
 });

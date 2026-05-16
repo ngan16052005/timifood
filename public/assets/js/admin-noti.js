@@ -7,14 +7,34 @@ async function syncAdminNotifications() {
     try {
         const serverNotis = await window.api.getNotifications();
         if (Array.isArray(serverNotis)) {
-            // Check for new notifications to show sound
+            // Check for new notifications to show toast and play sound
             if (serverNotis.length > 0) {
                 const latest = serverNotis[0];
+                console.log("[Admin Noti] Poll check - Latest ID:", latest.id, "Last ID:", lastAdminNotiId);
                 if (lastAdminNotiId !== null && latest.id > lastAdminNotiId && !latest.isRead) {
-                    if (latest.title.toLowerCase().includes('đơn hàng mới')) {
+                    console.log("[Admin Noti] NEW NOTIFICATION DETECTED!");
+                    // Show toast notification
+                    if (typeof toast === 'function') {
+                        let toastType = 'info';
+                        if (latest.type === 'order') toastType = 'success';
+                        if (latest.type === 'cancel' || latest.title.toLowerCase().includes('hủy')) toastType = 'warning';
+
+                        toast({ 
+                            title: latest.title, 
+                            message: latest.message, 
+                            type: toastType, 
+                            duration: 8000 
+                        });
+                    }
+
+                    // Play appropriate sound
+                    console.log("[Admin Noti] Playing sound for:", latest.title);
+                    if (latest.title.toLowerCase().includes('đơn hàng mới') || latest.title.toLowerCase().includes('đặt hàng') || latest.type === 'order') {
                         playNotificationSound('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3');
-                    } else if (latest.title.toLowerCase().includes('hủy')) {
+                    } else if (latest.title.toLowerCase().includes('hủy') || latest.type === 'cancel') {
                         playNotificationSound('https://assets.mixkit.co/active_storage/sfx/1110/1110-preview.mp3');
+                    } else {
+                        playNotificationSound(); // Default sound
                     }
                 }
                 lastAdminNotiId = latest.id;
@@ -24,7 +44,7 @@ async function syncAdminNotifications() {
                 id: n.id,
                 title: n.title,
                 message: n.message,
-                time: new Date(n.createdAt).toLocaleString('vi-VN'),
+                time: new Date(n.createdAt.replace('Z', '')).toLocaleString('vi-VN'),
                 type: n.type,
                 read: n.isRead
             }));
@@ -126,11 +146,19 @@ document.addEventListener('keydown', unlockAudio);
 function playNotificationSound(url = 'https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3') {
     try {
         const audio = new Audio(url);
-        audio.play().catch(e => {
-            console.warn("Audio blocked by browser. Click anywhere to enable sound.", e);
-        });
+        audio.volume = 1.0;
+        const playPromise = audio.play();
+        
+        if (playPromise !== undefined) {
+            playPromise.then(_ => {
+                console.log("[Admin Noti] Sound played successfully");
+            }).catch(error => {
+                console.warn("[Admin Noti] Audio playback failed. Please click on the page to enable sound.", error);
+                // Optionally show a small toast or indicator that sound is muted
+            });
+        }
     } catch (e) {
-        console.error("Audio error:", e);
+        console.error("[Admin Noti] Audio system error:", e);
     }
 }
 

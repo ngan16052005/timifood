@@ -163,6 +163,7 @@ async function detailProduct(index) {
                 note: note
             };
             await thanhtoanpage(2, productBuyNow);
+            closeModal();
             checkoutpage.classList.add('active');
             body.style.overflow = "hidden";
         });
@@ -927,7 +928,7 @@ async function renderOrderProduct() {
     let currentUser = JSON.parse(localStorage.getItem('currentuser'));
     if(!currentUser) return;
     
-    let orderHtml = "";
+    let orderHtml = `<div class="order-history-group">`;
     try {
         const orders = await window.api.getOrders();
         let arrDonHang = orders.filter(o => o.khachhang === currentUser.phone);
@@ -936,72 +937,99 @@ async function renderOrderProduct() {
         if (arrDonHang.length == 0) {
             orderHtml = `<div class="empty-order-section"><img src="./assets/img/empty-order.jpg" alt="" class="empty-order-img"><p>Chưa có đơn hàng nào</p></div>`;
         } else {
+            // Sắp xếp đơn mới nhất lên đầu
+            arrDonHang.sort((a, b) => b.id.localeCompare(a.id));
+
             for(let item of arrDonHang) {
-                let productHtml = `<div class="order-history-group">`;
+                let statusText = "";
+                let statusClass = "";
+                switch(item.trangthai) {
+                    case 0: statusText = "Đang xử lý"; statusClass = "status-pending"; break;
+                    case 1: statusText = "Đang giao"; statusClass = "status-shipping"; break;
+                    case 2: statusText = "Hoàn thành"; statusClass = "status-completed"; break;
+                    case 3: statusText = "Đã hủy"; statusClass = "status-pending"; break;
+                }
+
+                let productRowsHtml = "";
                 let chiTietDon = await window.api.getOrderDetails(item.id);
                 
-                chiTietDon.forEach(sp => {
+                for(let sp of chiTietDon) {
                     let infosp = products.find(p => p.id == sp.id);
-                    productHtml += `<div class="order-history">
-                        <div class="order-history-left">
-                            <img src="${infosp ? infosp.img : './assets/img/blank-image.png'}" alt="">
-                            <div class="order-history-info">
-                                <h4>${infosp ? infosp.title : 'Sản phẩm đã xóa'}</h4>
-                                <p class="order-history-note"><i class="fa-light fa-pen"></i> ${sp.note}</p>
-                                <p class="order-history-quantity">x${sp.soluong}</p>
+                    productRowsHtml += `
+                        <div class="order-item-row">
+                            <img class="order-item-img" src="${infosp ? infosp.img : './assets/img/blank-image.png'}" alt="">
+                            <div class="order-item-info">
+                                <div class="order-item-name">${infosp ? infosp.title : 'Sản phẩm đã xóa'}</div>
+                                <div class="order-item-meta">Số lượng: ${sp.soluong} ${sp.note ? `| Ghi chú: ${sp.note}` : ''}</div>
                             </div>
-                        </div>
-                        <div class="order-history-right">
-                            <div class="order-history-price">
-                                <span class="order-history-current-price">${vnd(sp.price)}</span>
-                            </div>                         
-                        </div>
-                    </div>`;
-                });
-                
-                productHtml += `</div>`;
-                
-                // Thêm thanh theo dõi đơn hàng
-                if (item.trangthai !== 3) { // Không hiển thị nếu đơn đã hủy
-                    productHtml += renderOrderTracking(item.trangthai);
+                            <div class="order-item-price">${vnd(sp.price)}</div>
+                        </div>`;
                 }
 
-                let textCompl = "";
-                let classCompl = "";
-                switch(item.trangthai) {
-                    case 0: textCompl = "Đang xử lý"; classCompl = "no-complete"; break;
-                    case 1: textCompl = "Đang giao"; classCompl = "complete"; break;
-                    case 2: textCompl = "Hoàn thành"; classCompl = "complete"; break;
-                    case 3: textCompl = "Đã hủy"; classCompl = "cancelled"; break;
-                    default: textCompl = "Không xác định"; classCompl = "no-complete";
-                }
+                let trackingHtml = (item.trangthai === 0 || item.trangthai === 1) ? renderOrderTracking(item.trangthai) : "";
 
-                let controlButtons = "";
+                let controlButtons = `
+                    <button class="btn-order-detail" onclick="detailOrderUser('${item.id}')">Xem chi tiết</button>
+                `;
                 if (item.trangthai === 0) {
-                    controlButtons = `
-                        <button class="btn-cancel-order" onclick="cancelOrderUser('${item.id}')"><i class="fa-regular fa-trash"></i> Hủy đơn</button>
-                        <button class="btn-edit-order" onclick="editOrderUser('${item.id}')"><i class="fa-regular fa-pen-to-square"></i> Sửa đơn</button>
+                    controlButtons += `
+                        <button class="btn-order-detail" onclick="editOrderUser('${item.id}')">Sửa đơn</button>
+                        <button class="btn-order-detail" style="color: #ff4d4f; border-color: #ff4d4f" onclick="cancelOrderUser('${item.id}')">Hủy đơn</button>
+                    `;
+                }
+                
+                // Cho phép xóa lịch sử nếu đã hoàn thành hoặc đã hủy
+                if (item.trangthai === 2 || item.trangthai === 3) {
+                    controlButtons += `
+                        <button class="btn-order-detail" style="color: #ff4d4f; border-color: #ff4d4f" onclick="deleteOrderUser('${item.id}')"><i class="fa-regular fa-trash"></i> Xóa lịch sử</button>
                     `;
                 }
 
-                productHtml += `<div class="order-history-control">
-                    <div class="order-history-status">
-                        <span class="order-history-status-sp ${classCompl}">${textCompl}</span>
-                        <button id="order-history-detail" onclick="detailOrderUser('${item.id}')"><i class="fa-regular fa-eye"></i> Xem chi tiết</button>
-                        ${controlButtons}
+                orderHtml += `
+                <div class="order-history-card">
+                    <div class="order-history-header">
+                        <div>
+                            <span class="order-id">Đơn hàng #${item.id}</span>
+                            <span class="order-date">${formatDate(item.thoigian || new Date())}</span>
+                        </div>
+                        <span class="order-status-tag ${statusClass}">${statusText}</span>
                     </div>
-                    <div class="order-history-total">
-                        <span class="order-history-total-desc">Tổng tiền: </span>
-                        <span class="order-history-toltal-price">${vnd(item.tongtien)}</span>
+                    <div class="order-history-body">
+                        ${productRowsHtml}
+                        ${trackingHtml}
                     </div>
-                </div>`
-                productHtml += `</div>`;
-                orderHtml += productHtml;
+                    <div class="order-history-footer">
+                        <div class="order-total">
+                            <span class="order-total-label">Tổng tiền: </span>
+                            <span class="order-total-value">${vnd(item.tongtien)}</span>
+                        </div>
+                        <div class="order-actions">
+                            ${controlButtons}
+                        </div>
+                    </div>
+                </div>`;
             }
         }
+        orderHtml += `</div>`;
         document.querySelector(".order-history-section").innerHTML = orderHtml;
     } catch (error) {
         console.error("Error rendering order history:", error);
+    }
+}
+
+async function deleteOrderUser(id) {
+    if (confirm(`Bạn có chắc muốn xóa đơn hàng #${id} khỏi lịch sử không? Hành động này không thể hoàn tác.`)) {
+        try {
+            const result = await window.api.deleteOrder(id);
+            if (result.success) {
+                toast({ title: 'Thành công', message: 'Đã xóa đơn hàng khỏi lịch sử!', type: 'success', duration: 3000 });
+                await renderOrderProduct();
+            } else {
+                toast({ title: 'Lỗi', message: result.message || 'Không thể xóa đơn hàng!', type: 'error', duration: 3000 });
+            }
+        } catch (error) {
+            toast({ title: 'Lỗi', message: error.message || 'Lỗi server!', type: 'error', duration: 3000 });
+        }
     }
 }
 
@@ -1144,7 +1172,7 @@ function closeOrderEditModal() {
 
 // Format Date
 function formatDate(date) {
-    let fm = new Date(date);
+    let fm = new Date(date.toString().replace('Z', ''));
     let yyyy = fm.getFullYear();
     let mm = fm.getMonth() + 1;
     let dd = fm.getDate();
@@ -1493,7 +1521,6 @@ async function syncNotificationsFromServer() {
                 const latest = serverNotis[0];
                 if (lastNotificationId !== null && latest.id > lastNotificationId && !latest.isRead) {
                     toast({ title: latest.title, message: latest.message, type: latest.type === 'order' ? 'success' : 'info', duration: 8000 });
-                    playUserSound();
                 }
                 lastNotificationId = latest.id;
             }
@@ -1502,7 +1529,7 @@ async function syncNotificationsFromServer() {
                 id: n.id,
                 title: n.title,
                 message: n.message,
-                time: new Date(n.createdAt).toLocaleString('vi-VN'),
+                time: new Date(n.createdAt.replace('Z', '')).toLocaleString('vi-VN'),
                 unread: !n.isRead
             }));
             updateNotificationUI();
@@ -1581,12 +1608,7 @@ async function clearAllNotifications(event) {
     }
 }
 
-function playUserSound() {
-    try {
-        const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3');
-        audio.play().catch(e => {});
-    } catch (e) {}
-}
+
 
 // Khởi chạy hệ thống thông báo khi trang web tải xong
 window.addEventListener('load', () => {
