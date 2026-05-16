@@ -1,3 +1,10 @@
+// Image Lazy Loading Fade-in
+document.addEventListener('load', (e) => {
+    if (e.target.tagName === 'IMG') {
+        e.target.classList.add('loaded');
+    }
+}, true);
+
 // Doi sang dinh dang tien VND
 function vnd(price) {
     if (price === null || price === undefined || isNaN(price)) return '0đ';
@@ -1133,7 +1140,7 @@ async function renderOrderProduct() {
         const products = await window.api.getProducts();
 
         if (arrDonHang.length == 0) {
-            orderHtml = `<div class="empty-order-section"><img src="./assets/img/empty-order.jpg" alt="" class="empty-order-img"><p>Chưa có đơn hàng nào</p></div>`;
+            orderHtml = `<div class="empty-order-section"><img src="./assets/img/empty-order.jpg" alt="" class="empty-order-img" loading="lazy"><p>Chưa có đơn hàng nào</p></div>`;
         } else {
             // Sắp xếp đơn mới nhất lên đầu
             arrDonHang.sort((a, b) => b.id.localeCompare(a.id));
@@ -1155,7 +1162,7 @@ async function renderOrderProduct() {
                     let infosp = products.find(p => p.id == sp.id);
                     productRowsHtml += `
                         <div class="order-item-row">
-                            <img class="order-item-img" src="${infosp ? infosp.img : './assets/img/blank-image.png'}" alt="">
+                            <img class="order-item-img" src="${infosp ? infosp.img : './assets/img/blank-image.png'}" alt="" loading="lazy">
                             <div class="order-item-info">
                                 <div class="order-item-name">${infosp ? infosp.title : 'Sản phẩm đã xóa'}</div>
                                 <div class="order-item-meta">Số lượng: ${sp.soluong} ${sp.note ? `| Ghi chú: ${sp.note}` : ''}</div>
@@ -1466,7 +1473,7 @@ function renderProducts(showProduct) {
             <article class="card-product" >
                 <div class="card-header">
                     <a href="#" class="card-image-link" onclick="detailProduct(${product.id})">
-                    <img class="card-image" src="${product.img}" alt="${product.title}">
+                    <img class="card-image" src="${product.img}" alt="${product.title}" loading="lazy">
                     </a>
                 </div>
                 <div class="food-info">

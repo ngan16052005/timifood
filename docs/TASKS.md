@@ -93,7 +93,7 @@ Dưới đây là danh sách đầy đủ các hạng mục đã hoàn thiện t
 - [x] Nghiên cứu và triển khai tính năng **Quên mật khẩu (Forgot Password)** qua Email.
 - [ ] Thiết kế và tích hợp giao diện **Chế độ tối (Dark Mode)** cho toàn bộ hệ thống.
 - [x] Tích hợp **Socket.io** để cập nhật thông báo đơn hàng mới Real-time cho Admin.
-- [ ] Tối ưu hóa hiệu suất tải trang với **Lazy Loading** hình ảnh.
+- [x] Tối ưu hóa hiệu suất tải trang với **Lazy Loading** hình ảnh.
 - [ ] Xây dựng hệ thống **Ghi log (Logging)** các hoạt động quản trị quan trọng.
 
 ---

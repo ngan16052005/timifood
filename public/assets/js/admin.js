@@ -1,10 +1,17 @@
+// Image Lazy Loading Fade-in
+document.addEventListener('load', (e) => {
+    if (e.target.tagName === 'IMG') {
+        e.target.classList.add('loaded');
+    }
+}, true);
+
 console.log("Admin JS loaded - Review Update v2");
 
 function checkLogin() {
     const currentUser = JSON.parse(localStorage.getItem('currentuser'));
     if (!currentUser || (currentUser.userType != 1 && currentUser.userType != 2)) {
         document.querySelector("body").innerHTML = `<div class="access-denied-section">
-            <img class="access-denied-img" src="./assets/img/access-denied.webp" alt="">
+            <img class="access-denied-img" src="./assets/img/access-denied.webp" alt="" loading="lazy">
         </div>`;
         return false;
     }
@@ -306,7 +313,7 @@ function showProductArr(arr) {
             productHtml += `
             <div class="list">
                     <div class="list-left">
-                    <img src="${product.img}" alt="">
+                    <img src="${product.img}" alt="" loading="lazy">
                     <div class="list-info">
                         <h4>${product.title}</h4>
                         <p class="list-note">${product.description || product.desc || ""}</p>
@@ -815,7 +822,7 @@ async function detailOrder(id) {
             let detaiSP = products.find(product => product.id == item.id);
             spHtml += `<div class="order-product">
                 <div class="order-product-left">
-                    <img src="${detaiSP ? detaiSP.img : './assets/img/blank-image.png'}" alt="">
+                    <img src="${detaiSP ? detaiSP.img : './assets/img/blank-image.png'}" alt="" loading="lazy">
                     <div class="order-product-info">
                         <h4>${detaiSP ? detaiSP.title : 'Sản phẩm đã bị xóa'}</h4>
                         <p class="order-product-note"><i class="fa-light fa-pen"></i> ${item.note ? item.note : "Không có ghi chú"}</p>
@@ -1219,7 +1226,7 @@ async function showThongKe(arr, mode) {
         orderHtml += `
         <tr>
         <td>${i + 1}</td>
-        <td><div class="prod-img-title"><img class="prd-img-tbl" src="${mergeObj[i].img}" alt=""><p>${mergeObj[i].title}</p></div></td>
+        <td><div class="prod-img-title"><img class="prd-img-tbl" src="${mergeObj[i].img}" alt="" loading="lazy"><p>${mergeObj[i].title}</p></div></td>
         <td>${mergeObj[i].quantity}</td>
         <td>${vnd(mergeObj[i].doanhthu)}</td>
         <td><button class="btn-detail product-order-detail" data-id="${mergeObj[i].id}"><i class="fa-regular fa-eye"></i> Chi tiết</button></td>

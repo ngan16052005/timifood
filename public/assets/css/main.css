@@ -99,6 +99,26 @@ html {
     scroll-behavior: smooth;
 }
 
+/* Lazy Loading Fade-in Effect */
+img[loading="lazy"] {
+    opacity: 0;
+    transition: opacity 0.5s ease-in-out;
+}
+
+img[loading="lazy"].loaded {
+    opacity: 1;
+}
+
+/* Fallback for browsers that don't support native lazy loading well or just to ensure it works */
+img {
+    animation: fadeIn 0.5s ease-in-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
 
 body {
     background-color: #fff;
