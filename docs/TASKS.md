@@ -91,10 +91,9 @@ Dưới đây là danh sách đầy đủ các hạng mục đã hoàn thiện t
 ---
 ## 🚀 Giai đoạn 15: Hoàn thiện & Nâng cấp Chuyên sâu (Advanced Polish)
 - [x] Nghiên cứu và triển khai tính năng **Quên mật khẩu (Forgot Password)** qua Email.
-- [ ] Thiết kế và tích hợp giao diện **Chế độ tối (Dark Mode)** cho toàn bộ hệ thống.
 - [x] Tích hợp **Socket.io** để cập nhật thông báo đơn hàng mới Real-time cho Admin.
 - [x] Tối ưu hóa hiệu suất tải trang với **Lazy Loading** hình ảnh.
-- [ ] Xây dựng hệ thống **Ghi log (Logging)** các hoạt động quản trị quan trọng.
+- [x] Xây dựng hệ thống **Ghi log (Logging)** các hoạt động quản trị quan trọng.
 
 ---
 *Cập nhật lần cuối: 16/05/2026 bởi thaingan & AI Assistant.*

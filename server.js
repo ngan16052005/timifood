@@ -72,6 +72,21 @@ async function startServer() {
         pool = await connectDB();
         if (!pool) {
             console.error('Could not connect to database. Server starting without DB...');
+        } else {
+            // Ensure SystemLogs table exists
+            await pool.request().query(`
+                IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'SystemLogs')
+                BEGIN
+                    CREATE TABLE SystemLogs (
+                        id INT PRIMARY KEY IDENTITY(1,1),
+                        userPhone NVARCHAR(20),
+                        action NVARCHAR(100),
+                        details NVARCHAR(MAX),
+                        createdAt DATETIME DEFAULT GETDATE()
+                    )
+                END
+            `);
+            console.log('Database initialized successfully.');
         }
 
         server.listen(PORT, () => {
@@ -154,6 +169,23 @@ async function createNotification(userPhone, title, message, type = 'info') {
         return true;
     } catch (err) {
         console.error("[Notification] Error creating notification:", err);
+        return false;
+    }
+}
+
+// Helper function to create system logs
+async function createLog(userPhone, action, details) {
+    console.log(`[Log] ${userPhone}: ${action} - ${details}`);
+    try {
+        if (!pool) return false;
+        await pool.request()
+            .input('userPhone', sql.NVarChar, userPhone)
+            .input('action', sql.NVarChar, action)
+            .input('details', sql.NVarChar, details)
+            .query('INSERT INTO SystemLogs (userPhone, action, details, createdAt) VALUES (@userPhone, @action, @details, GETDATE())');
+        return true;
+    } catch (err) {
+        console.error("[Log] Error creating system log:", err);
         return false;
     }
 }
@@ -298,6 +330,7 @@ app.post('/api/products', authenticateToken, isAdmin, async (req, res) => {
             .input('description', sql.NVarChar, prod.description)
             .input('stock', sql.Int, parseInt(prod.stock) || 0)
             .query('INSERT INTO Products (id, title, img, category, price, description, status, stock) VALUES (@id, @title, @img, @category, @price, @description, 1, @stock)');
+        await createLog(req.user.phone, 'ADD_PRODUCT', `Thêm sản phẩm mới: ${prod.title} (ID: ${nextId})`);
         res.status(201).json({ success: true, message: 'Product added successfully', id: nextId });
     } catch (err) {
         res.status(500).json({ message: 'Error adding product' });
@@ -319,6 +352,7 @@ app.put('/api/products/:id', authenticateToken, isAdmin, async (req, res) => {
             .input('status', sql.Int, parseInt(prod.status))
             .input('stock', sql.Int, parseInt(prod.stock) || 0)
             .query('UPDATE Products SET title=@title, img=@img, category=@category, price=@price, description=@description, status=@status, stock=@stock WHERE id=@id');
+        await createLog(req.user.phone, 'UPDATE_PRODUCT', `Cập nhật sản phẩm ID: ${id} (${prod.title})`);
         res.json({ success: true, message: 'Product updated successfully' });
     } catch (err) {
         res.status(500).json({ message: 'Error updating product' });
@@ -341,6 +375,7 @@ app.delete('/api/products/:id', authenticateToken, isAdmin, async (req, res) => 
         await pool.request()
             .input('id', sql.Int, id)
             .query('DELETE FROM Products WHERE id=@id');
+        await createLog(req.user.phone, 'DELETE_PRODUCT', `Xóa vĩnh viễn sản phẩm ID: ${id}`);
         res.json({ success: true, message: 'Product deleted permanently' });
     } catch (err) {
         res.status(500).json({ message: 'Error deleting product' });
@@ -674,6 +709,7 @@ app.delete('/api/users/:phone', authenticateToken, isAdmin, async (req, res) => 
         await pool.request()
             .input('phone', sql.NVarChar, phone)
             .query('DELETE FROM Users WHERE phone=@phone');
+        await createLog(req.user.phone, 'DELETE_USER', `Xóa tài khoản: ${phone}`);
         res.json({ message: 'User deleted' });
     } catch (err) {
         res.status(500).json({ message: 'Error deleting user' });
@@ -1042,6 +1078,8 @@ app.put('/api/orders/:id/status', authenticateToken, isStaffOrAdmin, async (req,
             const statusNames = ["Chờ xử lý", "Đang giao", "Hoàn thành", "Đã hủy"];
             const statusName = statusNames[status] || "Cập nhật";
             
+            await createLog(req.user.phone, 'UPDATE_ORDER_STATUS', `Cập nhật đơn hàng #${id} sang: ${statusName}`);
+
             // System Notification
             await createNotification(orderInfo.customerPhone, "Cập nhật đơn hàng", `Đơn hàng #${id} của bạn đã chuyển sang trạng thái: ${statusName}`, "order");
             
@@ -1135,6 +1173,7 @@ app.post('/api/vouchers', authenticateToken, isAdmin, async (req, res) => {
             .input('maxDiscount', sql.Int, maxDiscount)
             .input('expiryDate', sql.DateTime, expiryDate)
             .query('INSERT INTO Vouchers (code, discountValue, discountType, minOrder, maxDiscount, expiryDate, status) VALUES (@code, @discountValue, @discountType, @minOrder, @maxDiscount, @expiryDate, 1)');
+        await createLog(req.user.phone, 'ADD_VOUCHER', `Tạo mã giảm giá mới: ${code}`);
         res.json({ success: true, message: 'Tạo mã giảm giá thành công' });
     } catch (error) {
         console.error("Create voucher error:", error);
@@ -1156,6 +1195,7 @@ app.put('/api/vouchers/:code', authenticateToken, isAdmin, async (req, res) => {
             .input('code', sql.NVarChar, code)
             .input('status', sql.Int, status)
             .query('UPDATE Vouchers SET status = @status WHERE code = @code');
+        await createLog(req.user.phone, 'UPDATE_VOUCHER', `Cập nhật trạng thái voucher: ${code} (Status: ${status})`);
         res.json({ success: true, message: 'Cập nhật trạng thái voucher thành công' });
     } catch (error) {
         console.error("Update voucher error:", error);
@@ -1171,6 +1211,7 @@ app.delete('/api/vouchers/:code', authenticateToken, isAdmin, async (req, res) =
         await pool.request()
             .input('code', sql.NVarChar, code)
             .query('DELETE FROM Vouchers WHERE code = @code');
+        await createLog(req.user.phone, 'DELETE_VOUCHER', `Xóa mã giảm giá: ${code}`);
         res.json({ success: true, message: 'Xóa mã giảm giá thành công' });
     } catch (error) {
         console.error("Delete voucher error:", error);
@@ -1356,6 +1397,18 @@ app.get('/api/admin/stock-history', authenticateToken, isAdmin, async (req, res)
 });
 
 // Record Stock In
+app.get('/api/admin/logs', authenticateToken, isAdmin, async (req, res) => {
+    try {
+        if (!pool) return res.status(500).json({ message: 'Database pool not initialized' });
+        const result = await pool.request()
+            .query('SELECT * FROM SystemLogs ORDER BY createdAt DESC');
+        res.json(result.recordset);
+    } catch (err) {
+        console.error("Get logs error:", err);
+        res.status(500).json({ message: 'Error fetching system logs' });
+    }
+});
+
 app.post('/api/admin/stock-in', authenticateToken, isAdmin, async (req, res) => {
     try {
         const { productId, quantity, note } = req.body;
@@ -1528,6 +1581,7 @@ app.post('/api/categories', authenticateToken, isAdmin, async (req, res) => {
             .input('name', sql.NVarChar, name)
             .query('INSERT INTO Categories (name) VALUES (@name)');
         
+        await createLog(req.user.phone, 'ADD_CATEGORY', `Thêm danh mục: ${name}`);
         res.status(201).json({ success: true, message: 'Thêm danh mục thành công' });
     } catch (err) {
         if (err.number === 2627) { // Unique constraint violation
@@ -1549,6 +1603,7 @@ app.put('/api/categories/:id', authenticateToken, isAdmin, async (req, res) => {
             .input('name', sql.NVarChar, name)
             .query('UPDATE Categories SET name = @name WHERE id = @id');
         
+        await createLog(req.user.phone, 'UPDATE_CATEGORY', `Cập nhật danh mục ID: ${id} sang: ${name}`);
         res.json({ success: true, message: 'Cập nhật danh mục thành công' });
     } catch (err) {
         console.error("Update category error:", err);
@@ -1581,6 +1636,7 @@ app.delete('/api/categories/:id', authenticateToken, isAdmin, async (req, res) =
             .input('id', sql.Int, id)
             .query('DELETE FROM Categories WHERE id = @id');
         
+        await createLog(req.user.phone, 'DELETE_CATEGORY', `Xóa danh mục: ${catName} (ID: ${id})`);
         res.json({ success: true, message: 'Xóa danh mục thành công' });
     } catch (err) {
         console.error("Delete category error:", err);

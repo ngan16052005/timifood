@@ -484,6 +484,21 @@ window.api = {
         }
     },
 
+    getLogs: async () => {
+        showLoader();
+        try {
+            const response = await fetch(`${BASE_URL}/admin/logs`, {
+                headers: getHeaders()
+            });
+            return await response.json();
+        } catch (error) {
+            console.error("Failed to fetch logs:", error);
+            throw error;
+        } finally {
+            hideLoader();
+        }
+    },
+
     deleteReview: async (id) => {
         showLoader();
         try {

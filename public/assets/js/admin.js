@@ -136,8 +136,8 @@ function applyPermissions(userType) {
     if (userType == 2) { // Nhân viên (Staff)
         console.log("Quyền hạn: Nhân viên - Xử lý đơn hàng & Khuyến mãi");
         
-        // Các index menu cần ẩn: 0: Tổng quát, 1: Sản phẩm, 2: Danh mục, 3: Tài khoản, 5: Nhập kho, 7: Thống kê
-        const forbiddenIndexes = [0, 1, 2, 3, 5, 7];
+        // Các index menu cần ẩn: 0: Tổng quát, 1: Sản phẩm, 2: Danh mục, 3: Tài khoản, 5: Nhập kho, 7: Thống kê, 9: Nhật ký
+        const forbiddenIndexes = [0, 1, 2, 3, 5, 7, 9];
         forbiddenIndexes.forEach(index => {
             if (sidebarItems[index]) sidebarItems[index].style.display = 'none';
         });
@@ -180,8 +180,8 @@ for (let i = 0; i < sidebars.length; i++) {
         const isStaff = currentUser && currentUser.userType == 2;
 
         // Kiểm tra quyền truy cập cho nhân viên
-        // Cập nhật index mới: [0: Tổng quát, 1: Sản phẩm, 2: Danh mục, 3: Tài khoản, 5: Nhập kho, 7: Thống kê] là cấm Staff
-        const forbiddenForStaff = [0, 1, 2, 3, 5, 7];
+        // Cập nhật index mới: [0: Tổng quát, 1: Sản phẩm, 2: Danh mục, 3: Tài khoản, 5: Nhập kho, 7: Thống kê, 9: Nhật ký] là cấm Staff
+        const forbiddenForStaff = [0, 1, 2, 3, 5, 7, 9];
         if (isStaff && forbiddenForStaff.includes(i)) {
             toast({ title: 'Từ chối', message: 'Bạn không có quyền truy cập mục này!', type: 'error', duration: 3000 });
             return;
@@ -216,6 +216,11 @@ for (let i = 0; i < sidebars.length; i++) {
         // Nếu là tab Đánh giá (Index 8)
         if (i === 8) {
             await showReviews();
+        }
+
+        // Nếu là tab Nhật ký hệ thống (Index 9)
+        if (i === 9) {
+            await showLogs();
         }
     };
 }
@@ -2197,3 +2202,47 @@ window.onload = async () => {
     if (originalOnload) await originalOnload();
     await loadCategoriesToSelect();
 };
+// --- System Logs Functions ---
+async function showLogs() {
+    const searchInput = document.getElementById("form-search-log");
+    const searchVal = searchInput ? searchInput.value.toLowerCase() : "";
+    try {
+        const logs = await window.api.getLogs();
+        if (!Array.isArray(logs)) return;
+        
+        const filteredLogs = logs.filter(log => 
+            log.action.toLowerCase().includes(searchVal) || 
+            log.userPhone.toLowerCase().includes(searchVal) ||
+            log.details.toLowerCase().includes(searchVal)
+        );
+        showLogsArr(filteredLogs);
+    } catch (error) {
+        console.error("Error showing logs:", error);
+    }
+}
+
+function showLogsArr(arr) {
+    let html = '';
+    if (!arr || arr.length === 0) {
+        html = '<tr><td colspan="5">Không có dữ liệu nhật ký</td></tr>';
+    } else {
+        arr.forEach((log, index) => {
+            let actionLabel = log.action;
+            let actionClass = "status-no-complete";
+            
+            if (log.action.includes('ADD')) actionClass = "status-complete";
+            if (log.action.includes('DELETE')) actionClass = "status-pending";
+            
+            html += `
+                <tr>
+                    <td>${index + 1}</td>
+                    <td><b>${log.userPhone}</b></td>
+                    <td><span class="${actionClass}" style="padding: 2px 8px; border-radius: 4px; font-size: 0.8rem;">${actionLabel}</span></td>
+                    <td style="max-width: 300px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${log.details}">${log.details}</td>
+                    <td>${new Date(log.createdAt).toLocaleString('vi-VN')}</td>
+                </tr>
+            `;
+        });
+    }
+    document.getElementById("show-logs").innerHTML = html;
+}

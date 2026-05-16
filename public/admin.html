@@ -145,6 +145,12 @@
                             <div class="hidden-sidebar">Đánh giá</div>
                         </a>
                     </li>
+                    <li class="sidebar-list-item tab-content">
+                        <a href="#" class="sidebar-link">
+                            <div class="sidebar-icon"><i class="fa-light fa-clock-rotate-left"></i></div>
+                            <div class="hidden-sidebar">Nhật ký hệ thống</div>
+                        </a>
+                    </li>
                 </ul>
             </div>
         </aside>
@@ -545,6 +551,40 @@
                             </tr>
                         </thead>
                         <tbody id="show-reviews">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <!-- System Logs -->
+            <div class="section">
+                <div class="admin-control">
+                    <div class="admin-control-left">
+                        <h3 class="title-section">Nhật ký hoạt động hệ thống</h3>
+                    </div>
+                    <div class="admin-control-center">
+                        <form action="" class="form-search">
+                            <span class="search-btn"><i class="fa-light fa-magnifying-glass"></i></span>
+                            <input id="form-search-log" type="text" class="form-search-input"
+                                placeholder="Tìm kiếm hành động, số điện thoại..." oninput="showLogs()">
+                        </form>
+                    </div>
+                    <div class="admin-control-right">
+                        <button class="btn-reset-order" onclick="showLogs()"><i
+                                class="fa-light fa-arrow-rotate-right"></i></button>
+                    </div>
+                </div>
+                <div class="table">
+                    <table width="100%">
+                        <thead>
+                            <tr>
+                                <td>STT</td>
+                                <td>Người thực hiện</td>
+                                <td>Hành động</td>
+                                <td>Chi tiết</td>
+                                <td>Thời gian</td>
+                            </tr>
+                        </thead>
+                        <tbody id="show-logs">
                         </tbody>
                     </table>
                 </div>
