@@ -579,7 +579,135 @@ login.addEventListener('click', () => {
 
 signup.addEventListener('click', () => {
     container.classList.remove('active');
+    document.querySelector('.form-content.forgot-password').style.display = 'none';
+    document.querySelector('.form-content.login').style.display = 'block';
 })
+
+// Quên mật khẩu
+let forgotPasswordLink = document.querySelector('.forgot-password-link');
+let backToLogin = document.querySelector('.back-to-login');
+let forgotPasswordForm = document.querySelector('.form-content.forgot-password');
+let loginForm = document.querySelector('.form-content.login');
+let signUpForm = document.querySelector('.form-content.sign-up');
+
+forgotPasswordLink.addEventListener('click', () => {
+    loginForm.style.display = 'none';
+    forgotPasswordForm.style.display = 'block';
+});
+
+backToLogin.addEventListener('click', () => {
+    forgotPasswordForm.style.display = 'none';
+    loginForm.style.display = 'block';
+    // Reset forgot form state
+    document.getElementById('reset-password-step').style.display = 'none';
+    document.getElementById('forgot-password-button').innerText = 'Tiếp theo';
+    document.querySelector('.phoneforgot-error').innerHTML = '';
+});
+
+// Xử lý nút Khôi phục mật khẩu
+let forgotPasswordBtn = document.getElementById('forgot-password-button');
+let currentResetStep = 1; // 1: Verify Phone, 2: Reset Password
+
+forgotPasswordBtn.addEventListener('click', async (e) => {
+    e.preventDefault();
+    let phone = document.getElementById('phone-forgot').value;
+    const strongPasswordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/;
+
+    if (currentResetStep === 1) {
+        if (phone.length !== 10) {
+            document.querySelector('.phoneforgot-error').innerHTML = 'Vui lòng nhập số điện thoại 10 số';
+            return;
+        }
+        
+        try {
+            forgotPasswordBtn.innerText = 'Đang gửi...';
+            forgotPasswordBtn.disabled = true;
+
+            const response = await fetch('/api/send-otp', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ phone })
+            });
+            const data = await response.json();
+            
+            forgotPasswordBtn.disabled = false;
+            
+            if (data.success) {
+                document.querySelector('.phoneforgot-error').innerHTML = '';
+                document.getElementById('reset-password-step').style.display = 'block';
+                document.getElementById('forgot-password-button').innerText = 'Đặt lại mật khẩu';
+                document.getElementById('phone-forgot').readOnly = true;
+                currentResetStep = 2;
+                
+                let msg = data.message;
+                if (data.debug) {
+                    msg = "OTP đã được tạo! Vì chưa cấu hình Email thật, bạn hãy xem mã OTP trong cửa sổ Terminal của Server.";
+                }
+                toast({ title: 'Thành công', message: msg, type: 'success', duration: 5000 });
+            } else {
+                document.querySelector('.phoneforgot-error').innerHTML = data.message || 'Lỗi gửi mã OTP';
+                forgotPasswordBtn.innerText = 'Tiếp theo';
+            }
+        } catch (error) {
+            forgotPasswordBtn.disabled = false;
+            forgotPasswordBtn.innerText = 'Tiếp theo';
+            toast({ title: 'Lỗi', message: 'Không thể kết nối server', type: 'error', duration: 3000 });
+        }
+    } else if (currentResetStep === 2) {
+        let otp = document.getElementById('otp-forgot').value;
+        let newPassword = document.getElementById('new-password-forgot').value;
+        let confirmPassword = document.getElementById('confirm-password-forgot').value;
+
+        if (otp.length !== 6) {
+            document.querySelector('.otpforgot-error').innerHTML = 'Vui lòng nhập mã OTP 6 chữ số';
+            return;
+        } else {
+            document.querySelector('.otpforgot-error').innerHTML = '';
+        }
+
+        if (!strongPasswordRegex.test(newPassword)) {
+            document.querySelector('.new-password-error').innerHTML = 'Mật khẩu phải từ 8 ký tự, gồm chữ hoa, chữ thường và số';
+            return;
+        } else {
+            document.querySelector('.new-password-error').innerHTML = '';
+        }
+
+        if (newPassword !== confirmPassword) {
+            document.querySelector('.confirm-password-error').innerHTML = 'Mật khẩu không khớp';
+            return;
+        } else {
+            document.querySelector('.confirm-password-error').innerHTML = '';
+        }
+
+        try {
+            forgotPasswordBtn.innerText = 'Đang xử lý...';
+            const response = await fetch('/api/reset-password', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ phone, otp, newPassword })
+            });
+            const data = await response.json();
+            
+            forgotPasswordBtn.innerText = 'Đặt lại mật khẩu';
+
+            if (data.success) {
+                toast({ title: 'Thành công', message: 'Mật khẩu đã được đặt lại!', type: 'success', duration: 3000 });
+                backToLogin.click();
+                currentResetStep = 1;
+                document.getElementById('phone-forgot').readOnly = false;
+                document.getElementById('phone-forgot').value = '';
+                document.getElementById('otp-forgot').value = '';
+                document.getElementById('new-password-forgot').value = '';
+                document.getElementById('confirm-password-forgot').value = '';
+            } else {
+                toast({ title: 'Lỗi', message: data.message || 'Lỗi khi đặt lại mật khẩu', type: 'error', duration: 3000 });
+            }
+        } catch (error) {
+            forgotPasswordBtn.innerText = 'Đặt lại mật khẩu';
+            toast({ title: 'Lỗi', message: 'Lỗi kết nối server', type: 'error', duration: 3000 });
+        }
+    }
+});
 
 let signupbtn = document.getElementById('signup');
 let loginbtn = document.getElementById('login');

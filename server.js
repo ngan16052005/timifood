@@ -5,7 +5,19 @@ const path = require('path');
 const { sql, connectDB } = require('./src/config/db');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
+const nodemailer = require('nodemailer');
 require('dotenv').config();
+
+// OTP Storage (Phone -> {otp, expiry})
+const otpStore = new Map();
+
+const transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS
+    }
+});
 
 const SECRET_KEY = 'TiMiFood_Secret_Key_2026';
 
@@ -46,14 +58,6 @@ async function startServer() {
         console.error('Start server error:', err);
     }
 }
-
-process.on('unhandledRejection', (reason, promise) => {
-    console.error('Unhandled Rejection at:', promise, 'reason:', reason);
-});
-
-process.on('uncaughtException', (err) => {
-    console.error('Uncaught Exception:', err);
-});
 
 // --- MIDDLEWARE ---
 const authenticateToken = (req, res, next) => {
@@ -107,16 +111,7 @@ async function createNotification(userPhone, title, message, type = 'info') {
     }
 }
 
-// --- EMAIL SERVICE SETUP ---
-const nodemailer = require('nodemailer');
-
-const transporter = nodemailer.createTransport({
-    service: 'gmail',
-    auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS
-    }
-});
+// Email transporter already initialized at the top
 
 async function sendOrderEmail(orderId, customerEmail, statusName, orderDetails) {
     console.log(`[Email] Sending order update for #${orderId} to ${customerEmail}`);
@@ -355,6 +350,81 @@ app.post('/api/login', async (req, res) => {
         }
     } catch (err) {
         console.error("Login error:", err);
+        res.status(500).json({ success: false, message: 'Database error' });
+    }
+});
+
+// Send OTP via Email
+app.post('/api/send-otp', async (req, res) => {
+    try {
+        const { phone } = req.body;
+        const result = await pool.request()
+            .input('phone', sql.NVarChar, phone)
+            .query('SELECT email FROM Users WHERE phone = @phone');
+        
+        if (result.recordset.length === 0) {
+            return res.status(404).json({ success: false, message: 'Số điện thoại chưa được đăng ký' });
+        }
+
+        const email = result.recordset[0].email;
+        if (!email) {
+            return res.status(400).json({ success: false, message: 'Tài khoản này chưa cập nhật Email' });
+        }
+
+        const otp = Math.floor(100000 + Math.random() * 900000).toString();
+        const expiry = Date.now() + 5 * 60 * 1000; // 5 mins
+        otpStore.set(phone, { otp, expiry });
+
+        console.log(`[OTP DEBUG] Phone: ${phone}, Email: ${email}, OTP: ${otp}`);
+
+        // Send actual email if configured
+        if (process.env.EMAIL_USER && process.env.EMAIL_PASS) {
+            const mailOptions = {
+                from: process.env.EMAIL_USER,
+                to: email,
+                subject: '[TiMiFood] Mã xác thực khôi phục mật khẩu',
+                html: `<h3>Mã OTP của bạn là: <b style="color: #ff5e3a; font-size: 24px;">${otp}</b></h3>
+                       <p>Mã này có hiệu lực trong 5 phút. Vui lòng không chia sẻ mã này cho bất kỳ ai.</p>`
+            };
+            await transporter.sendMail(mailOptions);
+            res.json({ success: true, message: 'OTP đã được gửi về Email của bạn' });
+        } else {
+            res.json({ success: true, message: 'OTP đã được tạo (Xem log server)', debug: true });
+        }
+    } catch (err) {
+        console.error("Send OTP error:", err);
+        res.status(500).json({ success: false, message: 'Database error' });
+    }
+});
+
+// Reset Password with OTP
+app.post('/api/reset-password', async (req, res) => {
+    try {
+        const { phone, otp, newPassword } = req.body;
+        
+        // Verify OTP
+        const stored = otpStore.get(phone);
+        if (!stored || stored.otp !== otp || Date.now() > stored.expiry) {
+            return res.status(400).json({ success: false, message: 'Mã OTP không đúng hoặc đã hết hạn' });
+        }
+
+        // Backend strong password validation
+        const strongPasswordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/;
+        if (!strongPasswordRegex.test(newPassword)) {
+            return res.status(400).json({ success: false, message: 'Mật khẩu phải từ 8 ký tự, bao gồm chữ hoa, chữ thường và số' });
+        }
+
+        const hashedPassword = await bcrypt.hash(newPassword, 10);
+        
+        await pool.request()
+            .input('phone', sql.NVarChar, phone)
+            .input('password', sql.NVarChar, hashedPassword)
+            .query('UPDATE Users SET password = @password WHERE phone = @phone');
+        
+        otpStore.delete(phone); // Clear OTP after success
+        res.json({ success: true, message: 'Password updated successfully' });
+    } catch (err) {
+        console.error("Reset password error:", err);
         res.status(500).json({ success: false, message: 'Database error' });
     }
 });
