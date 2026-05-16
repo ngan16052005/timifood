@@ -1,45 +1,60 @@
-
 // Admin Notifications Logic
 let adminNotifications = [];
 let lastAdminNotiId = null;
+
+// Socket.io for real-time notifications
+const socket = io();
+
+socket.on('connect', () => {
+    console.log('[Socket] Connected to server');
+    socket.emit('joinAdmin');
+});
+
+socket.on('newNotification', (latest) => {
+    console.log('[Socket] New notification received:', latest);
+    
+    // Check if this notification is already in our list
+    if (adminNotifications.some(n => n.id === latest.id)) return;
+
+    // Show toast and play sound
+    if (typeof toast === 'function') {
+        let toastType = 'info';
+        if (latest.type === 'order') toastType = 'success';
+        if (latest.type === 'cancel' || latest.title.toLowerCase().includes('hủy')) toastType = 'warning';
+
+        toast({ 
+            title: latest.title, 
+            message: latest.message, 
+            type: toastType, 
+            duration: 8000 
+        });
+    }
+
+    // Play appropriate sound
+    if (latest.title.toLowerCase().includes('đơn hàng mới') || latest.title.toLowerCase().includes('đặt hàng') || latest.type === 'order') {
+        playNotificationSound('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3');
+    } else if (latest.title.toLowerCase().includes('hủy') || latest.type === 'cancel') {
+        playNotificationSound('https://assets.mixkit.co/active_storage/sfx/1110/1110-preview.mp3');
+    } else {
+        playNotificationSound(); // Default sound
+    }
+
+    // Add to list and update UI
+    adminNotifications.unshift({
+        id: latest.id,
+        title: latest.title,
+        message: latest.message,
+        time: new Date(latest.createdAt.replace('Z', '')).toLocaleString('vi-VN'),
+        type: latest.type,
+        read: latest.isRead
+    });
+    updateAdminNotificationUI();
+});
 
 async function syncAdminNotifications() {
     try {
         const serverNotis = await window.api.getNotifications();
         if (Array.isArray(serverNotis)) {
-            // Check for new notifications to show toast and play sound
-            if (serverNotis.length > 0) {
-                const latest = serverNotis[0];
-                console.log("[Admin Noti] Poll check - Latest ID:", latest.id, "Last ID:", lastAdminNotiId);
-                if (lastAdminNotiId !== null && latest.id > lastAdminNotiId && !latest.isRead) {
-                    console.log("[Admin Noti] NEW NOTIFICATION DETECTED!");
-                    // Show toast notification
-                    if (typeof toast === 'function') {
-                        let toastType = 'info';
-                        if (latest.type === 'order') toastType = 'success';
-                        if (latest.type === 'cancel' || latest.title.toLowerCase().includes('hủy')) toastType = 'warning';
-
-                        toast({ 
-                            title: latest.title, 
-                            message: latest.message, 
-                            type: toastType, 
-                            duration: 8000 
-                        });
-                    }
-
-                    // Play appropriate sound
-                    console.log("[Admin Noti] Playing sound for:", latest.title);
-                    if (latest.title.toLowerCase().includes('đơn hàng mới') || latest.title.toLowerCase().includes('đặt hàng') || latest.type === 'order') {
-                        playNotificationSound('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3');
-                    } else if (latest.title.toLowerCase().includes('hủy') || latest.type === 'cancel') {
-                        playNotificationSound('https://assets.mixkit.co/active_storage/sfx/1110/1110-preview.mp3');
-                    } else {
-                        playNotificationSound(); // Default sound
-                    }
-                }
-                lastAdminNotiId = latest.id;
-            }
-
             adminNotifications = serverNotis.map(n => ({
                 id: n.id,
                 title: n.title,
@@ -49,14 +64,15 @@ async function syncAdminNotifications() {
                 read: n.isRead
             }));
             updateAdminNotificationUI();
+            
+            if (adminNotifications.length > 0) {
+                lastAdminNotiId = adminNotifications[0].id;
+            }
         }
     } catch (error) {
         console.error("Sync admin notifications error:", error);
     }
 }
-
-// Start syncing periodically every 3 seconds
-setInterval(syncAdminNotifications, 3000);
 
 function updateAdminNotificationUI() {
     const list = document.querySelector('.admin-notification-list');

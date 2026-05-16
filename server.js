@@ -29,7 +29,18 @@ process.on('unhandledRejection', (reason, promise) => {
     console.error('CRITICAL UNHANDLED REJECTION at:', promise, 'reason:', reason);
 });
 
+const http = require('http');
+const { Server } = require('socket.io');
+
 const app = express();
+const server = http.createServer(app);
+const io = new Server(server, {
+    cors: {
+        origin: "*",
+        methods: ["GET", "POST"]
+    }
+});
+
 const PORT = process.env.PORT || 3500;
 
 app.use(cors());
@@ -41,6 +52,20 @@ app.use((req, res, next) => {
     next();
 });
 
+// Socket.io Connection
+io.on('connection', (socket) => {
+    console.log('A user connected:', socket.id);
+    
+    socket.on('joinAdmin', () => {
+        socket.join('adminRoom');
+        console.log(`Socket ${socket.id} joined adminRoom`);
+    });
+
+    socket.on('disconnect', () => {
+        console.log('User disconnected:', socket.id);
+    });
+});
+
 let pool;
 async function startServer() {
     try {
@@ -49,7 +74,7 @@ async function startServer() {
             console.error('Could not connect to database. Server starting without DB...');
         }
 
-        app.listen(PORT, () => {
+        server.listen(PORT, () => {
             console.log(`Server is running on http://localhost:${PORT}`);
         }).on('error', (err) => {
             console.error('Server failed to start:', err);
@@ -97,13 +122,35 @@ async function createNotification(userPhone, title, message, type = 'info') {
             console.error("[Notification] Error: DB pool not initialized");
             return false;
         }
-        await pool.request()
+        const result = await pool.request()
             .input('userPhone', sql.NVarChar, userPhone)
             .input('title', sql.NVarChar, title)
             .input('message', sql.NVarChar, message)
             .input('type', sql.NVarChar, type)
-            .query('INSERT INTO Notifications (userPhone, title, message, type) VALUES (@userPhone, @title, @message, @type)');
-        console.log(`[Notification] Success: Created for ${userPhone}`);
+            .query(`INSERT INTO Notifications (userPhone, title, message, type, isRead, createdAt) 
+                    OUTPUT INSERTED.id
+                    VALUES (@userPhone, @title, @message, @type, 0, GETDATE())`);
+        
+        const newNotiId = result.recordset[0].id;
+        console.log(`[Notification] Success: Created for ${userPhone}, ID: ${newNotiId}`);
+
+        // Emit real-time notification
+        const notiData = {
+            id: newNotiId,
+            title,
+            message,
+            type,
+            createdAt: new Date().toISOString(),
+            isRead: false
+        };
+
+        if (userPhone === 'ADMIN') {
+            io.to('adminRoom').emit('newNotification', notiData);
+        } else {
+            // Optional: emit to specific user if needed
+            io.emit('userNotification', { ...notiData, userPhone });
+        }
+
         return true;
     } catch (err) {
         console.error("[Notification] Error creating notification:", err);

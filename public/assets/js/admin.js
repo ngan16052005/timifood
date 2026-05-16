@@ -1513,9 +1513,11 @@ function openCreateAccount() {
 
 function signUpFormReset() {
     document.getElementById('fullname').value = ""
+    document.getElementById('user-email').value = ""
     document.getElementById('phone').value = ""
     document.getElementById('password').value = ""
     document.querySelector('.form-message-name').innerHTML = '';
+    document.querySelector('.form-message-email').innerHTML = '';
     document.querySelector('.form-message-phone').innerHTML = '';
     document.querySelector('.form-message-password').innerHTML = '';
 }
@@ -1536,6 +1538,7 @@ function showUserArr(arr) {
             <td>${index + 1}</td>
             <td>${account.fullname}</td>
             <td>${account.phone}</td>
+            <td>${account.email || 'Chưa có'}</td>
             <td>${formatDate(account.join)}</td>
             <td>${roleLabel}</td>
             <td>${tinhtrang}</td>
@@ -1625,6 +1628,7 @@ async function editAccount(phone) {
         if (!user) return;
 
         document.getElementById("fullname").value = user.fullname;
+        document.getElementById("user-email").value = user.email || "";
         document.getElementById("phone").value = user.phone;
         document.getElementById("phone").disabled = true; // Don't allow changing phone
         document.getElementById("password").value = user.password;
@@ -1638,52 +1642,73 @@ async function editAccount(phone) {
 updateAccount.addEventListener("click", async (e) => {
     e.preventDefault();
     let fullname = document.getElementById("fullname").value;
+    let email = document.getElementById("user-email").value;
     let phone = document.getElementById("phone").value;
     let password = document.getElementById("password").value;
     let userRole = document.getElementById("user-role").value;
     let status = document.getElementById("user-status").checked ? 1 : 0;
 
-    if (fullname == "" || phone == "" || password == "") {
+    if (fullname == "" || phone == "" || password == "" || email == "") {
         toast({ title: 'Cảnh báo', message: 'Vui lòng nhập đầy đủ thông tin!', type: 'warning', duration: 3000 });
-    } else if (!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/.test(password)) {
-        toast({ title: 'Cảnh báo', message: 'Mật khẩu phải từ 8 ký tự, bao gồm chữ hoa, chữ thường và số!', type: 'warning', duration: 3000 });
-    } else {
-        try {
-            await window.api.updateUser(phone, { fullname, password, status, userType: parseInt(userRole) });
-            toast({ title: 'Thành công', message: 'Thay đổi thông tin thành công!', type: 'success', duration: 3000 });
-            document.querySelector(".signup").classList.remove("open");
-            signUpFormReset();
-            showUser();
-        } catch (error) {
-            toast({ title: 'Lỗi', message: 'Không thể cập nhật tài khoản!', type: 'error', duration: 3000 });
-        }
+        return;
     }
-})
+
+    if (!emailIsValid(email)) {
+        document.querySelector('.form-message-email').innerHTML = 'Email không hợp lệ';
+        return;
+    }
+
+    try {
+        const userObj = {
+            fullname: fullname,
+            email: email,
+            phone: phone,
+            password: password,
+            userType: parseInt(userRole),
+            status: status
+        };
+        await window.api.updateUser(phone, userObj);
+        toast({ title: 'Thành công', message: 'Cập nhật tài khoản thành công!', type: 'success', duration: 3000 });
+        document.querySelector(".modal.signup").classList.remove("open");
+        signUpFormReset();
+        showUser();
+    } catch (error) {
+        toast({ title: 'Lỗi', message: 'Không thể cập nhật tài khoản!', type: 'error', duration: 3000 });
+    }
+});
 
 addAccount.addEventListener("click", async (e) => {
     e.preventDefault();
-    let fullNameUser = document.getElementById('fullname').value;
-    let phoneUser = document.getElementById('phone').value;
-    let passwordUser = document.getElementById('password').value;
+    let fullname = document.getElementById("fullname").value;
+    let email = document.getElementById("user-email").value;
+    let phone = document.getElementById("phone").value;
+    let password = document.getElementById("password").value;
+    let userRole = document.getElementById("user-role").value;
 
-    // Strong password validation
-    const strongPasswordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/;
-    if (fullNameUser.length < 3 || phoneUser.length != 10) {
-        toast({ title: 'Chú ý', message: 'Vui lòng kiểm tra lại tên và số điện thoại!', type: 'warning', duration: 3000 });
+    if (fullname == "" || phone == "" || password == "" || email == "") {
+        toast({ title: 'Cảnh báo', message: 'Vui lòng nhập đầy đủ thông tin!', type: 'warning', duration: 3000 });
         return;
     }
-    if (!strongPasswordRegex.test(passwordUser)) {
+
+    if (!emailIsValid(email)) {
+        document.querySelector('.form-message-email').innerHTML = 'Email không hợp lệ';
+        return;
+    }
+
+    const strongPasswordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/;
+    if (!strongPasswordRegex.test(password)) {
         toast({ title: 'Chú ý', message: 'Mật khẩu phải từ 8 ký tự, bao gồm chữ hoa, chữ thường và số!', type: 'warning', duration: 3000 });
         return;
     }
 
-    let userRole = document.getElementById('user-role').value;
     let user = {
-        fullname: fullNameUser,
-        phone: phoneUser,
-        password: passwordUser,
+        fullname: fullname,
+        email: email,
+        phone: phone,
+        password: password,
         status: 1,
-        userType: parseInt(userRole)
+        userType: parseInt(userRole),
+        join: new Date().toISOString()
     }
 
     try {

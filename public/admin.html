@@ -290,6 +290,7 @@
                                 <td>STT</td>
                                 <td>Họ và tên</td>
                                 <td>Liên hệ</td>
+                                <td>Email</td>
                                 <td>Ngày tham gia</td>
                                 <td>Quyền</td>
                                 <td>Tình trạng</td>
@@ -670,6 +671,12 @@
                         </select>
                     </div>
                     <div class="form-group">
+                        <label for="user-email" class="form-label">Email</label>
+                        <input id="user-email" name="user-email" type="email" placeholder="Nhập địa chỉ email"
+                            class="form-control">
+                        <span class="form-message-email form-message"></span>
+                    </div>
+                    <div class="form-group">
                         <label for="phone" class="form-label">Số điện thoại</label>
                         <input id="phone" name="phone" type="text" placeholder="Nhập số điện thoại"
                             class="form-control">
@@ -743,6 +750,7 @@
         </div>
     </footer>
     <div id="toast"></div>
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
     <script src="/assets/js/api.js"></script>
     <script src="/assets/js/admin-noti.js"></script>
     <script src="/assets/js/admin.js"></script>
