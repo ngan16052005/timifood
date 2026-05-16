@@ -149,5 +149,15 @@
     - Tự động làm mới danh sách đơn hàng và số liệu doanh thu trong thời gian thực khi có biến động từ phía khách hàng.
 - **Tinh chỉnh Trải nghiệm Người dùng:** Loại bỏ các âm thanh không cần thiết ở phía Client để tăng tính riêng tư, chỉ giữ lại các thông báo thị giác (Toast) tinh tế.
 
+### ✅ Giai đoạn 13: Bảo mật Tài khoản & Quản trị Danh mục Động (Security & Dynamic CMS)
+- **Nâng cấp Bảo mật Tài khoản:**
+    - Triển khai hệ thống **Đổi mật khẩu (Change Password)** bảo mật cao: Xác thực đa tầng bằng `bcrypt` trực tiếp tại Backend.
+    - **Data Privacy:** Loại bỏ hoàn toàn việc lưu trữ mật khẩu tại LocalStorage và chặn đứng việc gửi dữ liệu nhạy cảm qua API Responses (ngay cả dạng hash).
+    - Tối ưu hóa API cập nhật thông tin người dùng, đảm bảo tính toàn vẹn dữ liệu từ Database thay vì dựa vào dữ liệu tạm tại trình duyệt.
+- **Hệ thống Quản lý Danh mục (Dynamic Categories):**
+    - Chuyển đổi thành công danh mục từ trạng thái tĩnh (Hardcoded) sang động hoàn toàn (Database-driven).
+    - **Admin CMS:** Xây dựng module quản trị danh mục chuyên nghiệp với Modal thiết kế Premium, hỗ trợ thêm/sửa/xóa và đồng bộ dữ liệu tức thì.
+    - **Global Sync:** Tự động cập nhật danh sách danh mục lên toàn bộ hệ thống: Menu điều hướng, bộ lọc tìm kiếm nâng cao và chân trang (Footer).
+
 ---
 *Dự án hiện đã đạt độ hoàn thiện cao nhất, sẵn sàng cho việc vận hành thực tế với hiệu suất và độ ổn định tối ưu.*

@@ -73,5 +73,12 @@ Dưới đây là danh sách đầy đủ các hạng mục đã hoàn thiện t
     - [x] Đồng bộ danh mục động lên Menu, Bộ lọc và Footer trang người dùng.
 - [x] Dọn dẹp mã lỗi Console và tối ưu hóa hiệu suất ứng dụng.
 
+## ✅ Giai đoạn 13: Bảo mật Tài khoản & Quyền riêng tư (Security & Privacy)
+- [x] Triển khai API **Đổi mật khẩu (Change Password)** bảo mật phía Server.
+- [x] Cơ chế xác thực mật khẩu cũ bằng `bcrypt.compare` trước khi đổi.
+- [x] Loại bỏ hoàn toàn dữ liệu mật khẩu (ngay cả dạng hash) khỏi API Responses và LocalStorage.
+- [x] Tối ưu hóa logic cập nhật thông tin cá nhân không phụ thuộc vào dữ liệu tạm tại Client.
+- [x] Nâng cấp Modal Quản lý danh mục với giao diện Premium và trải nghiệm mượt mà.
+
 ---
 *Cập nhật lần cuối: 16/05/2026 bởi hgbaodev & AI Assistant.*
