@@ -18,7 +18,7 @@ File này chứa các quy tắc, phong cách lập trình và những lưu ý qu
 **Không được xoá code khi chưa kiểm tra kỹ lưỡng.Không được tự ý thay đổi cấu trúc HTML, CSS, JS khi chưa có sự cho phép của người dùng, luôn thông báo cho người dùng khi thực hiện thay đổi lớn, luôn hỏi lại khi không chắc chắn.**
 **Luôn giao tiếp với người dùng bằng Tiếng Việt.**
 **Luôn ưu tiên sửa đổi code trực tiếp và giữ nguyên cấu trúc, không tạo code mới nếu không cần thiết.**
-**Luôn cập nhật các file .md trong quá trình phát triển và khi hoàn thành, đặc biệt là file TASKS.md và SCRATCH.md**
+**Luôn cập nhật các file .md trong quá trình phát triển và khi hoàn thành, đặc biệt là file TASKS.md, SCRATCH.md và README.md**
 **Luôn ưu tiên các thay đổi nhỏ và dần dần để người dùng dễ kiểm soát, không thực hiện thay đổi lớn.**
 **Luôn giữ nguyên style và giao diện của các component, không thay đổi style và giao diện của các component khi chưa có sự cho phép của người dùng.**
 **Luôn cập nhật dự án lên github sau mỗi lần hoàn thành và có thông báo cho người dùng.**
