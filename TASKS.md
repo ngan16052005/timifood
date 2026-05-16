@@ -40,15 +40,15 @@ Dưới đây là danh sách các hạng mục cần nâng cấp để hoàn thi
 
 ### 2. Tương tác & Uy tín thương hiệu
 - [x] Xây dựng hệ thống Đánh giá (Rating & Review) cho từng sản phẩm.
-    - [x] Ràng buộc "Đã mua hàng mới được đánh giá" để tăng độ uy tín.
-    - [x] Tự động lấy tên khách hàng từ Database nếu phiên đăng nhập bị thiếu.
+- [x] Ràng buộc "Đã mua hàng mới được đánh giá" để tăng độ uy tín.
+- [x] Tự động lấy tên khách hàng từ Database nếu phiên đăng nhập bị thiếu.
 - [x] Hiển thị số sao trung bình và bình luận của khách hàng tại trang chi tiết món ăn.
-    - [x] Cải thiện UI/UX: Ẩn form đánh giá khi chưa đăng nhập và thêm thông báo hướng dẫn.
+- [x] Cải thiện UI/UX: Ẩn form đánh giá khi chưa đăng nhập và thêm thông báo hướng dẫn.
 
 ### 3. Trải nghiệm khách hàng chuyên sâu
-- [ ] Hiển thị tiến trình đơn hàng (Order Tracking) cho khách (Đang làm -> Đang giao -> Hoàn thành).
-- [ ] Tích hợp thanh toán Online (VNPAY/MoMo) để đa dạng hóa phương thức thanh toán.
-- [ ] Gửi thông báo đơn hàng tự động qua Email (Nodemailer).
+- [x] Hiển thị tiến trình đơn hàng (Order Tracking) cho khách (Đã đặt hàng -> Đang chuẩn bị -> Đang giao -> Hoàn thành).
+- [x] Tích hợp thanh toán Online mô phỏng (VNPAY/MoMo) để đa dạng hóa phương thức thanh toán.
+- [x] Gửi thông báo đơn hàng tự động qua Email (Nodemailer) khi đặt hàng và cập nhật trạng thái.
 
 ### 4. Quản trị & Báo cáo nâng cao
 - [x] Thống kê Top 5 món ăn bán chạy nhất theo tháng.

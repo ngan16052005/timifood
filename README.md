@@ -127,5 +127,16 @@
 - **Quản trị Đánh giá nâng cao:** Admin có quyền kiểm soát tuyệt đối các bình luận, hỗ trợ xóa các nội dung không phù hợp để duy trì môi trường mua sắm văn minh.
 - **Di trú dữ liệu an toàn:** Cơ chế tự động nâng cấp (migration) mật khẩu cũ sang dạng mã hóa Bcrypt ngay khi người dùng đăng nhập, đảm bảo bảo mật mà không gây gián đoạn trải nghiệm.
 
+### ✅ Giai đoạn 11: Trải nghiệm Chuyên sâu (Tracking, Payment & Email)
+- **Hệ thống Order Tracking (Theo dõi đơn hàng):** 
+    - Tích hợp thanh tiến trình (Progress Bar) trực quan ngay trong lịch sử đơn hàng.
+    - Cho phép khách hàng theo dõi 4 giai đoạn quan trọng: Đã đặt hàng -> Đang chuẩn bị -> Đang giao hàng -> Đã nhận hàng.
+- **Tích hợp Thanh toán Online (Simulation):**
+    - Hỗ trợ đa dạng phương thức thanh toán: Tiền mặt, VNPAY, MoMo.
+    - Quy trình thanh toán chuyên nghiệp với mã QR và giao diện mô phỏng xác nhận giao dịch thời gian thực.
+- **Thông báo qua Email (Nodemailer Integration):**
+    - Tự động gửi email xác nhận đơn hàng ngay khi khách hàng đặt hàng thành công.
+    - Gửi email thông báo cập nhật trạng thái đơn hàng (xác nhận, đang giao, hoàn thành) để khách hàng luôn chủ động nắm bắt thông tin.
+
 ---
 *Dự án hiện đã tích hợp đầy đủ các tính năng của một sàn thương mại điện tử thực thụ, đặt uy tín và tương tác với khách hàng lên hàng đầu.*

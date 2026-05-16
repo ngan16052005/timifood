@@ -959,12 +959,19 @@ async function renderOrderProduct() {
                     </div>`;
                 });
                 
+                productHtml += `</div>`;
+                
+                // Thêm thanh theo dõi đơn hàng
+                if (item.trangthai !== 3) { // Không hiển thị nếu đơn đã hủy
+                    productHtml += renderOrderTracking(item.trangthai);
+                }
+
                 let textCompl = "";
                 let classCompl = "";
                 switch(item.trangthai) {
                     case 0: textCompl = "Đang xử lý"; classCompl = "no-complete"; break;
-                    case 1: textCompl = "Đã xử lý"; classCompl = "complete"; break;
-                    case 2: textCompl = "Đã thanh toán"; classCompl = "complete"; break;
+                    case 1: textCompl = "Đang giao"; classCompl = "complete"; break;
+                    case 2: textCompl = "Hoàn thành"; classCompl = "complete"; break;
                     case 3: textCompl = "Đã hủy"; classCompl = "cancelled"; break;
                     default: textCompl = "Không xác định"; classCompl = "no-complete";
                 }
@@ -996,6 +1003,59 @@ async function renderOrderProduct() {
     } catch (error) {
         console.error("Error rendering order history:", error);
     }
+}
+
+function renderOrderTracking(status) {
+    let steps = [
+        { label: "Đã đặt hàng", icon: "fa-solid fa-receipt" },
+        { label: "Đang chuẩn bị", icon: "fa-solid fa-pot-food" },
+        { label: "Đang giao hàng", icon: "fa-solid fa-truck-fast" },
+        { label: "Đã nhận hàng", icon: "fa-solid fa-house-chimney-check" }
+    ];
+
+    let progressWidth = "0%";
+    let activeStep = -1;
+    let completedSteps = [];
+
+    switch(status) {
+        case 0: // Chờ xử lý
+            progressWidth = "12.5%";
+            activeStep = 1;
+            completedSteps = [0];
+            break;
+        case 1: // Đang giao
+            progressWidth = "62.5%";
+            activeStep = 2;
+            completedSteps = [0, 1];
+            break;
+        case 2: // Hoàn thành
+            progressWidth = "100%";
+            activeStep = -1;
+            completedSteps = [0, 1, 2, 3];
+            break;
+    }
+
+    let stepsHtml = steps.map((step, index) => {
+        let className = "order-tracking-step";
+        if (completedSteps.includes(index)) className += " completed";
+        if (index === activeStep) className += " active";
+        
+        return `
+            <div class="${className}">
+                <div class="step-icon"><i class="${step.icon}"></i></div>
+                <span class="step-label">${step.label}</span>
+            </div>
+        `;
+    }).join('');
+
+    return `
+        <div class="order-tracking-wrapper">
+            <div class="order-tracking-bar">
+                <div class="order-tracking-progress ${status !== 2 ? 'active' : ''}" style="width: ${progressWidth}"></div>
+                ${stepsHtml}
+            </div>
+        </div>
+    `;
 }
 
 async function cancelOrderUser(id) {

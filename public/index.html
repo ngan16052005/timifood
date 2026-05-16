@@ -715,6 +715,30 @@
                     </div>
                 </div>
             </div>
+                <div class="checkout-row">
+                    <div class="checkout-col-title">
+                        Phương thức thanh toán
+                    </div>
+                    <div class="checkout-col-content">
+                        <div class="content-group">
+                            <div class="payment-methods">
+                                <div class="payment-item active" data-payment="cash">
+                                    <i class="fa-light fa-money-bill-1-wave"></i>
+                                    <span>Tiền mặt</span>
+                                </div>
+                                <div class="payment-item" data-payment="vnpay">
+                                    <img src="/assets/img/vnpay-icon.png" alt="VNPAY">
+                                    <span>VNPAY</span>
+                                </div>
+                                <div class="payment-item" data-payment="momo">
+                                    <img src="/assets/img/momo-icon.png" alt="MoMo">
+                                    <span>MoMo</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
             <div class="checkout-col-right">
                 <p class="checkout-content-label">Đơn hàng</p>
                 <div class="bill-total" id="list-order-checkout">
@@ -746,6 +770,34 @@
                 <button class="complete-checkout-btn">Đặt hàng</button>
             </div>
         </main>
+    </div>
+    
+    <!-- Modal Thanh toán Online Mô phỏng -->
+    <div class="modal modal-payment-sim">
+        <div class="modal-container">
+            <div class="payment-sim-header">
+                <h3>Cổng thanh toán trực tuyến</h3>
+                <button class="form-close" onclick="closePaymentSim()"><i class="fa-regular fa-xmark"></i></button>
+            </div>
+            <div class="payment-sim-body">
+                <div class="payment-gate-info">
+                    <img id="payment-gate-img" src="" alt="">
+                    <p>Đang xử lý giao dịch...</p>
+                </div>
+                <div class="payment-qr">
+                    <img id="payment-qr-img" src="" alt="QR Code">
+                    <p>Quét mã QR để thanh toán</p>
+                </div>
+                <div class="payment-amount">
+                    <span>Số tiền cần thanh toán:</span>
+                    <h4 id="payment-amount-value">0đ</h4>
+                </div>
+            </div>
+            <div class="payment-sim-footer">
+                <button class="btn-cancel-pay" onclick="closePaymentSim()">Hủy giao dịch</button>
+                <button class="btn-confirm-pay" onclick="confirmPaymentSim()">Xác nhận đã thanh toán</button>
+            </div>
+        </div>
     </div>
     <div class="modal order-edit-modal">
         <div class="modal-container">

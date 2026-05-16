@@ -419,10 +419,10 @@ function openPaymentSim(method, amount) {
     amountVal.innerText = vnd(amount);
 
     if (method === 'momo') {
-        gateImg.src = './assets/img/momo-icon.png';
+        gateImg.src = '/assets/img/momo-icon.png';
         qrImg.src = 'https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=MoMoPaymentSimulation';
     } else {
-        gateImg.src = './assets/img/vnpay-icon.png';
+        gateImg.src = '/assets/img/vnpay-icon.png';
         qrImg.src = 'https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=VNPAYPaymentSimulation';
     }
 

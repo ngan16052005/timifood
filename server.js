@@ -107,6 +107,76 @@ async function createNotification(userPhone, title, message, type = 'info') {
     }
 }
 
+// --- EMAIL SERVICE SETUP ---
+const nodemailer = require('nodemailer');
+
+const transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS
+    }
+});
+
+async function sendOrderEmail(orderId, customerEmail, statusName, orderDetails) {
+    console.log(`[Email] Sending order update for #${orderId} to ${customerEmail}`);
+    
+    if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS || !customerEmail || customerEmail === 'your-email@gmail.com') {
+        console.warn("[Email] Skipping email send: Missing credentials or default placeholder email");
+        return;
+    }
+
+    const mailOptions = {
+        from: process.env.MAIL_FROM,
+        to: customerEmail,
+        subject: `TiMi Food - Cập nhật đơn hàng #${orderId}`,
+        html: `
+            <div style="font-family: Arial, sans-serif; padding: 20px; border: 1px solid #eee; max-width: 600px; border-radius: 10px;">
+                <div style="text-align: center; margin-bottom: 20px;">
+                    <h1 style="color: #B5292F; margin: 0;">TiMi Food</h1>
+                    <p style="color: #666; font-size: 14px;">Cảm ơn bạn đã tin tưởng dịch vụ của chúng tôi!</p>
+                </div>
+                <div style="background-color: #f9f9f9; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+                    <h2 style="color: #333; font-size: 18px; margin-top: 0;">Thông báo trạng thái đơn hàng</h2>
+                    <p>Chào bạn,</p>
+                    <p>Đơn hàng <strong>#${orderId}</strong> của bạn đã được cập nhật trạng thái mới:</p>
+                    <div style="background: #B5292F; color: white; padding: 10px 20px; display: inline-block; border-radius: 5px; font-weight: bold; font-size: 16px;">
+                        ${statusName}
+                    </div>
+                </div>
+                <div style="border-top: 1px solid #eee; padding-top: 20px;">
+                    <h3 style="color: #333; font-size: 16px;">Thông tin đơn hàng:</h3>
+                    <table style="width: 100%; font-size: 14px;">
+                        <tr>
+                            <td style="color: #666; padding: 5px 0;">Tổng thanh toán:</td>
+                            <td style="text-align: right; font-weight: bold; color: #ee4d2d;">${new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(orderDetails.totalPrice)}</td>
+                        </tr>
+                        <tr>
+                            <td style="color: #666; padding: 5px 0;">Địa chỉ giao hàng:</td>
+                            <td style="text-align: right;">${orderDetails.receiverAddress}</td>
+                        </tr>
+                        <tr>
+                            <td style="color: #666; padding: 5px 0;">Số điện thoại:</td>
+                            <td style="text-align: right;">${orderDetails.receiverPhone}</td>
+                        </tr>
+                    </table>
+                </div>
+                <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee; text-align: center; color: #999; font-size: 12px;">
+                    <p>Đây là email tự động, vui lòng không phản hồi email này.</p>
+                    <p>&copy; 2026 TiMi Food. All rights reserved.</p>
+                </div>
+            </div>
+        `
+    };
+
+    try {
+        await transporter.sendMail(mailOptions);
+        console.log(`[Email] Email sent successfully to ${customerEmail}`);
+    } catch (error) {
+        console.error("[Email] Failed to send email:", error);
+    }
+}
+
 // --- API ENDPOINTS ---
 
 // Get all products (with optional search)
@@ -436,6 +506,20 @@ app.post('/api/orders', authenticateToken, async (req, res) => {
         console.log(`[Order] Notifying customer: ${customerPhone}`);
         await createNotification(customerPhone, "Đơn hàng mới", `Đơn hàng #${finalId} đã được đặt thành công!`, "order");
         
+        // Fetch user email for notification
+        const userResult = await pool.request()
+            .input('phone', sql.NVarChar, customerPhone)
+            .query('SELECT email FROM Users WHERE phone = @phone');
+        
+        if (userResult.recordset.length > 0 && userResult.recordset[0].email) {
+            const customerEmail = userResult.recordset[0].email;
+            sendOrderEmail(finalId, customerEmail, "Đã đặt hàng (Chờ xác nhận)", {
+                totalPrice: order.tongtien,
+                receiverAddress: order.diachinhan,
+                receiverPhone: order.sdtnhan
+            });
+        }
+
         // Notify Admins
         console.log(`[Order] Notifying Admins`);
         await createNotification("ADMIN", "Đơn hàng mới", `Có đơn hàng mới #${finalId} từ ${customerPhone}`, "order");
@@ -680,21 +764,37 @@ app.put('/api/orders/:id/status', authenticateToken, isStaffOrAdmin, async (req,
         const { id } = req.params;
         const { status } = req.body;
 
-        // Get order info to notify user
-        const orderInfo = await pool.request()
+        // Get order info and user email to notify
+        const orderInfoResult = await pool.request()
             .input('id', sql.NVarChar, id)
-            .query('SELECT customerPhone FROM Orders WHERE id = @id');
-
+            .query(`
+                SELECT o.customerPhone, o.totalPrice, o.receiverAddress, o.receiverPhone, u.email 
+                FROM Orders o 
+                JOIN Users u ON o.customerPhone = u.phone 
+                WHERE o.id = @id
+            `);
+        
         await pool.request()
             .input('id', sql.NVarChar, id)
             .input('status', sql.Int, status)
             .query('UPDATE Orders SET status=@status WHERE id=@id');
-
-        if (orderInfo.recordset.length > 0) {
-            const customerPhone = orderInfo.recordset[0].customerPhone;
+        
+        if (orderInfoResult.recordset.length > 0) {
+            const orderInfo = orderInfoResult.recordset[0];
             const statusNames = ["Chờ xử lý", "Đang giao", "Hoàn thành", "Đã hủy"];
             const statusName = statusNames[status] || "Cập nhật";
-            await createNotification(customerPhone, "Cập nhật đơn hàng", `Đơn hàng #${id} của bạn đã chuyển sang trạng thái: ${statusName}`, "order");
+            
+            // System Notification
+            await createNotification(orderInfo.customerPhone, "Cập nhật đơn hàng", `Đơn hàng #${id} của bạn đã chuyển sang trạng thái: ${statusName}`, "order");
+            
+            // Email Notification
+            if (orderInfo.email) {
+                sendOrderEmail(id, orderInfo.email, statusName, {
+                    totalPrice: orderInfo.totalPrice,
+                    receiverAddress: orderInfo.receiverAddress,
+                    receiverPhone: orderInfo.receiverPhone
+                });
+            }
         }
 
         res.json({ success: true, message: 'Order status updated' });
