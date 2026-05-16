@@ -342,9 +342,11 @@ app.post('/api/login', async (req, res) => {
                     { expiresIn: '24h' }
                 );
 
-                user.join = user.joinDate;
-                user.cart = [];
-                res.json({ success: true, user, token });
+                // Remove sensitive info
+                const { password: _, ...safeUser } = user;
+                safeUser.join = user.joinDate;
+                safeUser.cart = [];
+                res.json({ success: true, user: safeUser, token });
             } else {
                 res.status(401).json({ success: false, message: 'Số điện thoại hoặc mật khẩu không đúng' });
             }
@@ -352,6 +354,7 @@ app.post('/api/login', async (req, res) => {
             res.status(401).json({ success: false, message: 'Số điện thoại hoặc mật khẩu không đúng' });
         }
     } catch (err) {
+        console.error("Login error:", err);
         res.status(500).json({ success: false, message: 'Database error' });
     }
 });
@@ -398,6 +401,44 @@ app.post('/api/register', async (req, res) => {
     } catch (err) {
         console.error("Register error:", err);
         res.status(500).json({ success: false, message: 'Error registering user' });
+    }
+});
+
+// Change Password API
+app.post('/api/change-password', authenticateToken, async (req, res) => {
+    try {
+        const { currentPassword, newPassword } = req.body;
+        const userPhone = req.user.phone;
+
+        if (!currentPassword || !newPassword) {
+            return res.status(400).json({ message: 'Vui lòng nhập đầy đủ thông tin' });
+        }
+
+        const result = await pool.request()
+            .input('phone', sql.NVarChar, userPhone)
+            .query('SELECT password FROM Users WHERE phone=@phone');
+
+        if (result.recordset.length === 0) {
+            return res.status(404).json({ message: 'Không tìm thấy người dùng' });
+        }
+
+        const user = result.recordset[0];
+        const isMatch = await bcrypt.compare(currentPassword, user.password);
+
+        if (!isMatch) {
+            return res.status(401).json({ message: 'Mật khẩu hiện tại không đúng' });
+        }
+
+        const hashedNewPassword = await bcrypt.hash(newPassword, 10);
+        await pool.request()
+            .input('phone', sql.NVarChar, userPhone)
+            .input('password', sql.NVarChar, hashedNewPassword)
+            .query('UPDATE Users SET password=@password WHERE phone=@phone');
+
+        res.json({ success: true, message: 'Đổi mật khẩu thành công' });
+    } catch (err) {
+        console.error("Change password error:", err);
+        res.status(500).json({ message: 'Lỗi khi đổi mật khẩu' });
     }
 });
 

@@ -660,5 +660,26 @@ window.api = {
         } finally {
             hideLoader();
         }
+    },
+
+    changePassword: async (currentPassword, newPassword) => {
+        showLoader();
+        try {
+            const response = await fetch(`${BASE_URL}/change-password`, {
+                method: 'POST',
+                headers: getHeaders(),
+                body: JSON.stringify({ currentPassword, newPassword })
+            });
+            const result = await response.json();
+            if (!response.ok) {
+                throw new Error(result.message || 'Lỗi khi đổi mật khẩu');
+            }
+            return result;
+        } catch (error) {
+            console.error("Change password API error:", error);
+            throw error;
+        } finally {
+            hideLoader();
+        }
     }
 };

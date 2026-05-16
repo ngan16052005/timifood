@@ -866,34 +866,38 @@ async function changeInformation() {
         return;
     }
 
-    user.fullname = infoname.value;
-    user.email = infoemail.value;
-    user.address = infoaddress.value;
-
     try {
-        await window.api.updateUser(user.phone, {
-            fullname: user.fullname,
+        const updatedData = {
+            fullname: infoname.value,
+            email: infoemail.value,
+            address: infoaddress.value,
             status: user.status
-        });
-        // Note: For full account update (address, email), we might need a more comprehensive API
-        // For now, let's update currentuser in localStorage for session
-        localStorage.setItem('currentuser', JSON.stringify(user));
-        kiemtradangnhap();
-        toast({ title: 'Success', message: 'Cập nhật thông tin thành công !', type: 'success', duration: 3000 });
+        };
+        const result = await window.api.updateUser(user.phone, updatedData);
+        if (result) {
+            // Update local storage without password
+            const { password: _, ...safeUser } = result;
+            localStorage.setItem('currentuser', JSON.stringify({ ...user, ...safeUser }));
+            kiemtradangnhap();
+            toast({ title: 'Thành công', message: 'Cập nhật thông tin thành công!', type: 'success', duration: 3000 });
+        }
     } catch (error) {
-        toast({ title: 'Error', message: 'Không thể cập nhật thông tin!', type: 'error', duration: 3000 });
+        toast({ title: 'Lỗi', message: 'Không thể cập nhật thông tin!', type: 'error', duration: 3000 });
     }
 }
-
 // Đổi mật khẩu 
 async function changePassword() {
-    let currentUser = JSON.parse(localStorage.getItem("currentuser"));
     let passwordCur = document.getElementById('password-cur-info');
     let passwordAfter = document.getElementById('password-after-info');
     let passwordConfirm = document.getElementById('password-comfirm-info');
     
-    if (passwordCur.value != currentUser.password) {
-        document.querySelector('.password-cur-info-error').innerHTML = 'Mật khẩu hiện tại không đúng';
+    // Reset errors
+    document.querySelector('.password-cur-info-error').innerHTML = '';
+    document.querySelector('.password-after-info-error').innerHTML = '';
+    document.querySelector('.password-after-comfirm-error').innerHTML = '';
+
+    if (!passwordCur.value) {
+        document.querySelector('.password-cur-info-error').innerHTML = 'Vui lòng nhập mật khẩu hiện tại';
         return;
     }
     if (passwordAfter.value.length < 6) {
@@ -906,18 +910,15 @@ async function changePassword() {
     }
 
     try {
-        // We need a proper change password API, for now we reuse updateUser logic
-        // In a real app, this should be a dedicated POST /api/change-password
-        currentUser.password = passwordAfter.value;
-        // Mocking the update for now as we don't have password in updateUser API yet
-        // In a real scenario, the backend should handle this securely
-        localStorage.setItem('currentuser', JSON.stringify(currentUser));
-        toast({ title: 'Success', message: 'Đổi mật khẩu thành công !', type: 'success', duration: 3000 });
-        passwordCur.value = "";
-        passwordAfter.value = "";
-        passwordConfirm.value = "";
+        const result = await window.api.changePassword(passwordCur.value, passwordAfter.value);
+        if (result.success) {
+            toast({ title: 'Thành công', message: 'Đổi mật khẩu thành công!', type: 'success', duration: 3000 });
+            passwordCur.value = "";
+            passwordAfter.value = "";
+            passwordConfirm.value = "";
+        }
     } catch (error) {
-        toast({ title: 'Error', message: 'Không thể đổi mật khẩu!', type: 'error', duration: 3000 });
+        toast({ title: 'Lỗi', message: error.message || 'Không thể đổi mật khẩu!', type: 'error', duration: 3000 });
     }
 }
 
