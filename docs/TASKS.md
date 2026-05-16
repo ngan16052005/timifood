@@ -81,4 +81,10 @@ Dưới đây là danh sách đầy đủ các hạng mục đã hoàn thiện t
 - [x] Nâng cấp Modal Quản lý danh mục với giao diện Premium và trải nghiệm mượt mà.
 
 ---
+## ✅ Giai đoạn 14: Ổn định Hệ thống & Trải nghiệm Người dùng (System Stabilization)
+- [x] Chuẩn hóa toàn bộ thông báo hệ thống (**Toast Messages**) sang tiếng Việt chuyên nghiệp.
+- [x] Kiểm tra và xác nhận tính ổn định của API đổi mật khẩu và bảo mật người dùng.
+- [x] Rà soát và đồng bộ hóa ngôn ngữ (Success -> Thành công, Error -> Lỗi) trên toàn bộ ứng dụng.
+
+---
 *Cập nhật lần cuối: 16/05/2026 bởi hgbaodev & AI Assistant.*

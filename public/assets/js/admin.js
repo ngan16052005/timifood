@@ -485,7 +485,7 @@ async function hideProduct(id) {
             if (product) {
                 product.status = 0;
                 await window.api.updateProduct(id, product);
-                toast({ title: 'Thành công', message: 'Đã ẩn sản phẩm !', type: 'success', duration: 3000 });
+                toast({ title: 'Thành công', message: 'Đã ẩn sản phẩm!', type: 'success', duration: 3000 });
                 await initAdmin();
             }
         } catch (error) {
@@ -504,7 +504,7 @@ async function showProductAdmin(id) {
             if (product) {
                 product.status = 1;
                 await window.api.updateProduct(id, product);
-                toast({ title: 'Thành công', message: 'Đã hiện sản phẩm !', type: 'success', duration: 3000 });
+                toast({ title: 'Thành công', message: 'Đã hiện sản phẩm!', type: 'success', duration: 3000 });
                 await initAdmin();
             }
         } catch (error) {
@@ -519,7 +519,7 @@ async function deleteProductPermanently(id) {
     if (confirm("CẢNH BÁO: Bạn có chắc chắn muốn XÓA VĨNH VIỄN sản phẩm này? Thao tác này không thể hoàn tác.") == true) {
         try {
             await window.api.deleteProduct(id);
-            toast({ title: 'Thành công', message: 'Đã xóa vĩnh viễn sản phẩm !', type: 'success', duration: 3000 });
+            toast({ title: 'Thành công', message: 'Đã xóa vĩnh viễn sản phẩm!', type: 'success', duration: 3000 });
             await initAdmin();
         } catch (error) {
             console.error("Permanent delete error:", error);
@@ -572,7 +572,7 @@ btnUpdateProductIn.addEventListener("click", async (e) => {
     let stockProductCur = document.getElementById("stock").value;
 
     if (titleProductCur == "" || curProductCur == "" || descProductCur == "" || stockProductCur == "") {
-        toast({ title: "Chú ý", message: "Vui lòng nhập đầy đủ thông tin món!", type: "warning", duration: 3000, });
+        toast({ title: "Cảnh báo", message: "Vui lòng nhập đầy đủ thông tin món!", type: "warning", duration: 3000, });
         return;
     }
 
@@ -609,12 +609,12 @@ btnAddProductIn.addEventListener("click", async (e) => {
     let stock = document.getElementById("stock").value;
 
     if (tenMon == "" || price == "" || moTa == "" || stock == "") {
-        toast({ title: "Chú ý", message: "Vui lòng nhập đầy đủ thông tin món!", type: "warning", duration: 3000, });
+        toast({ title: "Cảnh báo", message: "Vui lòng nhập đầy đủ thông tin món!", type: "warning", duration: 3000, });
         return;
     }
 
     if (isNaN(price)) {
-        toast({ title: "Chú ý", message: "Giá phải ở dạng số!", type: "warning", duration: 3000, });
+        toast({ title: "Cảnh báo", message: "Giá phải ở dạng số!", type: "warning", duration: 3000, });
         return;
     }
 
@@ -630,12 +630,12 @@ btnAddProductIn.addEventListener("click", async (e) => {
 
     try {
         await window.api.addProduct(product);
-        toast({ title: "Success", message: "Thêm sản phẩm thành công!", type: "success", duration: 3000 });
+        toast({ title: "Thành công", message: "Thêm sản phẩm thành công!", type: "success", duration: 3000 });
         setDefaultValue();
         document.querySelector(".add-product").classList.remove("open");
         showProduct();
     } catch (error) {
-        toast({ title: "Error", message: "Không thể thêm sản phẩm!", type: "error", duration: 3000 });
+        toast({ title: "Lỗi", message: "Không thể thêm sản phẩm!", type: "error", duration: 3000 });
     }
 });
 
@@ -1062,7 +1062,7 @@ async function printOrderAdmin(id) {
         printWindow.document.close();
     } catch (error) {
         console.error("Print error:", error);
-        toast({ title: 'Lỗi', message: 'Không thể khởi tạo bản in!', type: 'error' });
+        toast({ title: 'Lỗi', message: 'Không thể khởi tạo bản in!', type: 'error', duration: 3000 });
     }
 }
 
@@ -1602,7 +1602,7 @@ async function deleteAcount(phone) {
     if (confirm("Bạn có chắc muốn xóa?")) {
         try {
             await window.api.deleteUser(phone);
-            toast({ title: 'Thành công', message: 'Xóa tài khoản thành công !', type: 'success', duration: 3000 });
+            toast({ title: 'Thành công', message: 'Xóa tài khoản thành công!', type: 'success', duration: 3000 });
             showUser();
         } catch (error) {
             toast({ title: 'Lỗi', message: 'Không thể xóa tài khoản!', type: 'error', duration: 3000 });
@@ -1644,11 +1644,11 @@ updateAccount.addEventListener("click", async (e) => {
     let status = document.getElementById("user-status").checked ? 1 : 0;
 
     if (fullname == "" || phone == "" || password == "") {
-        toast({ title: 'Chú ý', message: 'Vui lòng nhập đầy đủ thông tin !', type: 'warning', duration: 3000 });
+        toast({ title: 'Cảnh báo', message: 'Vui lòng nhập đầy đủ thông tin!', type: 'warning', duration: 3000 });
     } else {
         try {
             await window.api.updateUser(phone, { fullname, password, status, userType: parseInt(userRole) });
-            toast({ title: 'Thành công', message: 'Thay đổi thông tin thành công !', type: 'success', duration: 3000 });
+            toast({ title: 'Thành công', message: 'Thay đổi thông tin thành công!', type: 'success', duration: 3000 });
             document.querySelector(".signup").classList.remove("open");
             signUpFormReset();
             showUser();
@@ -1682,7 +1682,7 @@ addAccount.addEventListener("click", async (e) => {
     try {
         const result = await window.api.register(user);
         if (result.success) {
-            toast({ title: 'Thành công', message: 'Tạo thành công tài khoản !', type: 'success', duration: 3000 });
+            toast({ title: 'Thành công', message: 'Tạo tài khoản thành công!', type: 'success', duration: 3000 });
             document.querySelector(".signup").classList.remove("open");
             showUser();
             signUpFormReset();
@@ -1702,7 +1702,7 @@ async function exportOrdersToExcel() {
     try {
         const orders = await window.api.getOrders();
         if (!orders || orders.length === 0) {
-            toast({ title: 'Chú ý', message: 'Không có dữ liệu đơn hàng để xuất!', type: 'warning', duration: 3000 });
+            toast({ title: 'Cảnh báo', message: 'Không có dữ liệu đơn hàng để xuất!', type: 'warning', duration: 3000 });
             return;
         }
 
@@ -1782,7 +1782,7 @@ async function exportStatisticsToExcel() {
         });
 
         if (mergeObj.length === 0) {
-            toast({ title: 'Chú ý', message: 'Không có dữ liệu thống kê để xuất!', type: 'warning', duration: 3000 });
+            toast({ title: 'Cảnh báo', message: 'Không có dữ liệu thống kê để xuất!', type: 'warning', duration: 3000 });
             return;
         }
 
@@ -2009,7 +2009,7 @@ async function openStockInModal() {
         document.getElementById("stock-product-select").innerHTML = html;
         document.querySelector(".modal.stock-in").classList.add("open");
     } catch (error) {
-        toast({ title: "Lỗi", message: "Không thể lấy danh sách sản phẩm", type: "error", duration: 3000 });
+        toast({ title: "Lỗi", message: "Không thể lấy danh sách sản phẩm!", type: "error", duration: 3000 });
     }
 }
 
@@ -2024,7 +2024,7 @@ async function submitStockIn() {
     const note = document.getElementById("stock-note").value;
 
     if (!productId || !quantity || quantity <= 0) {
-        toast({ title: "Chú ý", message: "Vui lòng chọn sản phẩm và nhập số lượng hợp lệ!", type: "warning", duration: 3000 });
+        toast({ title: "Cảnh báo", message: "Vui lòng chọn sản phẩm và nhập số lượng hợp lệ!", type: "warning", duration: 3000 });
         return;
     }
 

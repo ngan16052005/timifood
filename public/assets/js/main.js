@@ -258,11 +258,11 @@ async function handleReviewSubmit(productId) {
             });
             showReviews(productId);
         } else {
-            toast({ title: 'Thất bại', message: result.message || 'Lỗi gửi đánh giá!', type: 'error', duration: 3000 });
+            toast({ title: 'Lỗi', message: result.message || 'Gửi đánh giá thất bại!', type: 'error', duration: 3000 });
         }
     } catch (error) {
         console.error("Submit review error:", error);
-        toast({ title: 'Thất bại', message: 'Lỗi server!', type: 'error', duration: 3000 });
+        toast({ title: 'Lỗi', message: 'Lỗi máy chủ!', type: 'error', duration: 3000 });
     }
 }
 
@@ -302,9 +302,9 @@ async function addCart(index) {
             localStorage.setItem('currentuser', JSON.stringify(currentuser));
             updateAmount();
             closeModal();
-            toast({ title: 'Thành công', message: 'Đã thêm món ăn vào giỏ hàng', type: 'success', duration: 2000 });
+            toast({ title: 'Thành công', message: 'Đã thêm món ăn vào giỏ hàng!', type: 'success', duration: 2000 });
         } catch (error) {
-            toast({ title: 'Error', message: 'Không thể đồng bộ giỏ hàng!', type: 'error', duration: 3000 });
+            toast({ title: 'Lỗi', message: 'Không thể đồng bộ giỏ hàng!', type: 'error', duration: 3000 });
         }
     } else {
         // Guest user
@@ -318,7 +318,7 @@ async function addCart(index) {
         localStorage.setItem('cart', JSON.stringify(guestCart));
         updateAmount();
         closeModal();
-        toast({ title: 'Thành công', message: 'Đã thêm món ăn vào giỏ hàng', type: 'success', duration: 2000 });
+        toast({ title: 'Thành công', message: 'Đã thêm món ăn vào giỏ hàng!', type: 'success', duration: 2000 });
     }
 }
 
@@ -383,7 +383,7 @@ async function showCart() {
         if (btnThanhToan.classList.contains('disabled')) return;
         
         if (!currentuser) {
-            toast({ title: 'Chú ý', message: 'Vui lòng đăng nhập để thanh toán!', type: 'warning', duration: 3000 });
+            toast({ title: 'Cảnh báo', message: 'Vui lòng đăng nhập để thanh toán!', type: 'warning', duration: 3000 });
             // closeCart();
             openLoginModal();
             return;
@@ -410,7 +410,7 @@ async function deleteCartItem(id, el) {
             await window.api.updateCart(currentUser.phone, currentUser.cart);
             localStorage.setItem('currentuser', JSON.stringify(currentUser));
         } catch (error) {
-            toast({ title: 'Error', message: 'Không thể cập nhật giỏ hàng!', type: 'error', duration: 3000 });
+            toast({ title: 'Lỗi', message: 'Không thể cập nhật giỏ hàng!', type: 'error', duration: 3000 });
             return;
         }
     } else {
@@ -684,18 +684,18 @@ signupButton.addEventListener('click', async () => {
                 if (result.success) {
                     localStorage.setItem('currentuser', JSON.stringify(result.user));
                     localStorage.setItem('token', result.token);
-                    toast({ title: 'Thành công', message: 'Tạo thành công tài khoản !', type: 'success', duration: 3000 });
+                    toast({ title: 'Thành công', message: 'Đã tạo tài khoản thành công!', type: 'success', duration: 3000 });
                     closeModal();
                     kiemtradangnhap();
                     updateAmount();
                 } else {
-                    toast({ title: 'Thất bại', message: result.message || 'Lỗi đăng ký !', type: 'error', duration: 3000 });
+                    toast({ title: 'Lỗi', message: result.message || 'Đăng ký thất bại!', type: 'error', duration: 3000 });
                 }
             } catch (err) {
-                toast({ title: 'Thất bại', message: 'Tài khoản đã tồn tại hoặc lỗi máy chủ !', type: 'error', duration: 3000 });
+                toast({ title: 'Lỗi', message: 'Tài khoản đã tồn tại hoặc lỗi máy chủ!', type: 'error', duration: 3000 });
             }
         } else {
-            toast({ title: 'Thất bại', message: 'Sai mật khẩu !', type: 'error', duration: 3000 });
+            toast({ title: 'Lỗi', message: 'Mật khẩu không chính xác!', type: 'error', duration: 3000 });
         }
     }
 }
@@ -726,7 +726,7 @@ loginButton.addEventListener('click', async () => {
             const result = await window.api.login(phonelog, passlog);
             if (result.success) {
                 if (result.user.status == 0) {
-                    toast({ title: 'Warning', message: 'Tài khoản của bạn đã bị khóa', type: 'warning', duration: 3000 });
+                    toast({ title: 'Cảnh báo', message: 'Tài khoản của bạn đã bị khóa!', type: 'warning', duration: 3000 });
                 } else {
                     // Fetch cart from server after login
                     let serverCart = await window.api.getCart(result.user.phone);
@@ -750,7 +750,7 @@ loginButton.addEventListener('click', async () => {
                     
                     result.user.cart = serverCart;
                     localStorage.setItem('currentuser', JSON.stringify(result.user));
-                    toast({ title: 'Success', message: 'Đăng nhập thành công', type: 'success', duration: 3000 });
+                    toast({ title: 'Thành công', message: 'Đăng nhập thành công!', type: 'success', duration: 3000 });
                     closeModal();
                     kiemtradangnhap();
                     checkAdmin();
@@ -758,10 +758,10 @@ loginButton.addEventListener('click', async () => {
                     updateCartTotal();
                 }
             } else {
-                toast({ title: 'Error', message: result.message || 'Sai mật khẩu hoặc tài khoản', type: 'error', duration: 3000 });
+                toast({ title: 'Lỗi', message: result.message || 'Số điện thoại hoặc mật khẩu không đúng!', type: 'error', duration: 3000 });
             }
         } catch (err) {
-            toast({ title: 'Error', message: 'Không thể kết nối đến máy chủ', type: 'error', duration: 3000 });
+            toast({ title: 'Lỗi', message: 'Không thể kết nối đến máy chủ!', type: 'error', duration: 3000 });
         }
     }
 })
@@ -1029,7 +1029,7 @@ async function deleteOrderUser(id) {
                 toast({ title: 'Lỗi', message: result.message || 'Không thể xóa đơn hàng!', type: 'error', duration: 3000 });
             }
         } catch (error) {
-            toast({ title: 'Lỗi', message: error.message || 'Lỗi server!', type: 'error', duration: 3000 });
+            toast({ title: 'Lỗi', message: error.message || 'Lỗi máy chủ!', type: 'error', duration: 3000 });
         }
     }
 }
@@ -1098,7 +1098,7 @@ async function cancelOrderUser(id) {
                 toast({ title: 'Lỗi', message: result.message || 'Không thể hủy đơn hàng!', type: 'error', duration: 3000 });
             }
         } catch (error) {
-            toast({ title: 'Lỗi', message: error.message || 'Lỗi server!', type: 'error', duration: 3000 });
+            toast({ title: 'Lỗi', message: error.message || 'Lỗi máy chủ!', type: 'error', duration: 3000 });
         }
     }
 }

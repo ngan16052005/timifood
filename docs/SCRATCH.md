@@ -5,8 +5,8 @@ File này dùng để lưu trữ các ý tưởng, đoạn code nháp, hoặc c�
 ---
 
 ## 💡 Ý tưởng hiện tại
-- [ ] Kiểm tra tính ổn định của API Đổi mật khẩu sau khi server restart.
-- [ ] Rà soát lại toàn bộ các thông báo Toast để đảm bảo ngôn ngữ thống nhất.
+- [x] Kiểm tra tính ổn định của API Đổi mật khẩu sau khi server restart.
+- [x] Rà soát lại toàn bộ các thông báo Toast để đảm bảo ngôn ngữ thống nhất.
 
 ## 🛠️ Code nháp / Snippets
 *(Chưa có code nháp nào)*

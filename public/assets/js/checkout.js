@@ -499,11 +499,11 @@ async function confirmPaymentSim() {
                     updateCartCount();
                 }
             } else {
-                toast({ title: 'Thất bại', message: result.message || 'Có lỗi xảy ra', type: 'error', duration: 3000 });
+                toast({ title: 'Lỗi', message: result.message || 'Đã có lỗi xảy ra khi thanh toán!', type: 'error', duration: 3000 });
             }
         } catch (error) {
             console.error("Payment confirmation error:", error);
-            toast({ title: 'Lỗi', message: 'Không thể kết nối máy chủ', type: 'error', duration: 3000 });
+            toast({ title: 'Lỗi', message: 'Không thể kết nối máy chủ!', type: 'error', duration: 3000 });
         }
     }
 }
@@ -690,11 +690,11 @@ async function xulyDathang(product) {
             if (typeof renderOrderProduct === 'function') await renderOrderProduct();
 
         } else {
-            toast({ title: 'Thất bại', message: result.message || 'Có lỗi xảy ra', type: 'error', duration: 3000 });
+            toast({ title: 'Lỗi', message: result.message || 'Đã có lỗi xảy ra khi đặt hàng!', type: 'error', duration: 3000 });
         }
     } catch (error) {
         console.error("Order error:", error);
-        toast({ title: 'Lỗi', message: 'Không thể kết nối máy chủ', type: 'error', duration: 3000 });
+        toast({ title: 'Lỗi', message: 'Không thể kết nối máy chủ!', type: 'error', duration: 3000 });
     }
 }
 
