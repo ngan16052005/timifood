@@ -371,6 +371,12 @@ app.post('/api/register', async (req, res) => {
             return res.status(400).json({ message: 'User already exists' });
         }
 
+        // Backend strong password validation
+        const strongPasswordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/;
+        if (!strongPasswordRegex.test(newUser.password)) {
+            return res.status(400).json({ message: 'Mật khẩu phải từ 8 ký tự, bao gồm chữ hoa, chữ thường và số' });
+        }
+
         const hashedPassword = await bcrypt.hash(newUser.password, 10);
 
         await pool.request()
@@ -429,6 +435,12 @@ app.post('/api/change-password', authenticateToken, async (req, res) => {
             return res.status(401).json({ message: 'Mật khẩu hiện tại không đúng' });
         }
 
+        // Backend strong password validation
+        const strongPasswordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/;
+        if (!strongPasswordRegex.test(newPassword)) {
+            return res.status(400).json({ message: 'Mật khẩu mới phải từ 8 ký tự, bao gồm chữ hoa, chữ thường và số' });
+        }
+
         const hashedNewPassword = await bcrypt.hash(newPassword, 10);
         await pool.request()
             .input('phone', sql.NVarChar, userPhone)
@@ -469,6 +481,11 @@ app.put('/api/users/:phone', authenticateToken, isAdmin, async (req, res) => {
         // Hash password if it's not already hashed (bcrypt hashes start with $2)
         let finalPassword = password;
         if (password && !password.startsWith('$2')) {
+            // Backend strong password validation
+            const strongPasswordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/;
+            if (!strongPasswordRegex.test(password)) {
+                return res.status(400).json({ message: 'Mật khẩu phải từ 8 ký tự, bao gồm chữ hoa, chữ thường và số' });
+            }
             finalPassword = await bcrypt.hash(password, 10);
         }
 

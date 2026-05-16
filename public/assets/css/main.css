@@ -389,17 +389,20 @@ header {
     color: var(--white);
     background: var(--red);
     height: 20px;
+    min-width: 20px;
     left: 20px;
     top: -15px;
     border-radius: 40px;
-    display: inline-block;
-    text-align: center;
-    line-height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     font-size: 12px;
     font-weight: 500;
     position: absolute;
     padding: 0px 7px;
     z-index: 999999;
+    border: 1px solid #fff;
+    line-height: 1;
 }
 
 @keyframes slidein {
@@ -3546,22 +3549,8 @@ input[type=number] {
 }
 
 .notification-count {
-    position: absolute;
-    top: -8px;
-    right: 2px;
-    background-color: #ff5e3a;
-    color: white;
-    font-size: 10px;
-    font-weight: bold;
-    width: 16px;
-    height: 16px;
-    border-radius: 50%;
     display: none;
-    /* Hidden by default */
-    align-items: center;
-    justify-content: center;
-    line-height: 1;
-    border: 1px solid #fff;
+    /* Inheritance from .cart-icon-menu span handles the rest */
 }
 
 

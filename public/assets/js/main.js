@@ -633,47 +633,62 @@ signupButton.addEventListener('click', async () => {
     // Password strength regex: min 8 chars, at least 1 upper, 1 lower, 1 digit
     const strongPasswordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/;
 
+    let isValid = true;
+
     // Check validate
     if (fullNameUser.length == 0) {
         document.querySelector('.form-message-name').innerHTML = 'Vui lòng nhập họ vâ tên';
         document.getElementById('fullname').focus();
+        isValid = false;
     } else if (fullNameUser.length < 3) {
         document.getElementById('fullname').value = '';
         document.querySelector('.form-message-name').innerHTML = 'Vui lòng nhập họ và tên lớn hơn 3 kí tự';
+        isValid = false;
     } else {
         document.querySelector('.form-message-name').innerHTML = '';
     }
+
     if (phoneUser.length == 0) {
         document.querySelector('.form-message-phone').innerHTML = 'Vui lòng nhập vào số điện thoại';
+        isValid = false;
     } else if (phoneUser.length != 10) {
         document.querySelector('.form-message-phone').innerHTML = 'Vui lòng nhập vào số điện thoại 10 số';
         document.getElementById('phone').value = '';
+        isValid = false;
     } else {
         document.querySelector('.form-message-phone').innerHTML = '';
     }
+
     if (passwordUser.length == 0) {
         document.querySelector('.form-message-password').innerHTML = 'Vui lòng nhập mật khẩu';
+        isValid = false;
     } else if (!strongPasswordRegex.test(passwordUser)) {
         document.querySelector('.form-message-password').innerHTML = 'Mật khẩu phải từ 8 ký tự, bao gồm chữ hoa, chữ thường và số';
         document.getElementById('password').value = '';
+        isValid = false;
     } else {
         document.querySelector('.form-message-password').innerHTML = '';
     }
+
     if (passwordConfirmation.length == 0) {
         document.querySelector('.form-message-password-confi').innerHTML = 'Vui lòng nhập lại mật khẩu';
+        isValid = false;
     } else if (passwordConfirmation !== passwordUser) {
         document.querySelector('.form-message-password-confi').innerHTML = 'Mật khẩu không khớp';
         document.getElementById('password_confirmation').value = '';
+        isValid = false;
     } else {
         document.querySelector('.form-message-password-confi').innerHTML = '';
     }
+
     if (checkSignup != true) {
         document.querySelector('.form-message-checkbox').innerHTML = 'Vui lòng check đăng ký';
+        isValid = false;
     } else {
         document.querySelector('.form-message-checkbox').innerHTML = '';
     }
 
-    if (fullNameUser && phoneUser && passwordUser && passwordConfirmation && checkSignup) {
+    if (isValid) {
         if (passwordConfirmation == passwordUser) {
             let user = {
                 fullname: fullNameUser,

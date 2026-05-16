@@ -393,14 +393,15 @@ body,input,button,textarea,pre {
     color: white;
     font-size: 10px;
     font-weight: bold;
-    width: 16px;
-    height: 16px;
+    width: 18px;
+    height: 18px;
     border-radius: 50%;
     display: none; /* Hidden by default */
     align-items: center;
     justify-content: center;
-    border: 1px solid #fff;
-    line-height: 1;
+    border: 1.5px solid #fff;
+    line-height: 0;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
 .admin-notification-dropdown {
