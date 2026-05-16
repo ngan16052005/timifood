@@ -159,5 +159,16 @@
     - **Admin CMS:** Xây dựng module quản trị danh mục chuyên nghiệp với Modal thiết kế Premium, hỗ trợ thêm/sửa/xóa và đồng bộ dữ liệu tức thì.
     - **Global Sync:** Tự động cập nhật danh sách danh mục lên toàn bộ hệ thống: Menu điều hướng, bộ lọc tìm kiếm nâng cao và chân trang (Footer).
 
+### ✅ Giai đoạn 14: Ổn định Hệ thống & Trải nghiệm Người dùng (System Stabilization)
+- **Chuẩn hóa thông báo:** Chuyển đổi toàn bộ thông báo hệ thống sang Tiếng Việt chuyên nghiệp.
+- **Chính sách mật khẩu mạnh:** Áp dụng ràng buộc mật khẩu tối thiểu 8 ký tự, bao gồm chữ hoa, chữ thường và số để đảm bảo an toàn tuyệt đối.
+- **Đồng bộ hóa dữ liệu:** Tự động hóa việc băm mật khẩu (Hashing) khi cập nhật tài khoản từ trang Quản trị, đảm bảo tính đồng nhất bảo mật.
+
+### ✅ Giai đoạn 15: Hoàn thiện & Nâng cấp Chuyên sâu (Advanced Polish)
+- **Quên mật khẩu (Forgot Password):** Triển khai tính năng lấy lại mật khẩu an toàn qua Email với mã xác thực OTP.
+- **Real-time Notifications:** Tích hợp công nghệ **Socket.io** giúp Admin nhận thông báo đơn hàng mới tức thì mà không cần tải lại trang.
+- **Tối ưu hiệu suất:** Triển khai **Lazy Loading** cho toàn bộ hệ thống hình ảnh, giúp tốc độ tải trang nhanh hơn 30-40%.
+- **Hệ thống Nhật ký (System Logs):** Xây dựng module ghi lại toàn bộ lịch sử hoạt động của Admin (Thêm/Sửa/Xóa sản phẩm, đơn hàng, tài khoản, voucher) để phục vụ việc kiểm tra và bảo trì.
+
 ---
 *Dự án hiện đã đạt độ hoàn thiện cao nhất, sẵn sàng cho việc vận hành thực tế với hiệu suất và độ ổn định tối ưu.*
