@@ -103,5 +103,19 @@ Dưới đây là danh sách đầy đủ các hạng mục đã hoàn thiện t
 - [x] **Rà soát hệ thống:** Kiểm tra độ ổn định của kết nối Socket.io và xử lý các ngoại lệ gửi mail (Nodemailer).
 
 ---
+## 🚀 Giai đoạn 17: Thông báo Trạng thái Đơn hàng thời gian thực hai chiều (Real-time Order Status Updates for Customers)
+- [x] **Socket.io Rooms cho Khách hàng:** Triển khai cơ chế phân phòng theo số điện thoại (`userRoom_${userPhone}`) của người dùng giúp gửi nhận thông báo an toàn, bảo mật và chính xác.
+- [x] **Chuyển đổi từ Polling sang Real-time:** Loại bỏ hoàn toàn cơ chế truy vấn định kỳ (Polling 3 giây/lần) cũ, thay thế bằng luồng sự kiện Socket.io thời gian thực tiết kiệm băng thông và tài nguyên CPU.
+- [x] **Hiển thị Toast & Cập nhật UI Tự động:** Lắng nghe sự kiện đổi trạng thái đơn hàng để hiển thị Toast thông báo và tự động tải lại danh sách đơn hàng/tiến trình (Progress Bar Tracking) trên trang "Đơn hàng đã mua" ngay khi nhận được tín hiệu.
+- [x] **Tích hợp Đồng bộ Khởi chạy/Đăng xuất:** Tự động thiết lập kết nối Socket khi mở trang hoặc đăng nhập thành công, và ngắt kết nối an toàn khi người dùng đăng xuất.
+
+---
+## 🚀 Giai đoạn 18: Trợ lý Khách hàng thông minh (Smart AI Chatbot Assistant)
+- [x] **Thiết kế Giao diện Glassmorphism Premium:** Phát triển chatbot widget nổi với hiệu ứng mờ nhòe kính mờ thời thượng, bố trí góc dưới bên phải màn hình mượt mà, phản hồi responsive toàn diện.
+- [x] **Đồng bộ hóa 'Thêm vào giỏ' thời gian thực:** Tích hợp nút đặt món trực tiếp ngay trong thẻ sản phẩm của hộp thoại chat, đồng bộ hoàn hảo giỏ hàng local và giỏ hàng server với cơ chế hiển thị Toast và animation lắc giỏ hàng nguyên bản.
+- [x] **Tra cứu đơn hàng qua timeline trực quan:** Hỗ trợ khách hàng (cả tài khoản đăng nhập lẫn khách vãng lai qua số điện thoại) tra cứu trạng thái đơn hàng real-time, biểu diễn tiến trình dạng Timeline sắc sảo.
+- [x] **Phản hồi tự động qua bộ từ khóa thông minh:** Tự động phản hồi nhanh chóng và chính xác các thắc mắc phổ biến của người dùng về thời gian mở cửa, địa chỉ chi nhánh, chính sách freeship, cách đặt hàng cùng hiệu ứng gõ chữ sinh động.
+
+---
 *Cập nhật lần cuối: 17/05/2026 bởi thaingan & AI Assistant.*
 

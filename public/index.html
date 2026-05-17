@@ -931,13 +931,42 @@
         </div>
     </div>
     
+    <!-- Smart AI Chatbot Widget -->
+    <div class="chatbot-toggle" id="chatbot-toggle-btn">
+        <i class="fa-solid fa-comments"></i>
+        <span class="chatbot-pulse"></span>
+    </div>
+    
+    <div class="chatbot-container" id="chatbot-container">
+        <div class="chatbot-header">
+            <div class="chatbot-header-info">
+                <img src="/assets/img/logos/timifood.png" alt="TiMiFood Bot" class="chatbot-avatar" onerror="this.src='./assets/img/blank-image.png'">
+                <div>
+                    <span class="chatbot-name">Trợ lý TiMiFood</span>
+                    <span class="chatbot-status"><span class="status-dot"></span>Đang trực tuyến</span>
+                </div>
+            </div>
+            <div class="chatbot-header-actions">
+                <i class="fa-solid fa-minus" id="chatbot-minimize" title="Thu nhỏ"></i>
+            </div>
+        </div>
+        <div class="chatbot-messages" id="chatbot-messages"></div>
+        <div class="chatbot-quick-replies" id="chatbot-quick-replies"></div>
+        <div class="chatbot-input-area">
+            <input type="text" id="chatbot-input" placeholder="Nhập tin nhắn..." autocomplete="off">
+            <button id="chatbot-send-btn"><i class="fa-solid fa-paper-plane"></i></button>
+        </div>
+    </div>
+
     <div id="toast"></div>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
     <script src="/assets/js/api.js"></script>
     <script src="/assets/js/main.js"></script>
     <script src="/assets/js/checkout.js"></script>
     <script src="/assets/js/initialization.js"></script>
     <script src="/assets/js/toast-message.js"></script>
+    <script src="/assets/js/chatbot.js"></script>
 </body>
 
 </html>

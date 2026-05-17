@@ -980,10 +980,18 @@ function kiemtradangnhap() {
             <li><a href="javascript:;" onclick="orderHistory()"><i class="fa-regular fa-bags-shopping"></i> Đơn hàng đã mua</a></li>
             <li class="border"><a id="logout" href="javascript:;"><i class="fa-light fa-right-from-bracket"></i> Thoát tài khoản</a></li>`
         document.querySelector('#logout').addEventListener('click',logOut)
+        
+        // Bắt đầu lắng nghe thông báo real-time qua socket
+        if (typeof startUserNotifications === 'function') {
+            startUserNotifications();
+        }
     }
 }
 
 function logOut() {
+    if (typeof userSocket !== 'undefined' && userSocket) {
+        userSocket.disconnect();
+    }
     localStorage.removeItem('currentuser');
     localStorage.removeItem('token');
     window.location = "/";
@@ -1701,6 +1709,7 @@ let isFirstUserLoad = true;
 
 // Khởi tạo danh sách thông báo từ localStorage
 let notifications = JSON.parse(localStorage.getItem('user_notifications')) || [];
+let userSocket = null;
 
 function startUserNotifications() {
     const currentUser = JSON.parse(localStorage.getItem('currentuser'));
@@ -1709,10 +1718,52 @@ function startUserNotifications() {
     // Load initial notifications
     syncNotificationsFromServer();
 
-    // Poll for new notifications every 3 seconds
-    setInterval(async () => {
-        await syncNotificationsFromServer();
-    }, 3000);
+    // Setup Socket.io real-time notification listener
+    if (typeof io !== 'undefined') {
+        if (!userSocket) {
+            console.log('[Socket] Initializing Socket.io for user:', currentUser.phone);
+            userSocket = io();
+
+            userSocket.on('connect', () => {
+                console.log('[Socket] Connected to server, joining room userRoom_' + currentUser.phone);
+                userSocket.emit('joinUser', currentUser.phone);
+            });
+
+            userSocket.on('userNotification', async (noti) => {
+                console.log('[Socket] Real-time user notification received:', noti);
+                
+                // Sync notification history from server & trigger the notification toast
+                await syncNotificationsFromServer();
+                
+                // Dynamic synchronization: If order history is open, automatically refresh it
+                const orderHistorySection = document.getElementById('order-history');
+                if (orderHistorySection && orderHistorySection.classList.contains('open')) {
+                    console.log('[Socket] Order history page is active, refreshing dynamically...');
+                    if (typeof renderOrderProduct === 'function') {
+                        await renderOrderProduct();
+                    }
+                }
+            });
+
+            userSocket.on('disconnect', (reason) => {
+                console.warn('[Socket] User disconnected:', reason);
+            });
+
+            userSocket.on('connect_error', (error) => {
+                console.error('[Socket] Connection error:', error);
+            });
+        } else if (userSocket.disconnected) {
+            userSocket.connect();
+        }
+    } else {
+        console.warn('[Socket] Socket.io library not loaded. Falling back to HTTP polling...');
+        // Fallback to polling if Socket.io is not available
+        if (!window.userNotiPollInterval) {
+            window.userNotiPollInterval = setInterval(async () => {
+                await syncNotificationsFromServer();
+            }, 5000);
+        }
+    }
 }
 
 let lastNotificationId = null;

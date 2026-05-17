@@ -61,6 +61,11 @@ io.on('connection', (socket) => {
         console.log(`Socket ${socket.id} joined adminRoom`);
     });
 
+    socket.on('joinUser', (userPhone) => {
+        socket.join(`userRoom_${userPhone}`);
+        console.log(`Socket ${socket.id} joined userRoom_${userPhone}`);
+    });
+
     socket.on('error', (err) => {
         console.error(`[Socket] Connection error on socket ${socket.id}:`, err);
     });
@@ -69,6 +74,7 @@ io.on('connection', (socket) => {
         console.log('User disconnected:', socket.id);
     });
 });
+
 
 let pool;
 async function startServer() {
@@ -230,8 +236,9 @@ async function createNotification(userPhone, title, message, type = 'info') {
         if (userPhone === 'ADMIN') {
             io.to('adminRoom').emit('newNotification', notiData);
         } else {
-            // Optional: emit to specific user if needed
-            io.emit('userNotification', { ...notiData, userPhone });
+            // Emit to the specific user's room!
+            io.to(`userRoom_${userPhone}`).emit('userNotification', notiData);
+            console.log(`[Socket] Emitted userNotification to userRoom_${userPhone}:`, notiData);
         }
 
         return true;

@@ -1,0 +1,703 @@
+/**
+ * =======================================================
+ * 🧠 UPGRADED INTELLIGENT AI CHATBOT (TiMiFood AI Assistant)
+ * =======================================================
+ * Hybrid rules engine with Context Memory, Accent Insensitivity,
+ * Budget-based Smart Querying, and Dynamic Empathy Responses.
+ */
+
+document.addEventListener("DOMContentLoaded", () => {
+    initChatbot();
+});
+
+// Tiền tệ formatter fallback phòng hờ main.js chưa load kịp
+function chatbotFormatVND(val) {
+    if (typeof vnd === 'function') {
+        return vnd(val);
+    }
+    return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(val);
+}
+
+// Chuẩn hóa loại bỏ dấu tiếng Việt để so khớp từ khóa siêu chính xác
+function removeVietnameseTones(str) {
+    str = str.replace(/à|á|ạ|ả|ã|â|ầ|ấ|ậ|ẩ|ẫ|ă|ằ|ắ|ặ|ẳ|ẵ/g,"a"); 
+    str = str.replace(/è|é|ẹ|ẻ|ẽ|ê|ề|ế|ệ|ể|ễ/g,"e"); 
+    str = str.replace(/ì|í|ị|ỉ|ĩ/g,"i"); 
+    str = str.replace(/ò|ó|ọ|ỏ|õ|ô|ồ|ố|ộ|ổ|ỗ|ơ|ờ|ớ|ợ|ở|ỡ/g,"o"); 
+    str = str.replace(/ù|ú|ụ|ủ|ũ|ư|ừ|ứ|ự|ử|ữ/g,"u"); 
+    str = str.replace(/ỳ|ý|ỵ|ỷ|ỹ/g,"y"); 
+    str = str.replace(/đ/g,"d");
+    str = str.replace(/À|Á|Ạ|Ả|Ã|Â|Ầ|Ấ|Ậ|Ẩ|Ẫ|Ă|Ằ|Ắ|Ặ|Ẳ|Ẵ/g, "A");
+    str = str.replace(/È|É|Ẹ|Ẻ|Ẽ|Ê|Ề|Ế|Ệ|Ể|Ễ/g, "E");
+    str = str.replace(/Ì|Í|Ị|Ỉ|Ĩ/g, "I");
+    str = str.replace(/Ò|Ó|Ọ|Ỏ|Õ|Ô|Ồ|Ố|Ộ|Ổ|Ỗ|Ơ|Ờ|Ớ|Ợ|Ở|Ỡ/g, "O");
+    str = str.replace(/Ù|Ú|Ụ|Ủ|Ư|Ừ|Ứ|Ự|Ử|Ữ/g, "U");
+    str = str.replace(/Ỳ|Ý|Ỵ|Ỷ|Ỹ/g, "Y");
+    str = str.replace(/Đ/g, "D");
+    // Hợp nhất các dấu unicode tổ hợp
+    str = str.replace(/\u0300|\u0301|\u0303|\u0309|\u0323/g, "");
+    str = str.replace(/\u02C6|\u0306|\u031B/g, "");
+    str = str.replace(/ + /g," ");
+    return str.trim().toLowerCase();
+}
+
+// Đồng bộ thêm vào giỏ hàng
+async function chatbotAddCart(productId) {
+    let currentuser = localStorage.getItem('currentuser') ? JSON.parse(localStorage.getItem('currentuser')) : null;
+    let productcart = {
+        id: parseInt(productId),
+        soluong: 1,
+        note: "Đặt hàng qua Trợ lý ảo"
+    };
+
+    try {
+        const products = await window.api.getProducts();
+        const pInfo = products.find(p => p.id == productId);
+        if (!pInfo) {
+            toast({ title: 'Lỗi', message: 'Món ăn không tồn tại!', type: 'error', duration: 3000 });
+            return;
+        }
+
+        if (currentuser) {
+            let vitri = currentuser.cart.findIndex(item => item.id == productcart.id);
+            if (vitri == -1) {
+                currentuser.cart.push(productcart);
+            } else {
+                currentuser.cart[vitri].soluong = parseInt(currentuser.cart[vitri].soluong) + 1;
+            }
+            await window.api.updateCart(currentuser.phone, currentuser.cart);
+            localStorage.setItem('currentuser', JSON.stringify(currentuser));
+        } else {
+            let guestCart = localStorage.getItem('cart') ? JSON.parse(localStorage.getItem('cart')) : [];
+            let vitri = guestCart.findIndex(item => item.id == productcart.id);
+            if (vitri == -1) {
+                guestCart.push(productcart);
+            } else {
+                guestCart[vitri].soluong = parseInt(guestCart[vitri].soluong) + 1;
+            }
+            localStorage.setItem('cart', JSON.stringify(guestCart));
+        }
+
+        if (typeof updateAmount === 'function') updateAmount();
+        if (typeof updateCartTotal === 'function') await updateCartTotal();
+
+        toast({ 
+            title: 'Thành công', 
+            message: `Đã thêm món "${pInfo.title}" vào giỏ hàng!`, 
+            type: 'success', 
+            duration: 2500 
+        });
+
+        const headerCart = document.querySelector(".count-product-cart");
+        if (headerCart) {
+            headerCart.style.animation = "slidein ease 1s";
+            setTimeout(() => { headerCart.style.animation = "none"; }, 1000);
+        }
+    } catch (error) {
+        console.error("Chatbot add to cart error:", error);
+        toast({ title: 'Lỗi', message: 'Không thể thêm món vào giỏ!', type: 'error', duration: 3000 });
+    }
+}
+
+function initChatbot() {
+    const toggleBtn = document.getElementById("chatbot-toggle-btn");
+    const container = document.getElementById("chatbot-container");
+    const minimizeBtn = document.getElementById("chatbot-minimize");
+    const sendBtn = document.getElementById("chatbot-send-btn");
+    const inputField = document.getElementById("chatbot-input");
+    const messagesBody = document.getElementById("chatbot-messages");
+    const quickRepliesContainer = document.getElementById("chatbot-quick-replies");
+
+    let hasWelcomed = false;
+
+    // 🧠 BỘ NHỚ BỐI CẢNH HỘI THOẠI (Context Memory State Machine)
+    const context = {
+        waitingFor: null,  // "phone_number" | "search_keyword" | "budget"
+        lastIntent: null,
+        userPhone: null
+    };
+
+    // Danh sách câu fallback đồng cảm tự nhiên tránh trùng lặp nhàm chán
+    const fallbacks = [
+        "Ối, câu hỏi này hơi sâu sắc so với dữ liệu hiện tại của mình. Bạn có thể nói rõ hơn hoặc thử chọn nhanh một trong các gợi ý hữu ích dưới đây không? 🥺",
+        "TiMiFood Bot chưa hiểu ý bạn lắm. Bạn có muốn mình tìm món ăn ngon, tra cứu đơn hàng hay giới thiệu voucher không nhỉ? 👇",
+        "Mình vẫn đang học hỏi thêm mỗi ngày. Hãy thử gõ từ khóa đơn giản như *'tìm gà'*, *'địa chỉ'*, hoặc *'mã giảm giá'* nhé! 🌸",
+        "Mình chưa bắt kịp ý của bạn. Hãy bấm các nút chức năng nhanh phía dưới để mình hỗ trợ bạn tức thì nha! 🚀"
+    ];
+
+    if (!toggleBtn || !container) return;
+
+    // Toggle Chatbot
+    toggleBtn.addEventListener("click", () => {
+        const isOpen = container.classList.toggle("open");
+        if (isOpen && !hasWelcomed) {
+            sendWelcomeMessage();
+            hasWelcomed = true;
+        }
+    });
+
+    minimizeBtn.addEventListener("click", () => {
+        container.classList.remove("open");
+    });
+
+    sendBtn.addEventListener("click", () => { handleUserSubmit(); });
+
+    inputField.addEventListener("keypress", (e) => {
+        if (e.key === "Enter") handleUserSubmit();
+    });
+
+    // Lời chào thông minh cá nhân hóa theo buổi trong ngày
+    function sendWelcomeMessage() {
+        const hour = new Date().getHours();
+        let sessionGreeting = "";
+        
+        if (hour < 11) {
+            sessionGreeting = "Chào buổi sáng tốt lành! ☀️ Chúc bạn một ngày mới ngập tràn năng lượng. Bạn đã chuẩn bị ăn sáng/trưa chưa?";
+        } else if (hour >= 11 && hour < 14) {
+            sessionGreeting = "Chào buổi trưa vui vẻ! 🌤️ Bụng bạn đã kêu chưa nhỉ? Để mình gợi ý vài món ăn trưa lấp đầy chiếc bụng đói nhé!";
+        } else if (hour >= 14 && hour < 18) {
+            sessionGreeting = "Chào buổi chiều mát mẻ! ☕ Giờ này làm một ly trà sữa kèm chút đồ ăn vặt là tuyệt vời nhất đó!";
+        } else {
+            sessionGreeting = "Chào buổi tối ấm áp! 🌙 Sau một ngày làm việc học tập vất vả, hãy tự thưởng cho mình bữa tối thật ngon miệng cùng TiMiFood nhé!";
+        }
+
+        showBotResponse(
+            `🌸 **${sessionGreeting}**<br><br>` +
+            `Mình là **Trợ lý ảo TiMiFood** 🍕. Mình có thể giúp gì cho bạn hôm nay?`
+        );
+        renderQuickReplies([
+            { text: "🔥 Món HOT", value: "hot" },
+            { text: "🔍 Tìm món ăn", value: "search" },
+            { text: "💵 Gợi ý theo ví tiền", value: "budget_prompt" },
+            { text: "📦 Tra cứu đơn hàng", value: "track" },
+            { text: "🎁 Mã giảm giá", value: "voucher" }
+        ]);
+    }
+
+    function renderQuickReplies(replies) {
+        quickRepliesContainer.innerHTML = "";
+        replies.forEach(reply => {
+            const btn = document.createElement("button");
+            btn.className = "quick-reply-btn";
+            btn.innerText = reply.text;
+            btn.addEventListener("click", () => {
+                appendMessage("user", reply.text);
+                processResponse(reply.value, reply.text);
+            });
+            quickRepliesContainer.appendChild(btn);
+        });
+    }
+
+    function appendMessage(sender, text, isHTML = false) {
+        const msgDiv = document.createElement("div");
+        msgDiv.className = `chat-msg ${sender}`;
+        
+        let formattedText = text;
+        if (!isHTML) {
+            formattedText = text
+                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                .replace(/\*(.*?)\*/g, '<em>$1</em>')
+                .replace(/\n/g, '<br>');
+        }
+        
+        msgDiv.innerHTML = formattedText;
+        messagesBody.appendChild(msgDiv);
+        messagesBody.scrollTop = messagesBody.scrollHeight;
+        return msgDiv;
+    }
+
+    function showTypingIndicator() {
+        const indicator = document.createElement("div");
+        indicator.className = "typing-indicator";
+        indicator.id = "chatbot-typing-indicator";
+        indicator.innerHTML = `
+            <div class="typing-dot"></div>
+            <div class="typing-dot"></div>
+            <div class="typing-dot"></div>
+        `;
+        messagesBody.appendChild(indicator);
+        messagesBody.scrollTop = messagesBody.scrollHeight;
+    }
+
+    function removeTypingIndicator() {
+        const indicator = document.getElementById("chatbot-typing-indicator");
+        if (indicator) indicator.remove();
+    }
+
+    function showBotResponse(text, isHTML = false, customReplies = null) {
+        showTypingIndicator();
+        setTimeout(() => {
+            removeTypingIndicator();
+            appendMessage("bot", text, isHTML);
+            
+            if (customReplies) {
+                renderQuickReplies(customReplies);
+            } else {
+                renderQuickReplies([
+                    { text: "🔥 Món HOT", value: "hot" },
+                    { text: "🔍 Tìm món ăn", value: "search" },
+                    { text: "💵 Món dưới 50k", value: "under_50k" },
+                    { text: "📦 Tra cứu đơn", value: "track" },
+                    { text: "🎁 Mã giảm giá", value: "voucher" }
+                ]);
+            }
+        }, 700);
+    }
+
+    function handleUserSubmit() {
+        const text = inputField.value.trim();
+        if (text === "") return;
+
+        appendMessage("user", text);
+        inputField.value = "";
+        
+        processUserQuery(text);
+    }
+
+    // 🤖 TRÌNH PHÂN TÍCH TỪ KHÓA NÂNG CAO & QUẢN LÝ BỐI CẢNH (Intelligent Intent Router)
+    function processUserQuery(query) {
+        const cleanQuery = query.toLowerCase();
+        const normQuery = removeVietnameseTones(query);
+
+        // A. KIỂM TRA BỐI CẢNH HỘI THOẠI TRƯỚC (Contextual States)
+        if (context.waitingFor === "phone_number") {
+            const phoneRegex = /\b(03|05|07|08|09)\d{8}\b/;
+            const matchPhone = cleanQuery.match(phoneRegex);
+            if (matchPhone) {
+                context.waitingFor = null;
+                processResponse("track_phone", matchPhone[0]);
+                return;
+            } else if (normQuery.length >= 9 && !isNaN(normQuery.replace(/\s/g, ""))) {
+                context.waitingFor = null;
+                processResponse("track_phone", normQuery.replace(/\s/g, ""));
+                return;
+            }
+        }
+
+        if (context.waitingFor === "search_keyword") {
+            context.waitingFor = null;
+            processResponse("search_keyword", query);
+            return;
+        }
+
+        if (context.waitingFor === "budget") {
+            context.waitingFor = null;
+            processBudgetQuery(query);
+            return;
+        }
+
+        // B. PHÂN TÍCH Ý ĐỊNH BẰNG TRỌNG SỐ TỪ KHÓA (Keyword Router)
+        
+        // 1. Ý định chào hỏi
+        if (normQuery.includes("chao") || normQuery.includes("hello") || normQuery.includes("hi") || normQuery.includes("alo") || normQuery.includes("helo")) {
+            const hour = new Date().getHours();
+            let sess = "ngày mới";
+            if (hour >= 11 && hour < 14) sess = "buổi trưa";
+            else if (hour >= 14 && hour < 18) sess = "buổi chiều";
+            else if (hour >= 18) sess = "buổi tối";
+            
+            showBotResponse(`Chào bạn thân mến! Chúc bạn một ${sess} thật ngập tràn niềm vui. Hôm nay bạn muốn ăn gì nào? 🥞`);
+            return;
+        }
+
+        // 2. Ý định tra cứu đơn hàng (Chứa số điện thoại trực tiếp hoặc yêu cầu tra cứu)
+        const phoneDirect = cleanQuery.match(/\b(03|05|07|08|09)\d{8}\b/);
+        if (phoneDirect) {
+            processResponse("track_phone", phoneDirect[0]);
+            return;
+        }
+
+        if (normQuery.includes("don hang") || normQuery.includes("tra cuu") || normQuery.includes("lich su") || normQuery.includes("theo doi") || normQuery.includes("don dat")) {
+            processResponse("track");
+            return;
+        }
+
+        // 3. Ý định lọc món ăn theo ngân sách / túi tiền (Smart Budget Parser)
+        if (normQuery.includes("re") || normQuery.includes("gia sinh vien") || normQuery.includes("ngan sach") || normQuery.includes("vi tien") || normQuery.includes("tien hang") || normQuery.includes("k") || normQuery.includes("dong") || /\b\d+\s*k\b/.test(normQuery)) {
+            // Thử phân tích số tiền trực tiếp trong query
+            const parsedBudget = extractBudgetNumber(normQuery);
+            if (parsedBudget) {
+                processResponse("budget_query", parsedBudget);
+            } else {
+                processResponse("budget_prompt");
+            }
+            return;
+        }
+
+        // 4. Ý định tìm kiếm món ăn chuyên sâu
+        if (normQuery.includes("tim mon") || normQuery.includes("tim kiem") || normQuery.includes("co mon") || normQuery.includes("muon an") || normQuery.startsWith("tim ") || normQuery.startsWith("search ")) {
+            let keyword = query
+                .replace(/tìm kiếm/gi, "")
+                .replace(/tìm món/gi, "")
+                .replace(/tìm/gi, "")
+                .replace(/có món/gi, "")
+                .replace(/muốn ăn/gi, "")
+                .trim();
+            
+            if (keyword !== "") {
+                processResponse("search_keyword", keyword);
+            } else {
+                processResponse("search");
+            }
+            return;
+        }
+
+        // 5. Ý định lấy gợi ý món ngon/HOT
+        if (normQuery.includes("hot") || normQuery.includes("ngon") || normQuery.includes("goi y") || normQuery.includes("khuyen dung") || normQuery.includes("an gi") || normQuery.includes("khuyen nghi")) {
+            processResponse("hot");
+            return;
+        }
+
+        // 6. Ý định lấy mã giảm giá / khuyến mãi
+        if (normQuery.includes("khuyen mai") || normQuery.includes("giam gia") || normQuery.includes("voucher") || normQuery.includes("code") || normQuery.includes("uu dai")) {
+            processResponse("voucher");
+            return;
+        }
+
+        // 7. Hỏi đáp thông tin địa chỉ cửa hàng
+        if (normQuery.includes("dia chi") || normQuery.includes("o dau") || normQuery.includes("cua hang") || normQuery.includes("chi nhanh") || normQuery.includes("location")) {
+            showBotResponse(
+                "TiMiFood hiện tại có 2 chi nhánh lớn cực kỳ sang xịn phục vụ bạn tại Hải Phòng:<br>" +
+                "📍 **Chi nhánh 1:** 165 Trần Quốc Chẩn, Chu Văn An, Hải Phòng<br>" +
+                "📍 **Chi nhánh 2:** 76 Nguyễn Thị Duệ, Chu Văn An, Hải Phòng<br><br>" +
+                "Bạn có thể đặt trực tiếp tại website này để được giao hàng tận nơi siêu tốc nhé! 🛵"
+            );
+            return;
+        }
+
+        // 8. Giờ mở cửa
+        if (normQuery.includes("gio") || normQuery.includes("mo cua") || normQuery.includes("dong cua") || normQuery.includes("may gio") || normQuery.includes("open")) {
+            showBotResponse("Cửa hàng mở cửa từ **7:00 - 22:00** tất cả các ngày trong tuần (kể cả Thứ 7, Chủ Nhật và các ngày Lễ) bạn nhé! Cần là có ngay! ⏰");
+            return;
+        }
+
+        // 9. Phí giao hàng
+        if (normQuery.includes("ship") || normQuery.includes("phi") || normQuery.includes("van chuyen") || normQuery.includes("giao hang")) {
+            showBotResponse(
+                "TiMiFood áp dụng chính sách ưu đãi **FREESHIP** cho mọi đơn hàng từ **150.000đ** trở lên trong bán kính 5km!<br>" +
+                "Dưới 150.000đ, phí ship cực kỳ mềm dẻo chỉ từ 15.000đ - 25.000đ tùy khoảng cách cụ thể."
+            );
+            return;
+        }
+
+        // 10. Hướng dẫn đặt mua hàng
+        if (normQuery.includes("huong dan") || normQuery.includes("mua hang") || normQuery.includes("dat mon") || normQuery.includes("cach dat")) {
+            processResponse("guide");
+            return;
+        }
+
+        // 11. Tin nhắn cảm ơn / khen ngợi
+        if (normQuery.includes("cam on") || normQuery.includes("thanks") || normQuery.includes("tot qua") || normQuery.includes("de thuong") || normQuery.includes("ngon lam")) {
+            showBotResponse("Rất vui vì đã hỗ trợ được cho bạn! Chúc bạn có một bữa ăn ngon miệng và trọn vẹn hạnh phúc bên người thân yêu cùng TiMiFood nha! ❤️");
+            return;
+        }
+
+        // C. FALLBACK THÔNG MINH (Smart Fallback Router)
+        // Nếu không khớp từ khóa đặc biệt nào, bot sẽ tự động so khớp thử cụm từ đó như tên món ăn
+        processResponse("search_keyword_silent", query);
+    }
+
+    // Trích xuất số tiền trong chuỗi nhập liệu
+    function extractBudgetNumber(str) {
+        const match = str.match(/\b(\d+)\s*(k|000)?\b/i);
+        if (match) {
+            let num = parseInt(match[1]);
+            let suffix = match[2];
+            if (suffix && suffix.toLowerCase() === 'k') return num * 1000;
+            if (suffix === '000') return num * 1000;
+            if (num < 1000) return num * 1000; // Tránh 50 -> 50đ, tự động hiểu 50k
+            return num;
+        }
+        return null;
+    }
+
+    // Lọc theo ngân sách khi nhận phản hồi bối cảnh
+    function processBudgetQuery(query) {
+        const budget = extractBudgetNumber(removeVietnameseTones(query));
+        if (budget) {
+            processResponse("budget_query", budget);
+        } else {
+            showBotResponse("Bạn nhập số tiền chưa đúng định dạng rồi. Ví dụ bạn muốn tìm món dưới 50k, hãy gõ *'50k'* hoặc *'50000'* nhé!");
+        }
+    }
+
+    // Xử lý luồng nghiệp vụ thông minh cho từng loại phản hồi
+    async function processResponse(actionType, extraData = "") {
+        switch (actionType) {
+            case "hot":
+                try {
+                    const products = await window.api.getProducts();
+                    const activeProducts = products.filter(p => p.status == 1);
+                    activeProducts.sort((a,b) => (b.avgRating || 0) - (a.avgRating || 0));
+                    const topProducts = activeProducts.slice(0, 3);
+
+                    if (topProducts.length === 0) {
+                        showBotResponse("TiMiFood hiện đang làm mới thực đơn, bạn vui lòng tham khảo các món ăn khác trên thanh Menu chính nhé!");
+                    } else {
+                        let html = `🏆 Dưới đây là **Top 3 món ăn được yêu thích hàng đầu hôm nay** tại TiMiFood. Bạn có thể nhấn đặt nhanh trực tiếp nhé!
+                                    <div class="chat-products-wrapper">`;
+                        topProducts.forEach(p => {
+                            html += `
+                                <div class="chat-product-card">
+                                    <img src="${p.img}" class="chat-product-img" onerror="this.src='./assets/img/blank-image.png'">
+                                    <div class="chat-product-info">
+                                        <p class="chat-product-title">${p.title}</p>
+                                        <p class="chat-product-price">${chatbotFormatVND(p.price)}</p>
+                                        <button class="chat-product-btn" onclick="chatbotAddCart(${p.id})"><i class="fa-solid fa-cart-plus"></i> Đặt món</button>
+                                    </div>
+                                </div>
+                            `;
+                        });
+                        html += `</div>`;
+                        showBotResponse(html, true);
+                    }
+                } catch (error) {
+                    showBotResponse("Đã xảy ra lỗi khi lấy danh sách món ăn, bạn vui lòng reload lại trang nhé!");
+                }
+                break;
+
+            case "search":
+                context.waitingFor = "search_keyword";
+                showBotResponse(
+                    "Bạn muốn tìm kiếm món ăn gì nào? 🔍 Hãy gõ từ khóa tên món ăn (ví dụ: *'cà phê'*, *'mì'*, *'bánh mì'*) để mình quét thực đơn tìm giúp bạn ngay nhé!"
+                );
+                break;
+
+            case "search_keyword":
+                try {
+                    const products = await window.api.getProducts();
+                    const matched = products.filter(p => 
+                        p.status == 1 && 
+                        (p.title.toLowerCase().includes(extraData.toLowerCase()) || 
+                         removeVietnameseTones(p.title).includes(removeVietnameseTones(extraData)))
+                    );
+
+                    if (matched.length === 0) {
+                        showBotResponse(
+                            `Tiếc quá, mình chưa tìm thấy món ăn nào khớp với từ khóa **"${extraData}"** của bạn. 😢<br>` +
+                            "Bạn hãy thử tìm từ khóa khác đơn giản hơn như *'cơm'*, *'mì'*, *'trà sữa'* hoặc xem đầy đủ thực đơn tại trang chủ nhé!"
+                        );
+                    } else {
+                        const topResults = matched.slice(0, 3);
+                        let html = `🎉 Tìm thấy **${matched.length}** món ăn phù hợp với yêu cầu của bạn. Dưới đây là các kết quả nổi bật nhất:<br>
+                                    <div class="chat-products-wrapper">`;
+                        topResults.forEach(p => {
+                            html += `
+                                <div class="chat-product-card">
+                                    <img src="${p.img}" class="chat-product-img" onerror="this.src='./assets/img/blank-image.png'">
+                                    <div class="chat-product-info">
+                                        <p class="chat-product-title">${p.title}</p>
+                                        <p class="chat-product-price">${chatbotFormatVND(p.price)}</p>
+                                        <button class="chat-product-btn" onclick="chatbotAddCart(${p.id})"><i class="fa-solid fa-cart-plus"></i> Đặt món</button>
+                                    </div>
+                                </div>
+                            `;
+                        });
+                        html += `</div>`;
+                        showBotResponse(html, true);
+                    }
+                } catch (e) {
+                    showBotResponse("Không thể hoàn tất tìm kiếm món ăn lúc này. Vui lòng thử lại sau!");
+                }
+                break;
+
+            case "search_keyword_silent":
+                try {
+                    const products = await window.api.getProducts();
+                    const matched = products.filter(p => 
+                        p.status == 1 && 
+                        (p.title.toLowerCase().includes(extraData.toLowerCase()) || 
+                         removeVietnameseTones(p.title).includes(removeVietnameseTones(extraData)))
+                    );
+
+                    if (matched.length > 0) {
+                        // Nếu có món trùng khớp thực tế, trả về kết quả
+                        const topResults = matched.slice(0, 3);
+                        let html = `Mình phát hiện có **${matched.length}** món ăn rất hợp với câu hỏi của bạn. Tham khảo ngay nhé! 👇
+                                    <div class="chat-products-wrapper">`;
+                        topResults.forEach(p => {
+                            html += `
+                                <div class="chat-product-card">
+                                    <img src="${p.img}" class="chat-product-img" onerror="this.src='./assets/img/blank-image.png'">
+                                    <div class="chat-product-info">
+                                        <p class="chat-product-title">${p.title}</p>
+                                        <p class="chat-product-price">${chatbotFormatVND(p.price)}</p>
+                                        <button class="chat-product-btn" onclick="chatbotAddCart(${p.id})"><i class="fa-solid fa-cart-plus"></i> Đặt món</button>
+                                    </div>
+                                </div>
+                            `;
+                        });
+                        html += `</div>`;
+                        showBotResponse(html, true);
+                    } else {
+                        // Nếu hoàn toàn không khớp món nào, chọn ngẫu nhiên một câu fallback lịch sự
+                        const randomFallback = fallbacks[Math.floor(Math.random() * fallbacks.length)];
+                        showBotResponse(randomFallback);
+                    }
+                } catch (e) {
+                    const randomFallback = fallbacks[Math.floor(Math.random() * fallbacks.length)];
+                    showBotResponse(randomFallback);
+                }
+                break;
+
+            case "budget_prompt":
+                context.waitingFor = "budget";
+                showBotResponse(
+                    "💵 Bạn muốn tìm món ăn trong tầm giá khoảng bao nhiêu tiền nào? <br>" +
+                    "Hãy gõ số tiền (ví dụ: *'30k'*, *'50k'*, *'100k'*) để mình tự động sàng lọc những món phù hợp nhất với ví tiền của bạn nhé! 😄"
+                );
+                break;
+
+            case "budget_query":
+                try {
+                    const limit = parseInt(extraData);
+                    const products = await window.api.getProducts();
+                    const matched = products.filter(p => p.status == 1 && p.price <= limit);
+
+                    if (matched.length === 0) {
+                        showBotResponse(
+                            `Rất tiếc, hiện tại TiMiFood không có món nào có giá dưới **${chatbotFormatVND(limit)}**. 😢<br>` +
+                            "Bạn hãy nâng hạn mức chi tiêu lên một chút hoặc xem danh sách món ăn HOT nhất của tiệm nhé!"
+                        );
+                    } else {
+                        // Sắp xếp rating giảm dần
+                        matched.sort((a,b) => (b.avgRating || 0) - (a.avgRating || 0));
+                        const topResults = matched.slice(0, 3);
+                        let html = `🎯 Mình tìm thấy **${matched.length}** món ăn cực ngon có giá dưới **${chatbotFormatVND(limit)}** cực kỳ vừa vặn túi tiền của bạn đây:<br>
+                                    <div class="chat-products-wrapper">`;
+                        topResults.forEach(p => {
+                            html += `
+                                <div class="chat-product-card">
+                                    <img src="${p.img}" class="chat-product-img" onerror="this.src='./assets/img/blank-image.png'">
+                                    <div class="chat-product-info">
+                                        <p class="chat-product-title">${p.title}</p>
+                                        <p class="chat-product-price">${chatbotFormatVND(p.price)}</p>
+                                        <button class="chat-product-btn" onclick="chatbotAddCart(${p.id})"><i class="fa-solid fa-cart-plus"></i> Đặt món</button>
+                                    </div>
+                                </div>
+                            `;
+                        });
+                        html += `</div>`;
+                        showBotResponse(html, true);
+                    }
+                } catch (error) {
+                    showBotResponse("Đã xảy ra lỗi khi lọc món ăn theo ngân sách. Vui lòng thử lại sau!");
+                }
+                break;
+
+            case "track":
+                const currentuser = localStorage.getItem('currentuser') ? JSON.parse(localStorage.getItem('currentuser')) : null;
+                if (!currentuser) {
+                    context.waitingFor = "phone_number";
+                    showBotResponse(
+                        "Bạn chưa đăng nhập tài khoản khách hàng.<br>" +
+                        "Hãy gõ **số điện thoại** dùng để đặt đơn hàng của bạn (ví dụ: *'0345975990'*) để mình tra cứu trạng thái giao nhận trực tuyến giúp nhé! 📦"
+                    );
+                } else {
+                    renderUserOrdersTimeline(currentuser.phone);
+                }
+                break;
+
+            case "track_phone":
+                renderUserOrdersTimeline(extraData);
+                break;
+
+            case "voucher":
+                showBotResponse(
+                    "🎁 **Danh sách các mã ưu đãi / Vouchers HOT nhất tại TiMiFood:**<br><br>" +
+                    "1️⃣ **TIMI50** - Giảm **50%** tối đa 50K cho hóa đơn đầu tiên.<br>" +
+                    "2️⃣ **HELLOTIMI** - Giảm trực tiếp **20.000đ** cho đơn từ 100K.<br>" +
+                    "3️⃣ **FREESHIP** - Miễn phí vận chuyển (tối đa 30K) cho mọi đơn từ 150K.<br><br>" +
+                    "💡 *Cách sử dụng:* Nhập mã trên vào ô **Mã giảm giá** ở bước thanh toán đơn hàng để được áp dụng ngay lập tức nhé! 🎉"
+                );
+                break;
+
+            case "guide":
+                showBotResponse(
+                    "🛒 **Các bước đặt hàng vô cùng đơn giản tại TiMiFood:**<br>" +
+                    "1️⃣ **Bước 1 (Chọn món):** Nhấn **'Đặt món'** trực tiếp từ trang chủ hoặc chi tiết món để đưa vào giỏ hàng.<br>" +
+                    "2️⃣ **Bước 2 (Vào giỏ):** Click biểu tượng giỏ hàng ở góc phải phía trên màn hình, điền mã giảm giá nếu có.<br>" +
+                    "3️⃣ **Bước 3 (Thanh toán):** Chọn **'Thanh toán'**, cập nhật địa chỉ, tên, sđt và hình thức nhận (Giao tận nơi hoặc Tự đến lấy). Nhấp **'Đặt hàng'** là xong!<br><br>" +
+                    "Chúc bạn có một trải nghiệm đặt món trọn vẹn và ngon miệng nhé! 🍕"
+                );
+                break;
+        }
+    }
+
+    // Trích xuất đơn hàng thực tế và render Timeline trạng thái trực quan
+    async function renderUserOrdersTimeline(phone) {
+        try {
+            const orders = await window.api.getOrders();
+            const userOrders = orders.filter(o => o.phone == phone || o.sdtnhan == phone);
+
+            if (userOrders.length === 0) {
+                showBotResponse(`Không tìm thấy dữ liệu đơn hàng nào được liên kết với số điện thoại **${phone}**. Bạn vui lòng kiểm tra chính xác lại số điện thoại đặt hàng nhé!`);
+                return;
+            }
+
+            userOrders.sort((a,b) => new Date(b.thoigiandat) - new Date(a.thoigiandat));
+            const latestOrders = userOrders.slice(0, 2);
+
+            let html = `Đã tìm thấy lịch sử giao dịch liên kết với số điện thoại **${phone}**. Dưới đây là trạng thái đơn hàng thời gian thực:<br>`;
+
+            latestOrders.forEach(order => {
+                let statusText = "Chờ xử lý";
+                let timelineHtml = "";
+                
+                if (order.trangthai === 0) {
+                    statusText = "Đang chuẩn bị 🍳";
+                    timelineHtml = `
+                        <div class="chat-order-timeline">
+                            <div class="chat-timeline-item completed">Đã đặt hàng</div>
+                            <div class="chat-timeline-item active">Đang chuẩn bị</div>
+                            <div class="chat-timeline-item">Đang giao hàng</div>
+                            <div class="chat-timeline-item">Đã nhận hàng</div>
+                        </div>
+                    `;
+                } else if (order.trangthai === 1) {
+                    statusText = "Đang giao hàng 🚚";
+                    timelineHtml = `
+                        <div class="chat-order-timeline">
+                            <div class="chat-timeline-item completed">Đã đặt hàng</div>
+                            <div class="chat-timeline-item completed">Đang chuẩn bị</div>
+                            <div class="chat-timeline-item active">Đang giao hàng</div>
+                            <div class="chat-timeline-item">Đã nhận hàng</div>
+                        </div>
+                    `;
+                } else if (order.trangthai === 2) {
+                    statusText = "Đã hoàn thành 🎉";
+                    timelineHtml = `
+                        <div class="chat-order-timeline">
+                            <div class="chat-timeline-item completed">Đã đặt hàng</div>
+                            <div class="chat-timeline-item completed">Đang chuẩn bị</div>
+                            <div class="chat-timeline-item completed">Đang giao hàng</div>
+                            <div class="chat-timeline-item completed active">Đã nhận hàng</div>
+                        </div>
+                    `;
+                } else {
+                    statusText = "Đã hủy đơn ❌";
+                    timelineHtml = `
+                        <div class="chat-order-timeline">
+                            <div class="chat-timeline-item active" style="color: var(--red);">Đơn hàng đã bị hủy bỏ</div>
+                        </div>
+                    `;
+                }
+
+                html += `
+                    <div style="margin-top: 14px; padding: 10px; border-radius: 8px; background: white; border: 1px solid #e2e8f0; box-shadow: 0 1px 4px rgba(0,0,0,0.02);">
+                        <p style="margin:0 0 4px 0; font-size:12.5px;">Mã đơn: <span style="font-weight:700; color:var(--red);">${order.id}</span></p>
+                        <p style="margin:0 0 4px 0; font-size:12px; color:#64748b;">Tổng tiền: <strong>${chatbotFormatVND(order.tongtien)}</strong></p>
+                        <p style="margin:0 0 8px 0; font-size:12px; color:#64748b;">Trạng thái: <span style="font-weight:600; color:#1e293b;">${statusText}</span></p>
+                        ${timelineHtml}
+                    </div>
+                `;
+            });
+
+            showBotResponse(html, true);
+
+        } catch (error) {
+            console.error("Error fetching order for chatbot:", error);
+            showBotResponse("Đã xảy ra lỗi hệ thống khi kiểm tra đơn hàng, vui lòng thử lại sau!");
+        }
+    }
+}
