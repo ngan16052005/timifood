@@ -1,0 +1,3 @@
+## Chạy server trên internet
+- Khởi động server: node server.js
+- Vào ngrok.exe để tạo tunnel với địa chỉ:" ngrok http --domain=dejected-radio-myspace.ngrok-free.dev 3500 "
