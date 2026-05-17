@@ -2106,3 +2106,216 @@ label a {
     box-shadow: 0 4px 12px rgba(231, 76, 60, 0.4);
 }
 
+/* ==========================================
+   💬 LIVE CHAT SUPPORT INTERFACE STYLES (Admin-side)
+   ========================================== */
+.chat-support-layout {
+    display: flex;
+    gap: 0;
+    height: 600px;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.04);
+    border: 1px solid #e2e8f0;
+    overflow: hidden;
+    margin-top: 15px;
+}
+
+/* Left panel style */
+.chat-sessions-sidebar {
+    width: 300px;
+    border-right: 1px solid #e2e8f0;
+    display: flex;
+    flex-direction: column;
+    background: #f8fafc;
+}
+
+.chat-sessions-header {
+    padding: 18px 16px;
+    border-bottom: 1px solid #e2e8f0;
+    background: white;
+}
+
+.chat-sessions-header h4 {
+    margin: 0;
+    font-size: 15px;
+    color: #1e293b;
+    font-weight: 700;
+}
+
+.chat-sessions-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    overflow-y: auto;
+    flex: 1;
+}
+
+.chat-sessions-list .no-session {
+    padding: 40px 20px;
+    text-align: center;
+    color: #94a3b8;
+    font-size: 13px;
+}
+
+.chat-session-item {
+    padding: 14px 16px;
+    border-bottom: 1px solid #f1f5f9;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: white;
+}
+
+.chat-session-item:hover {
+    background: #f1f5f9;
+}
+
+.chat-session-item.active {
+    background: #eff6ff;
+    border-left: 4px solid #3b82f6;
+}
+
+.chat-session-item .session-info {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    flex: 1;
+}
+
+.chat-session-item .session-info .name {
+    font-weight: 600;
+    font-size: 13.5px;
+    color: #1e293b;
+}
+
+.chat-session-item .session-info .phone {
+    font-size: 11.5px;
+    color: #64748b;
+}
+
+.chat-session-item .session-status {
+    font-size: 11px;
+    padding: 3px 8px;
+    border-radius: 20px;
+    font-weight: 700;
+    text-transform: capitalize;
+}
+
+.chat-session-item .session-status.waiting {
+    background: #fee2e2;
+    color: #ef4444;
+    animation: pulseGlow 1.5s infinite ease-in-out;
+}
+
+.chat-session-item .session-status.chatting {
+    background: #dcfce7;
+    color: #22c55e;
+}
+
+@keyframes pulseGlow {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.6; }
+}
+
+/* Right Chat screen style */
+.chat-window-container {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    background: #fff;
+}
+
+.chat-window-placeholder {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 40px;
+    background: #fff;
+}
+
+.chat-window-active {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.chat-window-header {
+    padding: 16px 20px;
+    border-bottom: 1px solid #e2e8f0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #fff;
+}
+
+.chat-window-messages {
+    flex: 1;
+    padding: 20px;
+    overflow-y: auto;
+    background: #f8fafc;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+/* Message styling */
+.chat-msg-admin {
+    max-width: 65%;
+    padding: 10px 14px;
+    border-radius: 12px;
+    font-size: 13.5px;
+    line-height: 1.5;
+    word-wrap: break-word;
+}
+
+.chat-msg-admin.customer {
+    align-self: flex-start;
+    background: #ffffff;
+    color: #1e293b;
+    border: 1px solid #e2e8f0;
+    border-bottom-left-radius: 2px;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.02);
+}
+
+.chat-msg-admin.staff {
+    align-self: flex-end;
+    background: #3b82f6;
+    color: #ffffff;
+    border-bottom-right-radius: 2px;
+    box-shadow: 0 1px 2px rgba(59, 130, 246, 0.1);
+}
+
+.chat-msg-time {
+    font-size: 10px;
+    color: #94a3b8;
+    margin-top: 4px;
+    display: block;
+    text-align: right;
+}
+
+.chat-msg-admin.customer .chat-msg-time {
+    color: #94a3b8;
+}
+
+.chat-msg-admin.staff .chat-msg-time {
+    color: rgba(255,255,255,0.7);
+}
+
+.chat-window-input-area {
+    padding: 16px 20px;
+    border-top: 1px solid #e2e8f0;
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    background: #fff;
+}
+
+

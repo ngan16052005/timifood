@@ -109,10 +109,13 @@ function initChatbot() {
     const quickRepliesContainer = document.getElementById("chatbot-quick-replies");
 
     let hasWelcomed = false;
+    let liveChatActive = false;
+    let clientSocket = null;
+    let tempPhoneForLiveChat = null;
 
     // 🧠 BỘ NHỚ BỐI CẢNH HỘI THOẠI (Context Memory State Machine)
     const context = {
-        waitingFor: null,  // "phone_number" | "search_keyword" | "budget"
+        waitingFor: null,  // "phone_number" | "search_keyword" | "budget" | "live_chat_phone" | "live_chat_fullname"
         lastIntent: null,
         userPhone: null
     };
@@ -170,7 +173,8 @@ function initChatbot() {
             { text: "🔍 Tìm món ăn", value: "search" },
             { text: "💵 Gợi ý theo ví tiền", value: "budget_prompt" },
             { text: "📦 Tra cứu đơn hàng", value: "track" },
-            { text: "🎁 Mã giảm giá", value: "voucher" }
+            { text: "🎁 Mã giảm giá", value: "voucher" },
+            { text: "💬 Gặp nhân viên", value: "request_live_chat" }
         ]);
     }
 
@@ -238,7 +242,7 @@ function initChatbot() {
                     { text: "🔍 Tìm món ăn", value: "search" },
                     { text: "💵 Món dưới 50k", value: "under_50k" },
                     { text: "📦 Tra cứu đơn", value: "track" },
-                    { text: "🎁 Mã giảm giá", value: "voucher" }
+                    { text: "💬 Gặp nhân viên", value: "request_live_chat" }
                 ]);
             }
         }, 700);
@@ -251,7 +255,22 @@ function initChatbot() {
         appendMessage("user", text);
         inputField.value = "";
         
-        processUserQuery(text);
+        if (liveChatActive) {
+            // Direct message to agent via socket
+            if (clientSocket && clientSocket.connected) {
+                const currentuser = localStorage.getItem('currentuser') ? JSON.parse(localStorage.getItem('currentuser')) : null;
+                const phone = currentuser ? currentuser.phone : (tempPhoneForLiveChat || 'guest');
+                clientSocket.emit('send_chat_message', {
+                    room: phone,
+                    sender: 'customer',
+                    text: text
+                });
+            } else {
+                appendMessage("bot", "⚠️ Mất kết nối tới máy chủ. Vui lòng thử lại sau ít giây.");
+            }
+        } else {
+            processUserQuery(text);
+        }
     }
 
     // 🤖 TRÌNH PHÂN TÍCH TỪ KHÓA NÂNG CAO & QUẢN LÝ BỐI CẢNH (Intelligent Intent Router)
@@ -283,6 +302,34 @@ function initChatbot() {
         if (context.waitingFor === "budget") {
             context.waitingFor = null;
             processBudgetQuery(query);
+            return;
+        }
+
+        if (context.waitingFor === "live_chat_phone") {
+            const phoneRegex = /\b(03|05|07|08|09)\d{8}\b/;
+            const matchPhone = cleanQuery.match(phoneRegex);
+            if (matchPhone || (normQuery.length >= 9 && !isNaN(normQuery.replace(/\s/g, "")))) {
+                tempPhoneForLiveChat = matchPhone ? matchPhone[0] : normQuery.replace(/\s/g, "");
+                context.waitingFor = "live_chat_fullname";
+                showBotResponse(
+                    "Cảm ơn bạn! Cho mình xin thêm **Họ và tên** của bạn để nhân viên tiện xưng hô nhé! 🥰",
+                    false,
+                    [{ text: "❌ Hủy bỏ", value: "cancel_live_chat" }]
+                );
+            } else {
+                showBotResponse("Số điện thoại không hợp lệ. Vui lòng nhập lại số điện thoại 10 chữ số.");
+            }
+            return;
+        }
+
+        if (context.waitingFor === "live_chat_fullname") {
+            const fullname = query.trim();
+            if (fullname.length >= 2) {
+                context.waitingFor = null;
+                startLiveChatSession(tempPhoneForLiveChat, fullname);
+            } else {
+                showBotResponse("Vui lòng nhập tên đầy đủ của bạn.");
+            }
             return;
         }
 
@@ -389,6 +436,12 @@ function initChatbot() {
         // 11. Tin nhắn cảm ơn / khen ngợi
         if (normQuery.includes("cam on") || normQuery.includes("thanks") || normQuery.includes("tot qua") || normQuery.includes("de thuong") || normQuery.includes("ngon lam")) {
             showBotResponse("Rất vui vì đã hỗ trợ được cho bạn! Chúc bạn có một bữa ăn ngon miệng và trọn vẹn hạnh phúc bên người thân yêu cùng TiMiFood nha! ❤️");
+            return;
+        }
+
+        // 12. Gặp nhân viên hỗ trợ trực tuyến
+        if (normQuery.includes("nhan vien") || normQuery.includes("live chat") || normQuery.includes("livechat") || normQuery.includes("gap nguoi") || normQuery.includes("ho tro vien")) {
+            processResponse("request_live_chat");
             return;
         }
 
@@ -621,6 +674,27 @@ function initChatbot() {
                     "Chúc bạn có một trải nghiệm đặt món trọn vẹn và ngon miệng nhé! 🍕"
                 );
                 break;
+
+            case "request_live_chat":
+                handleLiveChatEscalation();
+                break;
+
+            case "cancel_live_chat":
+                context.waitingFor = null;
+                tempPhoneForLiveChat = null;
+                showBotResponse("Đã hủy yêu cầu gặp nhân viên. Trợ lý ảo sẵn sàng giải đáp các câu hỏi khác của bạn!");
+                break;
+
+            case "exit_live_chat":
+                if (clientSocket) {
+                    const currentuser = localStorage.getItem('currentuser') ? JSON.parse(localStorage.getItem('currentuser')) : null;
+                    const phone = currentuser ? currentuser.phone : (tempPhoneForLiveChat || 'guest');
+                    clientSocket.emit('end_live_chat', {
+                        customerPhone: phone
+                    });
+                }
+                endLiveChatSessionLocal();
+                break;
         }
     }
 
@@ -699,5 +773,92 @@ function initChatbot() {
             console.error("Error fetching order for chatbot:", error);
             showBotResponse("Đã xảy ra lỗi hệ thống khi kiểm tra đơn hàng, vui lòng thử lại sau!");
         }
+    }
+
+    // --- 💬 Live Chat Escalation System Helpers ---
+
+    function handleLiveChatEscalation() {
+        const currentuser = localStorage.getItem('currentuser') ? JSON.parse(localStorage.getItem('currentuser')) : null;
+        if (currentuser) {
+            // User logged in, immediately start live chat
+            startLiveChatSession(currentuser.phone, currentuser.fullname);
+        } else {
+            // Not logged in, prompt for credentials
+            context.waitingFor = "live_chat_phone";
+            showBotResponse(
+                "Để kết nối trực tiếp với nhân viên hỗ trợ, bạn vui lòng nhập **Số điện thoại** của mình nhé! 😊",
+                false,
+                [{ text: "❌ Hủy bỏ", value: "cancel_live_chat" }]
+            );
+        }
+    }
+
+    function startLiveChatSession(phone, fullname) {
+        liveChatActive = true;
+        showBotResponse(
+            `🔄 Đang kết nối bạn tới Nhân viên hỗ trợ...<br>` +
+            `*Khách hàng: ${fullname} (${phone})*<br>` +
+            `Vui lòng chờ trong giây lát.`,
+            false,
+            [{ text: "❌ Thoát Live Chat", value: "exit_live_chat" }]
+        );
+
+        if (clientSocket) {
+            try {
+                clientSocket.disconnect();
+            } catch (e) {}
+            clientSocket = null;
+        }
+
+        if (typeof io !== 'undefined') {
+            clientSocket = io({ autoConnect: false });
+            
+            clientSocket.on('connect', () => {
+                console.log('[Socket] Customer connected for live chat:', phone);
+                clientSocket.emit('joinUser', phone);
+                clientSocket.emit('client_request_live_chat', {
+                    phone: phone,
+                    fullname: fullname
+                });
+            });
+
+            clientSocket.on('staff_join_chat', (data) => {
+                appendMessage("bot", `👨‍💼 Nhân viên **${data.staffName}** đã tham gia hỗ trợ bạn! Bạn có thể gửi tin nhắn trao đổi trực tiếp.`);
+            });
+
+            clientSocket.on('receive_chat_message', (data) => {
+                if (data.sender === 'staff' || data.message?.sender === 'staff') {
+                    const text = data.text || data.message?.text;
+                    if (text) appendMessage("bot", text);
+                }
+            });
+
+            clientSocket.on('end_live_chat', () => {
+                appendMessage("bot", `🌸 Phiên hỗ trợ trực tuyến đã kết thúc. Bạn đã được chuyển lại về Trợ lý ảo TiMiFood.`);
+                endLiveChatSessionLocal();
+            });
+
+            clientSocket.on('disconnect', () => {
+                console.warn('[Socket] Customer socket disconnected');
+            });
+
+            clientSocket.connect();
+        } else {
+            appendMessage("bot", "⚠️ Lỗi: Không thể tải thư viện kết nối real-time.");
+            liveChatActive = false;
+        }
+    }
+
+    function endLiveChatSessionLocal() {
+        liveChatActive = false;
+        if (clientSocket) {
+            clientSocket.disconnect();
+            clientSocket = null;
+        }
+        tempPhoneForLiveChat = null;
+        context.waitingFor = null;
+        showBotResponse(
+            "Đã quay trở lại chế độ Trợ lý ảo TiMiFood. Hãy chọn các nút gợi ý nhanh bên dưới nếu cần giúp đỡ nhé! 👇"
+        );
     }
 }

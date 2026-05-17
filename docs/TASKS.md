@@ -117,5 +117,19 @@ Dưới đây là danh sách đầy đủ các hạng mục đã hoàn thiện t
 - [x] **Phản hồi tự động qua bộ từ khóa thông minh:** Tự động phản hồi nhanh chóng và chính xác các thắc mắc phổ biến của người dùng về thời gian mở cửa, địa chỉ chi nhánh, chính sách freeship, cách đặt hàng cùng hiệu ứng gõ chữ sinh động.
 
 ---
+## ✅ Giai đoạn 19: Triển khai Hệ thống Live Chat trực tiếp Khách hàng - Nhân viên thời gian thực (Real-time Live Chat Escalation System)
+- [x] **Quản lý phiên chat In-Memory (Backend):** Lưu trữ động trạng thái các phiên chat trực tiếp (`waiting`, `active`, `ended`) kèm đầy đủ lịch sử hội thoại trên máy chủ.
+- [x] **Cổng socket Live Chat đa hướng:** Thiết lập cổng giao tiếp Socket.io thời gian thực kết nối luồng tin nhắn hai chiều giữa khách hàng và nhân viên hỗ trợ trực tuyến.
+- [x] **Giao diện Admin Chat Panel Premium:** Thiết kế Split-Pane kính mờ (Glassmorphism) sang xịn mịn, tích hợp hiệu ứng nhấp nháy Pulse báo hiệu phiên đang chờ tiếp nhận và bong bóng tin nhắn phân màu trực quan.
+- [x] **Tích hợp logic điều khiển Client & Admin:** Nâng cấp AI Chatbot để chuyển đổi mượt mà sang chế độ Gặp nhân viên, tự động thu thập thông tin khách hàng vãng lai, chuyển đổi luồng tin nhắn qua cổng socket và dễ dàng đóng phiên kết nối trả về cho Trợ lý ảo.
+
+---
+## ✅ Giai đoạn 20: Chuẩn hóa ngữ nghĩa HTML & Tối ưu hóa Form Trực quan (HTML Semantic Cleanups & Autofill Standards)
+- [x] **Dọn dẹp cảnh báo cú pháp/ngữ nghĩa:** Phân tích cấu trúc các biểu mẫu (Đăng nhập, Đăng ký, Khôi phục mật khẩu, Đổi mật khẩu) và sửa đổi triệt để các thuộc tính `for` của `<label>` bị trống hoặc lệch `id` của `<input>`.
+- [x] **Giải quyết xung đột ID giữa các Modal:** Tách biệt và chỉnh sửa `for` của label Số điện thoại và Mật khẩu ở form Đăng nhập để trỏ đúng `id="phone-login"` và `id="password-login"`, không còn bị trỏ lệch sang các trường của form Đăng ký.
+- [x] **Tích hợp Autocomplete nâng cao:** Bổ sung thuộc tính `autocomplete` tiêu chuẩn cho toàn bộ trường nhập liệu (`autocomplete="name"`, `autocomplete="tel"`, `autocomplete="email"`, `autocomplete="current-password"`, `autocomplete="new-password"`, `autocomplete="one-time-code"`) giúp cải thiện tính bảo mật, hỗ trợ trình duyệt tự động điền cực kỳ tiện lợi.
+- [x] **Đồng bộ hóa ID & Name hợp lệ:** Thiết lập đầy đủ thuộc tính `id` và `name` đồng bộ trên toàn bộ các ô nhập dữ liệu, loại bỏ hoàn toàn các lỗi cảnh báo trong tab "Issues" của Chrome Developer Tools, đảm bảo chuẩn SEO và khả năng truy cập cao.
+
+---
 *Cập nhật lần cuối: 17/05/2026 bởi thaingan & AI Assistant.*
 

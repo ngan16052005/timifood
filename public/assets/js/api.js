@@ -696,5 +696,18 @@ window.api = {
         } finally {
             hideLoader();
         }
+    },
+
+    getLiveChats: async () => {
+        try {
+            const response = await fetch(`${BASE_URL}/livechats`, {
+                headers: getHeaders()
+            });
+            if (!response.ok) throw new Error('Không thể tải danh sách phiên chat');
+            return await response.json();
+        } catch (error) {
+            console.error("getLiveChats error:", error);
+            throw error;
+        }
     }
 };

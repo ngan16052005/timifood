@@ -252,22 +252,22 @@
                     <div class="main-account-body-col">
                         <form action="" class="change-password">
                             <div class="form-group">
-                                <label for="" class="form-label w60">Mật khẩu hiện tại</label>
-                                <input class="form-control" type="password" name="" id="password-cur-info"
-                                    placeholder="Nhập mật khẩu hiện tại">
+                                <label for="password-cur-info" class="form-label w60">Mật khẩu hiện tại</label>
+                                <input class="form-control" type="password" name="current-password" id="password-cur-info"
+                                    autocomplete="current-password" placeholder="Nhập mật khẩu hiện tại">
                                 <span class="password-cur-info-error form-message"></span>
                             </div>
                             <div class="form-group">
-                                <label for="" class="form-label w60">Mật khẩu mới </label>
-                                <input class="form-control" type="password" name="" id="password-after-info"
-                                    placeholder="Nhập mật khẩu mới">
+                                <label for="password-after-info" class="form-label w60">Mật khẩu mới </label>
+                                <input class="form-control" type="password" name="new-password" id="password-after-info"
+                                    autocomplete="new-password" placeholder="Nhập mật khẩu mới">
                                 <small class="form-text text-muted" style="font-size: 0.8rem; color: #666;">Tối thiểu 8 ký tự, gồm chữ hoa, chữ thường và số</small>
                                 <span class="password-after-info-error form-message"></span>
                             </div>
                             <div class="form-group">
-                                <label for="" class="form-label w60">Xác nhận mật khẩu mới</label>
-                                <input class="form-control" type="password" name="" id="password-comfirm-info"
-                                    placeholder="Nhập lại mật khẩu mới">
+                                <label for="password-comfirm-info" class="form-label w60">Xác nhận mật khẩu mới</label>
+                                <input class="form-control" type="password" name="confirm-password" id="password-comfirm-info"
+                                    autocomplete="new-password" placeholder="Nhập lại mật khẩu mới">
                                 <span class="password-after-comfirm-error form-message"></span>
                             </div>
                         </form>
@@ -316,32 +316,32 @@
                     <form action="" class="signup-form">
                         <div class="form-group">
                             <label for="fullname" class="form-label">Tên đầy đủ</label>
-                            <input id="fullname" name="fullname" type="text" placeholder="VD: Nguyễn Văn A"
+                            <input id="fullname" name="fullname" type="text" autocomplete="name" placeholder="VD: Nguyễn Văn A"
                                 class="form-control">
                             <span class="form-message-name form-message"></span>
                         </div>
                         <div class="form-group">
                             <label for="phone" class="form-label">Số điện thoại</label>
-                            <input id="phone" name="phone" type="text" placeholder="Nhập số điện thoại"
+                            <input id="phone" name="phone" type="text" autocomplete="tel" placeholder="Nhập số điện thoại"
                                 class="form-control">
                             <span class="form-message-phone form-message"></span>
                         </div>
                         <div class="form-group">
                             <label for="email-signup" class="form-label">Email</label>
-                            <input id="email-signup" name="email" type="email" placeholder="Nhập email"
+                            <input id="email-signup" name="email" type="email" autocomplete="email" placeholder="Nhập email"
                                 class="form-control">
                             <span class="form-message-email form-message"></span>
                         </div>
                         <div class="form-group">
                             <label for="password" class="form-label">Mật khẩu</label>
-                            <input id="password" name="password" type="password" placeholder="Nhập mật khẩu"
+                            <input id="password" name="password" type="password" autocomplete="new-password" placeholder="Nhập mật khẩu"
                                 class="form-control">
                             <small class="form-text text-muted" style="font-size: 0.8rem; color: #666;">Tối thiểu 8 ký tự, gồm chữ hoa, chữ thường và số</small>
                             <span class="form-message-password form-message"></span>
                         </div>
                         <div class="form-group">
                             <label for="password_confirmation" class="form-label">Nhập lại mật khẩu</label>
-                            <input id="password_confirmation" name="password_confirmation"
+                            <input id="password_confirmation" name="password_confirmation" autocomplete="new-password"
                                 placeholder="Nhập lại mật khẩu" type="password" class="form-control">
                             <span class="form-message-password-confi form-message"></span>
                         </div>
@@ -362,14 +362,14 @@
                         tôi</p>
                     <form action="" class="login-form">
                         <div class="form-group">
-                            <label for="phone" class="form-label">Số điện thoại</label>
-                            <input id="phone-login" name="phone" type="text" placeholder="Nhập số điện thoại"
+                            <label for="phone-login" class="form-label">Số điện thoại</label>
+                            <input id="phone-login" name="phone" type="text" autocomplete="tel" placeholder="Nhập số điện thoại"
                                 class="form-control">
                             <span class="form-message phonelog"></span>
                         </div>
                         <div class="form-group">
-                            <label for="password" class="form-label">Mật khẩu</label>
-                            <input id="password-login" name="password" type="password" placeholder="Nhập mật khẩu"
+                            <label for="password-login" class="form-label">Mật khẩu</label>
+                            <input id="password-login" name="password" type="password" autocomplete="current-password" placeholder="Nhập mật khẩu"
                                 class="form-control">
                             <span class="form-message-check-login form-message"></span>
                         </div>
@@ -390,7 +390,7 @@
                             <div class="form-group">
                                 <label for="email-forgot" class="form-label">Email tài khoản</label>
                                 <div style="display: flex; gap: 10px;">
-                                    <input id="email-forgot" name="email" type="text" placeholder="Nhập email để nhận mã"
+                                    <input id="email-forgot" name="email" type="text" autocomplete="email" placeholder="Nhập email để nhận mã"
                                         class="form-control" style="flex: 1;">
                                     <button type="button" id="send-otp-btn" class="form-submit" 
                                         style="width: auto; margin-top: 0; padding: 0 15px; font-size: 14px; white-space: nowrap;">Gửi mã</button>
@@ -399,7 +399,7 @@
                             </div>
                             <div class="form-group">
                                 <label for="otp-forgot" class="form-label">Mã xác thực (OTP)</label>
-                                <input id="otp-forgot" name="otp" type="text" placeholder="Nhập mã 6 chữ số từ Email"
+                                <input id="otp-forgot" name="otp" type="text" autocomplete="one-time-code" placeholder="Nhập mã 6 chữ số từ Email"
                                     class="form-control">
                                 <span class="form-message otpforgot-error"></span>
                             </div>
@@ -407,14 +407,14 @@
                         <div id="password-reset-step" style="display: none;">
                             <div class="form-group">
                                 <label for="new-password-forgot" class="form-label">Mật khẩu mới</label>
-                                <input id="new-password-forgot" name="new-password" type="password" placeholder="Nhập mật khẩu mới"
+                                <input id="new-password-forgot" name="new-password" type="password" autocomplete="new-password" placeholder="Nhập mật khẩu mới"
                                     class="form-control">
                                 <small class="form-text text-muted" style="font-size: 0.8rem; color: #666;">Tối thiểu 8 ký tự, gồm chữ hoa, chữ thường và số</small>
                                 <span class="form-message new-password-error"></span>
                             </div>
                             <div class="form-group">
                                 <label for="confirm-password-forgot" class="form-label">Xác nhận mật khẩu</label>
-                                <input id="confirm-password-forgot" name="confirm-password" type="password" placeholder="Nhập lại mật khẩu mới"
+                                <input id="confirm-password-forgot" name="confirm-password" type="password" autocomplete="new-password" placeholder="Nhập lại mật khẩu mới"
                                     class="form-control">
                                 <span class="form-message confirm-password-error"></span>
                             </div>

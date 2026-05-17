@@ -196,6 +196,12 @@
 - **Tra cứu đơn hàng qua timeline trực quan:** Hỗ trợ khách hàng (cả tài khoản đăng nhập lẫn khách vãng lai qua số điện thoại) tra cứu trạng thái đơn hàng real-time, biểu diễn tiến trình dạng Timeline sắc sảo.
 - **Phản hồi tự động qua bộ từ khóa thông minh:** Tự động phản hồi nhanh chóng và chính xác các thắc mắc phổ biến của người dùng về thời gian mở cửa, địa chỉ chi nhánh, chính sách freeship, cách đặt hàng cùng hiệu ứng gõ chữ sinh động.
 
+### ✅ Giai đoạn 19: Hệ thống Chat trực tiếp Khách hàng - Nhân viên thời gian thực (Real-time Live Chat Escalation System) (Mới)
+- **Quản lý phiên chat In-Memory:** Lưu trữ trạng thái phiên live chat (`waiting`, `active`, `ended`) kèm theo nhật ký trò chuyện trên máy chủ in-memory, đảm bảo truy xuất nhanh và hiệu năng vượt trội.
+- **Kết nối Socket.io Room:** Thiết lập cơ chế tách phòng riêng tư cho mỗi khách hàng theo số điện thoại phòng hờ trùng lặp, tự động điều phối sự kiện tiếp nhận phiên chat và gửi nhận tin nhắn thời gian thực.
+- **Admin Chat Panel Premium:** Thiết kế Sidebar Tab "Hỗ trợ trực tuyến" sang trọng với bố cục Split-Pane kính mờ hiện đại, hiển thị danh sách khách hàng thông minh, hiệu ứng nhấp nháy Pulse khi có phiên đang chờ tiếp nhận và bong bóng tin nhắn phân màu trực quan.
+- **Nâng cấp AI Chatbot Hybrid:** Bổ sung tùy chọn "Gặp nhân viên hỗ trợ" qua nút gợi ý nhanh và nhận diện từ khóa; tự động thu thập thông tin cá nhân khách vãng lai trước khi kết nối; định tuyến thông minh luồng tin nhắn khách hàng qua cổng Socket; hỗ trợ kết thúc phiên chat để quay lại AI Bot bất cứ lúc nào.
+
 ---
 *Dự án hiện đã đạt độ hoàn thiện cao nhất, sẵn sàng cho việc vận hành thực tế với hiệu suất và độ ổn định tối ưu.*
 

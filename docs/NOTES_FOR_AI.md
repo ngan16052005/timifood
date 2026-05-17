@@ -24,4 +24,8 @@ File này chứa các quy tắc, phong cách lập trình và những lưu ý qu
 **Luôn giữ nguyên style và giao diện của các component, không thay đổi style và giao diện của các component khi chưa có sự cho phép của người dùng.**
 **Luôn cập nhật dự án lên github sau mỗi lần hoàn thành và có thông báo cho người dùng.**
 **Luôn kiểm tra lại code sau khi hoàn thành và đảm bảo không có lỗi.**
-*Cập nhật lần cuối: 16/05/2026*
+## Tài khoản:
+**Tài khoản Admin: số điện thoại: admin, mật khẩu: 123456**
+**Tài khoản Nhân viên: số điện thoại: 0345975990, mật khẩu: 123456**
+**Tài khoản Khách hàng: số điện thoại: 0345975998, mật khẩu: Anh12345@**
+*Cập nhật lần cuối: 17/05/2026*
