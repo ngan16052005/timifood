@@ -3712,3 +3712,95 @@ input[type=number] {
         transform: translateY(0);
     }
 }
+
+/* ==========================================
+   ✨ PREMIUM MICRO-INTERACTIONS & TRANSITIONS 
+   ========================================== */
+
+/* 1. Backdrop Glassmorphism for Modals */
+.modal {
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    background-color: rgba(15, 23, 42, 0.4) !important; /* Soft premium navy dark overlay */
+    transition: opacity 0.4s cubic-bezier(0.25, 0.8, 0.25, 1), visibility 0.4s ease !important;
+}
+
+/* 2. Elastic Pop-in Transition for Modal Containers */
+.modal-container {
+    transform: scale(0.85) translateY(20px);
+    opacity: 0;
+    transition: transform 0.45s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.4s ease !important;
+}
+.modal.open .modal-container {
+    transform: scale(1) translateY(0) !important;
+    opacity: 1 !important;
+}
+
+/* 3. Sleek close button animations */
+.modal-close, .form-close {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+.modal-close:hover, .form-close:hover {
+    background-color: var(--red) !important;
+    color: var(--white) !important;
+    transform: scale(1.1) rotate(90deg);
+    box-shadow: 0 4px 12px rgba(231, 76, 60, 0.4);
+}
+
+/* 4. Soft bounce & float effect for Cart items */
+.cart-item {
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+.cart-item:hover {
+    background-color: #fbfbfb;
+    padding-left: 8px !important;
+    border-radius: 6px;
+}
+
+/* 5. Delete Button in Cart */
+.cart-item-delete {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+.cart-item-delete:hover {
+    background-color: #c0392b !important;
+    transform: scale(1.05);
+    box-shadow: 0 4px 10px rgba(192, 41, 43, 0.3);
+}
+
+/* 6. Premium hover animations for Cart Actions */
+button.them-mon, button.thanh-toan {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+button.them-mon:hover {
+    background-color: #f8fafc !important;
+    border-color: var(--red) !important;
+    color: var(--red) !important;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+button.thanh-toan:hover:not(.disabled) {
+    background-color: #c0392b !important;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(231, 76, 60, 0.4);
+}
+
+/* 7. Product Detail Quantity Buttons */
+.is-form {
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+.is-form:hover {
+    background-color: var(--red) !important;
+    color: white !important;
+    border-color: var(--red) !important;
+    transform: scale(1.15);
+}
+
+/* 8. Add-to-cart button in Detail Modal */
+.modal-footer-control button {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+.modal-footer-control button:hover {
+    background-color: #c0392b !important;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(231, 76, 60, 0.4);
+}

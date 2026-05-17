@@ -96,4 +96,12 @@ Dưới đây là danh sách đầy đủ các hạng mục đã hoàn thiện t
 - [x] Xây dựng hệ thống **Ghi log (Logging)** các hoạt động quản trị quan trọng.
 
 ---
-*Cập nhật lần cuối: 16/05/2026 bởi thaingan & AI Assistant.*
+## 🚀 Giai đoạn 16: Tối ưu Bảo mật, Kiểm thử Ổn định & Nâng cấp Trải nghiệm Tinh tế
+- [x] **Bảo mật API:** Tích hợp bộ lọc Rate Limiting tại Backend cho các endpoint nhạy cảm (Login, Register, Send OTP, Reset/Change Password) chống brute-force và spam.
+- [x] **Tinh chỉnh Vi tương tác (Micro-interactions):** Bổ sung hiệu ứng CSS hover/transition mượt mà cho giỏ hàng và các Modal.
+- [x] **Báo cáo PDF:** Bổ sung tính năng "Xuất PDF" báo cáo doanh thu trực quan trên Admin Dashboard.
+- [x] **Rà soát hệ thống:** Kiểm tra độ ổn định của kết nối Socket.io và xử lý các ngoại lệ gửi mail (Nodemailer).
+
+---
+*Cập nhật lần cuối: 17/05/2026 bởi thaingan & AI Assistant.*
+

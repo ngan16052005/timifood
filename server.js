@@ -61,6 +61,10 @@ io.on('connection', (socket) => {
         console.log(`Socket ${socket.id} joined adminRoom`);
     });
 
+    socket.on('error', (err) => {
+        console.error(`[Socket] Connection error on socket ${socket.id}:`, err);
+    });
+
     socket.on('disconnect', () => {
         console.log('User disconnected:', socket.id);
     });
@@ -89,6 +93,19 @@ async function startServer() {
             console.log('Database initialized successfully.');
         }
 
+        // Verify email transporter configuration
+        if (process.env.EMAIL_USER && process.env.EMAIL_PASS) {
+            transporter.verify((error, success) => {
+                if (error) {
+                    console.error("[Email] Nodemailer transporter verification failed:", error.message);
+                } else {
+                    console.log("[Email] Nodemailer transporter connection established successfully and ready.");
+                }
+            });
+        } else {
+            console.warn("[Email] Nodemailer skipping validation: No credentials provided in environment.");
+        }
+
         server.listen(PORT, () => {
             console.log(`Server is running on http://localhost:${PORT}`);
         }).on('error', (err) => {
@@ -100,6 +117,57 @@ async function startServer() {
 }
 
 // --- MIDDLEWARE ---
+const rateLimiterStore = new Map();
+
+const rateLimiter = (limitCount, windowMs, message) => {
+    return (req, res, next) => {
+        const now = Date.now();
+        // Dọn dẹp bộ nhớ định kỳ (xác suất 10% mỗi request) để tránh rò rỉ bộ nhớ
+        if (Math.random() < 0.1) {
+            for (const [key, value] of rateLimiterStore.entries()) {
+                if (now > value.resetTime) {
+                    rateLimiterStore.delete(key);
+                }
+            }
+        }
+
+        const ip = req.ip || req.headers['x-forwarded-for'] || req.socket.remoteAddress;
+        const routeKey = `${ip}:${req.path}`;
+        
+        let clientData = rateLimiterStore.get(routeKey);
+        
+        if (!clientData) {
+            rateLimiterStore.set(routeKey, {
+                count: 1,
+                resetTime: now + windowMs
+            });
+            return next();
+        }
+        
+        if (now > clientData.resetTime) {
+            clientData.count = 1;
+            clientData.resetTime = now + windowMs;
+            return next();
+        }
+        
+        clientData.count++;
+        if (clientData.count > limitCount) {
+            return res.status(429).json({
+                success: false,
+                message: message || 'Bạn đã thực hiện quá nhiều yêu cầu. Vui lòng thử lại sau.'
+            });
+        }
+        
+        next();
+    };
+};
+
+const loginLimiter = rateLimiter(10, 5 * 60 * 1000, 'Bạn đã đăng nhập quá nhiều lần. Vui lòng thử lại sau 5 phút.');
+const otpLimiter = rateLimiter(3, 5 * 60 * 1000, 'Bạn đã yêu cầu gửi mã OTP quá nhiều lần. Vui lòng thử lại sau 5 phút.');
+const resetPasswordLimiter = rateLimiter(5, 10 * 60 * 1000, 'Bạn đã thực hiện khôi phục mật khẩu quá nhiều lần. Vui lòng thử lại sau 10 phút.');
+const registerLimiter = rateLimiter(10, 60 * 60 * 1000, 'Bạn đã đăng ký quá nhiều tài khoản từ địa chỉ IP này. Vui lòng thử lại sau 1 giờ.');
+const changePasswordLimiter = rateLimiter(5, 10 * 60 * 1000, 'Bạn đã đổi mật khẩu quá nhiều lần. Vui lòng thử lại sau 10 phút.');
+
 const authenticateToken = (req, res, next) => {
     const authHeader = req.headers['authorization'];
     const token = authHeader && authHeader.split(' ')[1];
@@ -192,7 +260,7 @@ async function createLog(userPhone, action, details) {
 
 // Email transporter already initialized at the top
 
-async function sendOrderEmail(orderId, customerEmail, statusName, orderDetails) {
+async function sendOrderEmail(orderId, customerEmail, statusName, orderDetails, retries = 3) {
     console.log(`[Email] Sending order update for #${orderId} to ${customerEmail}`);
     
     if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS || !customerEmail || customerEmail === 'your-email@gmail.com') {
@@ -201,7 +269,7 @@ async function sendOrderEmail(orderId, customerEmail, statusName, orderDetails) 
     }
 
     const mailOptions = {
-        from: process.env.MAIL_FROM,
+        from: process.env.MAIL_FROM || process.env.EMAIL_USER,
         to: customerEmail,
         subject: `TiMi Food - Cập nhật đơn hàng #${orderId}`,
         html: `
@@ -243,11 +311,21 @@ async function sendOrderEmail(orderId, customerEmail, statusName, orderDetails) 
         `
     };
 
-    try {
-        await transporter.sendMail(mailOptions);
-        console.log(`[Email] Email sent successfully to ${customerEmail}`);
-    } catch (error) {
-        console.error("[Email] Failed to send email:", error);
+    for (let attempt = 1; attempt <= retries; attempt++) {
+        try {
+            await transporter.sendMail(mailOptions);
+            console.log(`[Email] Email sent successfully to ${customerEmail} (Attempt ${attempt}/${retries})`);
+            return;
+        } catch (error) {
+            console.error(`[Email] Attempt ${attempt} failed to send email:`, error.message);
+            if (attempt === retries) {
+                console.error("[Email] All retry attempts exhausted. Failed to send order email.");
+            } else {
+                const backoffMs = attempt * 2000;
+                console.log(`[Email] Retrying in ${backoffMs}ms...`);
+                await new Promise(resolve => setTimeout(resolve, backoffMs));
+            }
+        }
     }
 }
 
@@ -383,7 +461,7 @@ app.delete('/api/products/:id', authenticateToken, isAdmin, async (req, res) => 
 });
 
 // Login
-app.post('/api/login', async (req, res) => {
+app.post('/api/login', loginLimiter, async (req, res) => {
     try {
         const { username, password } = req.body;
         const result = await pool.request()
@@ -437,7 +515,7 @@ app.post('/api/login', async (req, res) => {
 });
 
 // Send OTP via Email
-app.post('/api/send-otp', async (req, res) => {
+app.post('/api/send-otp', otpLimiter, async (req, res) => {
     try {
         const { email } = req.body;
         if (!email) return res.status(400).json({ success: false, message: 'Vui lòng nhập Email' });
@@ -468,14 +546,24 @@ app.post('/api/send-otp', async (req, res) => {
                 html: `<h3>Mã OTP của bạn là: <b style="color: #ff5e3a; font-size: 24px;">${otp}</b></h3>
                        <p>Mã này có hiệu lực trong 5 phút. Vui lòng không chia sẻ mã này cho bất kỳ ai.</p>`
             };
-            await transporter.sendMail(mailOptions);
-            res.json({ success: true, message: 'OTP đã được gửi về Email của bạn' });
+            try {
+                await transporter.sendMail(mailOptions);
+                res.json({ success: true, message: 'OTP đã được gửi về Email của bạn' });
+            } catch (mailError) {
+                console.error("[Email OTP] Failed to send email via SMTP:", mailError);
+                // Clean up OTP from store since it wasn't successfully sent
+                otpStore.delete(email);
+                res.status(500).json({ 
+                    success: false, 
+                    message: 'Không thể gửi email chứa mã OTP. Vui lòng liên hệ quản trị viên hoặc kiểm tra cấu hình SMTP.' 
+                });
+            }
         } else {
             res.json({ success: true, message: 'OTP đã được tạo (Xem log server)', debug: true });
         }
     } catch (err) {
         console.error("Send OTP error:", err);
-        res.status(500).json({ success: false, message: 'Database error' });
+        res.status(500).json({ success: false, message: 'Lỗi máy chủ khi xử lý mã OTP.' });
     }
 });
 
@@ -492,7 +580,7 @@ app.post('/api/verify-otp', (req, res) => {
 });
 
 // Reset Password with OTP
-app.post('/api/reset-password', async (req, res) => {
+app.post('/api/reset-password', resetPasswordLimiter, async (req, res) => {
     try {
         const { email, otp, newPassword } = req.body;
         
@@ -524,7 +612,7 @@ app.post('/api/reset-password', async (req, res) => {
 });
 
 // Register
-app.post('/api/register', async (req, res) => {
+app.post('/api/register', registerLimiter, async (req, res) => {
     try {
         const newUser = req.body;
         const checkUser = await pool.request()
@@ -575,7 +663,7 @@ app.post('/api/register', async (req, res) => {
 });
 
 // Change Password API
-app.post('/api/change-password', authenticateToken, async (req, res) => {
+app.post('/api/change-password', authenticateToken, changePasswordLimiter, async (req, res) => {
     try {
         const { currentPassword, newPassword } = req.body;
         const userPhone = req.user.phone;

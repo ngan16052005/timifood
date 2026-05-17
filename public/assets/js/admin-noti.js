@@ -8,6 +8,46 @@ const socket = io();
 socket.on('connect', () => {
     console.log('[Socket] Connected to server');
     socket.emit('joinAdmin');
+    
+    // Nếu đây là kết nối lại thành công sau khi mất mạng/restart server
+    if (window.socketWasDisconnected) {
+        if (typeof toast === 'function') {
+            toast({ 
+                title: 'Đã kết nối lại', 
+                message: 'Hệ thống thông báo thời gian thực đã hoạt động bình thường.', 
+                type: 'success', 
+                duration: 4000 
+            });
+        }
+        window.socketWasDisconnected = false;
+        
+        // Đồng bộ lại thông báo từ DB ngay lập tức để không bị lỡ đơn hàng mới phát sinh khi mất kết nối
+        syncAdminNotifications();
+    }
+});
+
+socket.on('disconnect', (reason) => {
+    console.warn('[Socket] Disconnected from server:', reason);
+    window.socketWasDisconnected = true;
+    
+    if (typeof toast === 'function') {
+        toast({ 
+            title: 'Mất kết nối Real-time', 
+            message: 'Đang thử tự động kết nối lại tới máy chủ...', 
+            type: 'warning', 
+            duration: 5000 
+        });
+    }
+
+    if (reason === 'io server disconnect') {
+        // Nếu ngắt kết nối do phía server, kết nối lại thủ công
+        socket.connect();
+    }
+});
+
+socket.on('connect_error', (error) => {
+    console.error('[Socket] Connection error:', error);
+    window.socketWasDisconnected = true;
 });
 
 socket.on('newNotification', (latest) => {

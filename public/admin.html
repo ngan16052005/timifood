@@ -457,7 +457,9 @@
                         <button class="btn-reset-order" onclick="thongKe(0)"><i
                                 class="fa-light fa-arrow-rotate-right"></i></button>
                         <button class="btn-control-large" onclick="exportStatisticsToExcel()"><i
-                                class="fa-light fa-file-chart-column"></i> <span>Xuất báo cáo</span></button>
+                                class="fa-light fa-file-excel"></i> <span>Xuất Excel</span></button>
+                        <button class="btn-control-large btn-pdf-export" onclick="exportStatisticsToPDF()" style="background-color: #e74c3c; border-color: #e74c3c;"><i
+                                class="fa-light fa-file-pdf"></i> <span>Xuất PDF</span></button>
                     </div>
                 </div>
                 <div class="order-statistical" id="order-statistical">
@@ -791,6 +793,7 @@
     </footer>
     <div id="toast"></div>
     <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script src="/assets/js/api.js"></script>
     <script src="/assets/js/admin-noti.js"></script>
     <script src="/assets/js/admin.js"></script>

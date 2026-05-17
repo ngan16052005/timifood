@@ -170,5 +170,19 @@
 - **Tối ưu hiệu suất:** Triển khai **Lazy Loading** cho toàn bộ hệ thống hình ảnh, giúp tốc độ tải trang nhanh hơn 30-40%.
 - **Hệ thống Nhật ký (System Logs):** Xây dựng module ghi lại toàn bộ lịch sử hoạt động của Admin (Thêm/Sửa/Xóa sản phẩm, đơn hàng, tài khoản, voucher) để phục vụ việc kiểm tra và bảo trì.
 
+### ✅ Giai đoạn 16: Tối ưu Bảo mật, Kiểm thử Ổn định & Nâng cấp Trải nghiệm Tinh tế (Mới)
+- **Bảo mật API (Rate Limiting):** Tích hợp giải pháp giới hạn tần suất yêu cầu (`express-rate-limit`) in-memory cho các endpoint nhạy cảm (Đăng nhập, Đăng ký, Gửi OTP, Đổi mật khẩu, Xác minh OTP) giúp ngăn chặn triệt để brute-force và spam OTP.
+- **Tinh chỉnh Vi tương tác (Micro-interactions) CSS:**
+    - Thiết lập hiệu ứng kính mờ thời thượng (`backdrop-filter: blur(8px)`) và lớp phủ màu sẫm cao cấp cho các Modal.
+    - Bổ sung hiệu ứng nảy đàn hồi (Elastic Bounce Pop-in) cho Modal Container bằng biểu đồ `cubic-bezier(0.34, 1.56, 0.64, 1)`.
+    - Thêm các vi tương tác mượt mà cho nút đóng modal, nút tăng/giảm số lượng, giỏ hàng và các nút hành động chính (Thêm món, Thanh toán).
+- **Báo cáo PDF Doanh thu Trực quan:**
+    - Tích hợp thư viện `html2pdf.js` kết xuất báo cáo kết quả kinh doanh định dạng A4 chuẩn hóa.
+    - Tự động chuyển đổi các biểu đồ dynamic của `Chart.js` thành định dạng ảnh Base64 chất lượng cao để nhúng vào PDF mà không mất dữ liệu.
+- **Kiểm thử Ổn định Real-time & Ngoại lệ Gửi mail:**
+    - Tích hợp xác thực kết nối SMTP (`transporter.verify`) ngay khi khởi chạy máy chủ nhằm phát hiện sớm lỗi cấu hình.
+    - Triển khai cơ chế gửi lại email tự động (Email Retry) tối đa 3 lần với thời gian chờ tăng dần (Exponential backoff) cho các thông báo đơn hàng.
+    - Cải tiến tính năng tự động kết nối lại (Auto-Reconnect) và đồng bộ thông tin đơn hàng mới tức thì (Auto-Sync) cho Admin Dashboard khi kết nối Socket.io được phục hồi.
+
 ---
 *Dự án hiện đã đạt độ hoàn thiện cao nhất, sẵn sàng cho việc vận hành thực tế với hiệu suất và độ ổn định tối ưu.*

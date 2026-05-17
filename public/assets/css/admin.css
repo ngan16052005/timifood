@@ -2056,3 +2056,53 @@ label a {
     }
 }
 
+/* ==========================================
+   ✨ PREMIUM MICRO-INTERACTIONS & TRANSITIONS FOR ADMIN 
+   ========================================== */
+
+/* 1. Backdrop Glassmorphism for Admin Modals */
+.modal {
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    background-color: rgba(15, 23, 42, 0.4) !important;
+    transition: opacity 0.4s cubic-bezier(0.25, 0.8, 0.25, 1), visibility 0.4s ease !important;
+}
+
+/* 2. Elastic Pop-in for Admin Modal Containers */
+.modal-container {
+    transform: scale(0.85) translateY(20px);
+    opacity: 0;
+    transition: transform 0.45s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.4s ease !important;
+}
+.modal.open .modal-container {
+    transform: scale(1) translateY(0) !important;
+    opacity: 1 !important;
+}
+
+/* 3. Sleek close button animations in Admin */
+.modal-close {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+.modal-close:hover {
+    background-color: var(--red) !important;
+    color: var(--white) !important;
+    transform: scale(1.1) rotate(90deg);
+    box-shadow: 0 4px 12px rgba(231, 76, 60, 0.4);
+}
+
+/* 4. Form Controls Focus Dynamic in Admin Modals */
+.form-control:focus, .product-desc:focus {
+    box-shadow: 0 0 0 3px rgba(231, 76, 60, 0.15);
+    border-color: var(--red) !important;
+}
+
+/* 5. Add Product Form Submit Button Animation */
+.form-submit {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+.form-submit:hover {
+    background-color: #c0392b !important;
+    transform: translateX(-50%) translateY(-2px) !important;
+    box-shadow: 0 4px 12px rgba(231, 76, 60, 0.4);
+}
+
