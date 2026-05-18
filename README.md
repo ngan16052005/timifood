@@ -32,7 +32,7 @@
 ![Alt text](./assets/img/img-github/home.png)
 <h4 align="center">Trang chủ</h4>
 
-![Alt text](./assets/img/img-github/admin-product.jpeg)
+![Alt text](./assets/img/img-github/detail-product.jpeg)
 <h4 align="center">Chi tiết sản phẩm</h4>
 
 ![Alt text](./assets/img/img-github/giohang.jpeg)
