@@ -1419,8 +1419,8 @@ app.get('/api/vouchers/:code', async (req, res) => {
     }
 });
 
-// Create voucher (Admin only)
-app.post('/api/vouchers', authenticateToken, isAdmin, async (req, res) => {
+// Create voucher (Staff and Admin)
+app.post('/api/vouchers', authenticateToken, isStaffOrAdmin, async (req, res) => {
     try {
         const { code, discountValue, discountType, minOrder, maxDiscount, expiryDate } = req.body;
         // Using global pool
@@ -1444,8 +1444,8 @@ app.post('/api/vouchers', authenticateToken, isAdmin, async (req, res) => {
     }
 });
 
-// Update voucher status (Admin only)
-app.put('/api/vouchers/:code', authenticateToken, isAdmin, async (req, res) => {
+// Update voucher status (Staff and Admin)
+app.put('/api/vouchers/:code', authenticateToken, isStaffOrAdmin, async (req, res) => {
     try {
         const { code } = req.params;
         const { status } = req.body;
@@ -1462,8 +1462,8 @@ app.put('/api/vouchers/:code', authenticateToken, isAdmin, async (req, res) => {
     }
 });
 
-// Delete voucher (Admin only)
-app.delete('/api/vouchers/:code', authenticateToken, isAdmin, async (req, res) => {
+// Delete voucher (Staff and Admin)
+app.delete('/api/vouchers/:code', authenticateToken, isStaffOrAdmin, async (req, res) => {
     try {
         const { code } = req.params;
         // Using global pool

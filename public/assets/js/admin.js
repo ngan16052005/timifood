@@ -2125,7 +2125,7 @@ async function toggleVoucher(code, status) {
         toast({ title: 'Thành công', message: 'Đã cập nhật trạng thái!', type: 'success', duration: 3000 });
         await initAdmin();
     } catch (error) {
-        toast({ title: 'Lỗi', message: 'Không thể cập nhật trạng thái!', type: 'error', duration: 3000 });
+        toast({ title: 'Lỗi', message: error.message || 'Không thể cập nhật trạng thái!', type: 'error', duration: 3000 });
     }
 }
 
@@ -2136,7 +2136,7 @@ async function deleteVoucher(code) {
             toast({ title: 'Thành công', message: 'Đã xóa mã giảm giá!', type: 'success', duration: 3000 });
             await initAdmin();
         } catch (error) {
-            toast({ title: 'Lỗi', message: 'Không thể xóa mã!', type: 'error', duration: 3000 });
+            toast({ title: 'Lỗi', message: error.message || 'Không thể xóa mã!', type: 'error', duration: 3000 });
         }
     }
 }

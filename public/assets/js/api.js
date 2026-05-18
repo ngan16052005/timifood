@@ -367,6 +367,10 @@ window.api = {
                 headers: getHeaders(),
                 body: JSON.stringify({ status })
             });
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({}));
+                throw new Error(errorData.message || 'Lỗi khi cập nhật trạng thái');
+            }
             return await response.json();
         } catch (error) {
             console.error("Update voucher error:", error);
@@ -383,6 +387,10 @@ window.api = {
                 method: 'DELETE',
                 headers: getHeaders()
             });
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({}));
+                throw new Error(errorData.message || 'Lỗi khi xóa mã giảm giá');
+            }
             return await response.json();
         } catch (error) {
             console.error("Delete voucher error:", error);

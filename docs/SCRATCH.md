@@ -29,5 +29,13 @@ File này dùng để lưu trữ các ý tưởng, đoạn code nháp, hoặc c�
     *   Mã OTP: `autocomplete="one-time-code"`
 *   Luôn đảm bảo `<label for="[INPUT_ID]">` khớp hoàn hảo với `id` của `<input>` tương ứng.
 
+## 📌 Sửa lỗi Phân quyền & Khắc phục lỗi Voucher (Voucher RBAC & UI Bugs):
+*   **Nguyên nhân:** Nhân viên (Staff, userType = 2) là "Người quản lý" có quyền xem tab "Khuyến mãi" ở sidebar, nhưng các API chỉnh sửa voucher (`POST`, `PUT`, `DELETE` /api/vouchers) trên Backend lại bị chặn bởi middleware `isAdmin` (chỉ cho phép userType = 1).
+*   **Đồng thời:** Client-side fetch trong `api.js` không kiểm tra `response.ok`, dẫn đến việc click Tắt/Mở voucher hoặc Xóa voucher bị lỗi 403 Forbidden nhưng vẫn hiển thị thông báo "Thành công" giả do không nhảy vào block `catch`.
+*   **Giải pháp:**
+    1. Cập nhật các routes voucher trên Backend sang middleware `isStaffOrAdmin`.
+    2. Cập nhật `api.js` để ném ra lỗi thật khi `response.ok === false`.
+    3. Cập nhật `admin.js` để bắt được lỗi cụ thể từ Server và hiển thị qua Toast.
+
 ---
-*Cập nhật lần cuối: 17/05/2026 bởi thaingan & AI Assistant.*
+*Cập nhật lần cuối: 18/05/2026 bởi thaingan & AI Assistant.*

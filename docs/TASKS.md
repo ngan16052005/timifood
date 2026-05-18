@@ -131,5 +131,10 @@ Dưới đây là danh sách đầy đủ các hạng mục đã hoàn thiện t
 - [x] **Đồng bộ hóa ID & Name hợp lệ:** Thiết lập đầy đủ thuộc tính `id` và `name` đồng bộ trên toàn bộ các ô nhập dữ liệu, loại bỏ hoàn toàn các lỗi cảnh báo trong tab "Issues" của Chrome Developer Tools, đảm bảo chuẩn SEO và khả năng truy cập cao.
 
 ---
-*Cập nhật lần cuối: 17/05/2026 bởi thaingan & AI Assistant.*
+## ✅ Giai đoạn 21: Sửa lỗi phân quyền Voucher & Tối ưu hóa API Client-Side Error handling (Voucher RBAC Fix & Client Error Handling)
+- [x] **Sửa lỗi Phân quyền (RBAC Fix):** Thay thế `isAdmin` bằng `isStaffOrAdmin` cho các API quản lý mã giảm giá (`POST`, `PUT`, `DELETE` /api/vouchers) trên Backend để tài khoản Nhân viên (Staff, e.g. Nguyễn Văn Ngân SĐT 0345975990) có thể tạo, tắt/bật (toggle) và xóa mã giảm giá đồng bộ với giao diện Admin Panel.
+- [x] **Cải thiện Xử lý Lỗi Client-Side:** Cập nhật `api.js` (`updateVoucherStatus`, `deleteVoucher`) để ném ra lỗi rõ ràng khi phản hồi HTTP từ Server không phải là 2xx (response.ok = false).
+- [x] **Tương tác Toast Message Chính xác:** Cập nhật `admin.js` (`toggleVoucher`, `deleteVoucher`) để bắt lỗi và hiển thị chính xác thông báo lỗi cụ thể từ Server thay vì luôn hiển thị thông báo "Thành công" giả.
 
+---
+*Cập nhật lần cuối: 18/05/2026 bởi thaingan & AI Assistant.*
