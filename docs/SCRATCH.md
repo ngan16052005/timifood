@@ -37,5 +37,12 @@ File này dùng để lưu trữ các ý tưởng, đoạn code nháp, hoặc c�
     2. Cập nhật `api.js` để ném ra lỗi thật khi `response.ok === false`.
     3. Cập nhật `admin.js` để bắt được lỗi cụ thể từ Server và hiển thị qua Toast.
 
+## 📌 Giới hạn quyền hạn Nhân viên nghiêm ngặt (Strict Staff Permissions Restriction):
+*   **Yêu cầu mới:** Nhân viên chỉ có quyền truy cập vào hai tab là **Đơn hàng** (Index 4) và **Hỗ trợ trực tuyến** (Index 10). Các tab khác (Dashboard, Sản phẩm, Danh mục, Tài khoản, Nhập kho, Khuyến mãi, Thống kê, Đánh giá, Nhật ký) phải bị ẩn và cấm hoàn toàn.
+*   **Giải pháp đã thực hiện:**
+    1. Cập nhật mảng `forbiddenForStaff` trong `admin.js` thành `[0, 1, 2, 3, 5, 6, 7, 8, 9]`.
+    2. Cập nhật hàm `applyPermissions` ẩn đi toàn bộ các tab bị cấm này, đồng thời tự động chuyển tab hiển thị và tiêu đề trang sang **Đơn hàng** trên lần tải đầu tiên.
+    3. Khôi phục middleware bảo vệ `isAdmin` tại Backend (`server.js`) đối với tất cả các API Vouchers (`GET`, `POST`, `PUT`, `DELETE` /api/vouchers) và API Đánh giá (`GET` /api/admin/reviews).
+
 ---
 *Cập nhật lần cuối: 18/05/2026 bởi thaingan & AI Assistant.*

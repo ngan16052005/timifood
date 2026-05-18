@@ -134,20 +134,28 @@ function applyPermissions(userType) {
     const sections = document.querySelectorAll(".section");
 
     if (userType == 2) { // Nhân viên (Staff)
-        console.log("Quyền hạn: Nhân viên - Xử lý đơn hàng & Khuyến mãi");
+        console.log("Quyền hạn: Nhân viên - Chỉ xem Đơn hàng & Hỗ trợ trực tuyến");
         
-        // Các index menu cần ẩn: 0: Tổng quát, 1: Sản phẩm, 2: Danh mục, 3: Tài khoản, 5: Nhập kho, 7: Thống kê, 9: Nhật ký
-        const forbiddenIndexes = [0, 1, 2, 3, 5, 7, 9];
+        // Các index menu cần ẩn: 0: Tổng quát, 1: Sản phẩm, 2: Danh mục, 3: Tài khoản, 5: Nhập kho, 6: Khuyến mãi, 7: Thống kê, 8: Đánh giá, 9: Nhật ký
+        const forbiddenIndexes = [0, 1, 2, 3, 5, 6, 7, 8, 9];
         forbiddenIndexes.forEach(index => {
             if (sidebarItems[index]) sidebarItems[index].style.display = 'none';
         });
 
-        // Tự động chuyển sang mục Đơn hàng (Index 4)
-        if (!document.querySelector(".sidebar-list-item.active")) {
-            if (sidebarItems[4] && sections[4]) {
-                sidebarItems[4].classList.add("active");
-                sections[4].classList.add("active");
-            }
+        // Tự động gỡ bỏ active khỏi các mục khác và chuyển sang mục Đơn hàng (Index 4)
+        const activeSidebar = document.querySelector(".sidebar-list-item.active");
+        if (activeSidebar) activeSidebar.classList.remove("active");
+        
+        const activeSection = document.querySelector(".section.active");
+        if (activeSection) activeSection.classList.remove("active");
+
+        if (sidebarItems[4] && sections[4]) {
+            sidebarItems[4].classList.add("active");
+            sections[4].classList.add("active");
+            
+            // Cập nhật tiêu đề tiêu đề header
+            const headerTitle = document.getElementById('admin-header-title');
+            if (headerTitle) headerTitle.innerText = "Đơn hàng";
         }
     }
 }
@@ -180,8 +188,8 @@ for (let i = 0; i < sidebars.length; i++) {
         const isStaff = currentUser && currentUser.userType == 2;
 
         // Kiểm tra quyền truy cập cho nhân viên
-        // Cập nhật index mới: [0: Tổng quát, 1: Sản phẩm, 2: Danh mục, 3: Tài khoản, 5: Nhập kho, 7: Thống kê, 9: Nhật ký] là cấm Staff
-        const forbiddenForStaff = [0, 1, 2, 3, 5, 7, 9];
+        // Chỉ cho phép Staff truy cập Đơn hàng (Index 4) và Hỗ trợ trực tuyến (Index 10)
+        const forbiddenForStaff = [0, 1, 2, 3, 5, 6, 7, 8, 9];
         if (isStaff && forbiddenForStaff.includes(i)) {
             toast({ title: 'Từ chối', message: 'Bạn không có quyền truy cập mục này!', type: 'error', duration: 3000 });
             return;
@@ -400,7 +408,7 @@ async function initAdmin() {
         
         showOrder(orders);
 
-        if (isAdmin || isStaff) {
+        if (isAdmin) {
             const vouchers = await window.api.getVouchers(true);
             showVoucherArr(vouchers);
         }

@@ -137,4 +137,10 @@ Dưới đây là danh sách đầy đủ các hạng mục đã hoàn thiện t
 - [x] **Tương tác Toast Message Chính xác:** Cập nhật `admin.js` (`toggleVoucher`, `deleteVoucher`) để bắt lỗi và hiển thị chính xác thông báo lỗi cụ thể từ Server thay vì luôn hiển thị thông báo "Thành công" giả.
 
 ---
+## ✅ Giai đoạn 22: Giới hạn nghiêm ngặt quyền hạn Nhân viên (Strict Staff Permissions Restriction)
+- [x] **Giới hạn menu hiển thị:** Ẩn toàn bộ các tab quản lý khác trên thanh Sidebar (Dashboard, Sản phẩm, Danh mục, Tài khoản, Nhập kho, Khuyến mãi, Thống kê, Đánh giá, Nhật ký hệ thống). Chỉ cho phép Nhân viên (Staff, userType = 2) nhìn thấy và truy cập hai tab là **Đơn hàng** (Index 4) và **Hỗ trợ trực tuyến** (Index 10).
+- [x] **Cải thiện Điều hướng Tự động:** Xử lý triệt để việc gỡ bỏ lớp `active` mặc định của trang tổng quát khi Nhân viên tải trang lần đầu, đảm bảo giao diện luôn tự động chuyển trực tiếp sang trang **Đơn hàng** cùng tiêu đề header đồng bộ.
+- [x] **Thắt chặt Bảo mật API Backend:** Khôi phục middleware bảo vệ `isAdmin` cho toàn bộ các API quản lý mã giảm giá (`GET`, `POST`, `PUT`, `DELETE` /api/vouchers) và API quản lý đánh giá của Admin (`GET` /api/admin/reviews), ngăn chặn tuyệt đối việc Nhân viên cố tình gửi yêu cầu trực tiếp qua cổng API.
+
+---
 *Cập nhật lần cuối: 18/05/2026 bởi thaingan & AI Assistant.*
