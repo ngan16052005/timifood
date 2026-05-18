@@ -141,6 +141,7 @@ Dưới đây là danh sách đầy đủ các hạng mục đã hoàn thiện t
 - [x] **Giới hạn menu hiển thị:** Ẩn toàn bộ các tab quản lý khác trên thanh Sidebar (Dashboard, Sản phẩm, Danh mục, Tài khoản, Nhập kho, Khuyến mãi, Thống kê, Đánh giá, Nhật ký hệ thống). Chỉ cho phép Nhân viên (Staff, userType = 2) nhìn thấy và truy cập hai tab là **Đơn hàng** (Index 4) và **Hỗ trợ trực tuyến** (Index 10).
 - [x] **Cải thiện Điều hướng Tự động:** Xử lý triệt để việc gỡ bỏ lớp `active` mặc định của trang tổng quát khi Nhân viên tải trang lần đầu, đảm bảo giao diện luôn tự động chuyển trực tiếp sang trang **Đơn hàng** cùng tiêu đề header đồng bộ.
 - [x] **Thắt chặt Bảo mật API Backend:** Khôi phục middleware bảo vệ `isAdmin` cho toàn bộ các API quản lý mã giảm giá (`GET`, `POST`, `PUT`, `DELETE` /api/vouchers) và API quản lý đánh giá của Admin (`GET` /api/admin/reviews), ngăn chặn tuyệt đối việc Nhân viên cố tình gửi yêu cầu trực tiếp qua cổng API.
+- [x] **Hiển thị chức vụ động:** Cập nhật vùng thông tin cá nhân ở góc trên bên phải để hiển thị chính xác chức vụ của tài khoản đăng nhập bên dưới tên (ví dụ: hiển thị "Nhân viên" cho Staff và "Quản trị viên" cho Admin) thay vì luôn hiển thị cứng chữ "Người quản lý".
 
 ---
 *Cập nhật lần cuối: 18/05/2026 bởi thaingan & AI Assistant.*

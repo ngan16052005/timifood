@@ -43,6 +43,7 @@ File này dùng để lưu trữ các ý tưởng, đoạn code nháp, hoặc c�
     1. Cập nhật mảng `forbiddenForStaff` trong `admin.js` thành `[0, 1, 2, 3, 5, 6, 7, 8, 9]`.
     2. Cập nhật hàm `applyPermissions` ẩn đi toàn bộ các tab bị cấm này, đồng thời tự động chuyển tab hiển thị và tiêu đề trang sang **Đơn hàng** trên lần tải đầu tiên.
     3. Khôi phục middleware bảo vệ `isAdmin` tại Backend (`server.js`) đối với tất cả các API Vouchers (`GET`, `POST`, `PUT`, `DELETE` /api/vouchers) và API Đánh giá (`GET` /api/admin/reviews).
+    4. Cập nhật `admin.js` trong sự kiện `window.onload` để tự động dò tìm phần tử `.admin-role` và gán lại nội dung tương ứng (`Quản trị viên` cho userType 1 và `Nhân viên` cho userType 2) kết hợp giữ nguyên biểu tượng chevron dropdown.
 
 ---
 *Cập nhật lần cuối: 18/05/2026 bởi thaingan & AI Assistant.*

@@ -126,6 +126,17 @@ window.onload = async () => {
         
         const topName = document.getElementById('admin-top-name');
         if (topName) topName.innerText = currentUser.fullname;
+
+        const topRole = document.querySelector('.admin-role');
+        if (topRole) {
+            let roleText = "Người quản lý";
+            if (currentUser.userType == 1) {
+                roleText = "Quản trị viên";
+            } else if (currentUser.userType == 2) {
+                roleText = "Nhân viên";
+            }
+            topRole.innerHTML = `${roleText} <i class="fa-solid fa-chevron-down"></i>`;
+        }
     }
 };
 
