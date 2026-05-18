@@ -53,5 +53,13 @@ File này dùng để lưu trữ các ý tưởng, đoạn code nháp, hoặc c�
     3. Liên kết "chính sách trang web" ngay trong form Đăng ký tài khoản (`checkbox-signup`).
 *   **Logic điều khiển:** Định nghĩa hàm `openPolicyModal(event)` và `closePolicyModal(event)` trong `main.js` để kiểm soát đóng mở, dừng sự kiện nổi bọt (`event.stopPropagation()`) và ngăn ngừa chuyển hướng mặc định của liên kết (`event.preventDefault()`).
 
+## 📌 Sửa lỗi Banner & Kiểm tra trùng lặp (Banner Path & Duplicate Validation):
+*   **Sửa lỗi đường dẫn Banner:** Live Server / Custom hosts không nhận diện được `/assets/...` dạng tuyệt đối. Chuyển sang relative paths `./assets/...` sửa triệt để lỗi 404 cho Banner, Icons, Momo/VNPAY.
+*   **Tránh Lazy Loading Above-The-Fold:** Banner đầu tiên hiển thị ngay lập tức nên việc để `loading="lazy"` khiến ảnh 2MB+ tải trễ, để lại khoảng trống trắng. Đã chuyển thành `fetchpriority="high"` để hiển thị tức thì.
+*   **Kiểm tra trùng lặp Sản phẩm & Danh mục:**
+    *   Tách biệt so sánh không phân biệt hoa thường (`LOWER`) và khoảng trắng thừa (`TRIM`).
+    *   Kiểm tra trùng khi tạo mới và khi chỉnh sửa (loại trừ bản ghi hiện tại qua điều kiện `id != @id`).
+    *   BBubble lỗi từ API lên và hiển thị qua Toast dạng đỏ đẹp mắt.
+
 ---
 *Cập nhật lần cuối: 18/05/2026 bởi thaingan & AI Assistant.*

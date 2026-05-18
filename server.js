@@ -567,6 +567,16 @@ app.get('/api/products', async (req, res) => {
 app.post('/api/products', authenticateToken, isAdmin, async (req, res) => {
     try {
         const prod = req.body;
+        if (!prod.title) return res.status(400).json({ message: 'Tên sản phẩm không được để trống' });
+
+        // Check duplicate product title (case-insensitive)
+        const existingProduct = await pool.request()
+            .input('title', sql.NVarChar, prod.title.trim())
+            .query('SELECT TOP 1 id FROM Products WHERE LOWER(TRIM(title)) = LOWER(@title)');
+        if (existingProduct.recordset.length > 0) {
+            return res.status(400).json({ success: false, message: 'Tên món ăn đã tồn tại!' });
+        }
+
         const maxIdResult = await pool.request().query('SELECT MAX(id) as maxId FROM Products');
         const nextId = (maxIdResult.recordset[0].maxId || 0) + 1;
 
@@ -591,6 +601,17 @@ app.put('/api/products/:id', authenticateToken, isAdmin, async (req, res) => {
     try {
         const id = parseInt(req.params.id);
         const prod = req.body;
+        if (!prod.title) return res.status(400).json({ message: 'Tên sản phẩm không được để trống' });
+
+        // Check duplicate product title excluding current product (case-insensitive)
+        const existingProduct = await pool.request()
+            .input('id', sql.Int, id)
+            .input('title', sql.NVarChar, prod.title.trim())
+            .query('SELECT TOP 1 id FROM Products WHERE LOWER(TRIM(title)) = LOWER(@title) AND id != @id');
+        if (existingProduct.recordset.length > 0) {
+            return res.status(400).json({ success: false, message: 'Tên món ăn đã tồn tại cho một sản phẩm khác!' });
+        }
+
         await pool.request()
             .input('id', sql.Int, id)
             .input('title', sql.NVarChar, prod.title)
@@ -1836,6 +1857,14 @@ app.post('/api/categories', authenticateToken, isAdmin, async (req, res) => {
         const { name } = req.body;
         if (!name) return res.status(400).json({ message: 'Tên danh mục không được để trống' });
 
+        // Check duplicate category name (case-insensitive)
+        const existingCategory = await pool.request()
+            .input('name', sql.NVarChar, name.trim())
+            .query('SELECT TOP 1 id FROM Categories WHERE LOWER(TRIM(name)) = LOWER(@name)');
+        if (existingCategory.recordset.length > 0) {
+            return res.status(400).json({ success: false, message: 'Tên danh mục đã tồn tại!' });
+        }
+
         await pool.request()
             .input('name', sql.NVarChar, name)
             .query('INSERT INTO Categories (name) VALUES (@name)');
@@ -1844,7 +1873,7 @@ app.post('/api/categories', authenticateToken, isAdmin, async (req, res) => {
         res.status(201).json({ success: true, message: 'Thêm danh mục thành công' });
     } catch (err) {
         if (err.number === 2627) { // Unique constraint violation
-            return res.status(400).json({ message: 'Tên danh mục đã tồn tại' });
+            return res.status(400).json({ message: 'Tên danh mục đã tồn tại!' });
         }
         console.error("Add category error:", err);
         res.status(500).json({ message: 'Lỗi khi thêm danh mục' });
@@ -1856,6 +1885,16 @@ app.put('/api/categories/:id', authenticateToken, isAdmin, async (req, res) => {
     try {
         const { id } = req.params;
         const { name } = req.body;
+        if (!name) return res.status(400).json({ message: 'Tên danh mục không được để trống' });
+
+        // Check duplicate category name excluding current (case-insensitive)
+        const existingCategory = await pool.request()
+            .input('id', sql.Int, parseInt(id))
+            .input('name', sql.NVarChar, name.trim())
+            .query('SELECT TOP 1 id FROM Categories WHERE LOWER(TRIM(name)) = LOWER(@name) AND id != @id');
+        if (existingCategory.recordset.length > 0) {
+            return res.status(400).json({ success: false, message: 'Tên danh mục đã tồn tại cho một danh mục khác!' });
+        }
         
         await pool.request()
             .input('id', sql.Int, id)

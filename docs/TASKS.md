@@ -148,7 +148,15 @@ Dưới đây là danh sách đầy đủ các hạng mục đã hoàn thiện t
 - [x] **Tích hợp Modal Điều Khoản & Chính Sách Glassmorphism:** Phát triển modal chính sách cao cấp với hiệu ứng mờ nhòe kính mờ thời thượng (`backdrop-filter: blur(15px)`), góc bo mềm mại và đổ bóng sâu, cấu trúc nội dung khoa học chuẩn quy định thương mại điện tử gồm 4 mục chính (Bảo mật, Đặt hàng, Giao nhận, Khuyến mãi).
 - [x] **Hỗ trợ Đa Điểm Kích Hoạt (Multi-Trigger Integration):** Đồng bộ hóa việc kích hoạt modal tại tất cả các điểm chạm khách hàng: Liên kết "Chính sách" trên thanh điều hướng đầu trang (Header), nút "Điều khoản" ở chân trang (Footer), và liên kết "chính sách trang web" ngay trong form Đăng ký tài khoản.
 - [x] **Tối ưu Hóa Trải Nghiệm Điều Khiển (UX Control Optimization):** Ngăn chặn hoàn toàn hiện tượng điều hướng sai hướng (hủy liên kết `#` mặc định), ngăn chặn sự kiện nổi bọt ảnh hưởng đến các ô nhập liệu khác, tích hợp cơ chế đóng linh hoạt qua cả nút "Đồng ý & Đóng" lẫn biểu tượng "X" truyền thống.
-- [x] **Responsive & Customized Scrollbar:** Cấu hình thanh cuộn tùy chỉnh siêu mỏng mang tính thẩm mỹ cao và tương thích tối đa với mọi độ phân giải màn hình từ máy tính để bàn đến các thiết bị di động thông minh.
+- [x] Responsive & Customized Scrollbar: Cấu hình thanh cuộn tùy chỉnh siêu mỏng mang tính thẩm mỹ cao và tương thích tối đa với mọi độ phân giải màn hình từ máy tính để bàn đến các thiết bị di động thông minh.
+
+---
+## ✅ Giai đoạn 24: Sửa lỗi hiển thị Banner Trang chủ & Chặn trùng lặp Sản phẩm/Danh mục (Banner Path Fix & Duplicate Validation)
+- [x] **Sửa lỗi Banner trắng ở Trang chủ:** Chuyển đổi toàn bộ đường dẫn tuyệt đối `/assets/` thành đường dẫn tương đối `./assets/` trong `index.html`, `admin.html` và `checkout.js`.
+- [x] **Khắc phục lỗi trễ tải ảnh Banner (Lazy-loading above-the-fold):** Thay thế `loading="lazy"` thành `fetchpriority="high"` cho slide ảnh đầu tiên (`banner-6.png`) giúp loại bỏ hiện tượng hiển thị khung trắng khi tải trang.
+- [x] **Kiểm tra trùng lặp Danh mục (Duplicate Category Validation):** Tích hợp kiểm tra trùng lặp tên danh mục (không phân biệt hoa thường và khoảng trắng thừa) khi thêm mới hoặc chỉnh sửa danh mục cả ở phía Server (`POST` & `PUT` `/api/categories`) và Client.
+- [x] **Kiểm tra trùng lặp Sản phẩm (Duplicate Product Validation):** Tích hợp kiểm tra trùng lặp tên món ăn (không phân biệt hoa thường và khoảng trắng thừa) khi thêm mới hoặc chỉnh sửa món ăn cả ở phía Server (`POST` & `PUT` `/api/products`) và Client.
+- [x] **Cập nhật hiển thị lỗi trực quan:** Cải tiến khối `catch` trong file `admin.js` để bắt và hiển thị chính xác thông báo lỗi trùng lặp từ Server qua hệ thống Toast.
 
 ---
 *Cập nhật lần cuối: 18/05/2026 bởi thaingan & AI Assistant.*

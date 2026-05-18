@@ -6,11 +6,11 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TiMi Food</title>
-    <link href='/assets/img/icons/favicon.png' rel='icon' type='image/x-icon' />
-    <link rel="stylesheet" href="/assets/css/main.css">
-    <link rel="stylesheet" href="/assets/css/home-responsive.css">
-    <link rel="stylesheet" href="/assets/css/toast-message.css">
-    <link rel="stylesheet" href="/assets/font/font-awesome-pro-v6-6.2.0/css/all.min.css" />
+    <link href='./assets/img/icons/favicon.png' rel='icon' type='image/x-icon' />
+    <link rel="stylesheet" href="./assets/css/main.css">
+    <link rel="stylesheet" href="./assets/css/home-responsive.css">
+    <link rel="stylesheet" href="./assets/css/toast-message.css">
+    <link rel="stylesheet" href="./assets/font/font-awesome-pro-v6-6.2.0/css/all.min.css" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
 </head>
 
@@ -38,7 +38,7 @@
                 <div class="header-middle-left">
                     <div class="header-logo">
                         <a href="">
-                            <img src="/assets/img/logos/timifood.png" alt="" class="header-logo-img">
+                            <img src="./assets/img/logos/timifood.png" alt="" class="header-logo-img">
                         </a>
                     </div>
                 </div>
@@ -143,19 +143,19 @@
             <div class="home-slider">
                 <div class="slider-wrapper">
                     <div class="slider-item active">
-                        <img src="/assets/img/banners/banner-6.png" alt="Banner 6" loading="lazy">
+                        <img src="./assets/img/banners/banner-6.png" alt="Banner 6" fetchpriority="high">
                     </div>
                     <div class="slider-item">
-                        <img src="/assets/img/banners/banner-2.png" alt="Banner 2" loading="lazy">
+                        <img src="./assets/img/banners/banner-2.png" alt="Banner 2" loading="lazy">
                     </div>
                     <div class="slider-item">
-                        <img src="/assets/img/banners/banner-3.png" alt="Banner 3" loading="lazy">
+                        <img src="./assets/img/banners/banner-3.png" alt="Banner 3" loading="lazy">
                     </div>
                     <div class="slider-item">
-                        <img src="/assets/img/banners/banner-4.png" alt="Banner 4" loading="lazy">
+                        <img src="./assets/img/banners/banner-4.png" alt="Banner 4" loading="lazy">
                     </div>
                     <div class="slider-item">
-                        <img src="/assets/img/banners/banner-5.png" alt="Banner 5" loading="lazy">
+                        <img src="./assets/img/banners/banner-5.png" alt="Banner 5" loading="lazy">
                     </div>
                 </div>
                 <button class="slider-nav prev" onclick="changeSlide(-1)"><i
@@ -518,7 +518,7 @@
             <div class="footer-top">
                 <div class="footer-top-content">
                     <div class="footer-top-img">
-                        <img src="/assets/img/logos/timifood.png" alt="">
+                        <img src="./assets/img/logos/timifood.png" alt="">
                     </div>
                     <div class="footer-top-subbox">
                         <div class="footer-top-subs">
@@ -816,13 +816,13 @@
                                     </div>
                                 </div>
                                 <div class="payment-item" data-payment="vnpay">
-                                    <img src="/assets/img/icons/vnpay-icon.png" alt="VNPAY">
+                                    <img src="./assets/img/icons/vnpay-icon.png" alt="VNPAY">
                                     <div class="payment-info">
                                         <span>VNPAY</span>
                                         <p>Thanh toán qua ứng dụng ngân hàng, QR Code</p>
                                     </div>
                                     <div class="payment-qr-mini">
-                                        <img src="/assets/img/qrthanhtoan/qrvnpay.jpg" alt="QR VNPAY">
+                                        <img src="./assets/img/qrthanhtoan/qrvnpay.jpg" alt="QR VNPAY">
                                         <div class="qr-info-details">
                                             <div class="qr-info-item">
                                                 <span class="qr-info-label">Ngân hàng</span>
@@ -841,13 +841,13 @@
                                     </div>
                                 </div>
                                 <div class="payment-item" data-payment="momo">
-                                    <img src="/assets/img/icons/momo-icon.png" alt="MoMo">
+                                    <img src="./assets/img/icons/momo-icon.png" alt="MoMo">
                                     <div class="payment-info">
                                         <span>MoMo</span>
                                         <p>Thanh toán qua ví điện tử MoMo</p>
                                     </div>
                                     <div class="payment-qr-mini">
-                                        <img src="/assets/img/qrthanhtoan/qrmomo.jpg" alt="QR MoMo">
+                                        <img src="./assets/img/qrthanhtoan/qrmomo.jpg" alt="QR MoMo">
                                         <div class="qr-info-details">
                                             <div class="qr-info-item">
                                                 <span class="qr-info-label">Ví điện tử</span>
@@ -993,7 +993,7 @@
     <div class="chatbot-container" id="chatbot-container">
         <div class="chatbot-header">
             <div class="chatbot-header-info">
-                <img src="/assets/img/logos/timifood.png" alt="TiMiFood Bot" class="chatbot-avatar" onerror="this.src='./assets/img/blank-image.png'">
+                <img src="./assets/img/logos/timifood.png" alt="TiMiFood Bot" class="chatbot-avatar" onerror="this.src='./assets/img/blank-image.png'">
                 <div>
                     <span class="chatbot-name">Trợ lý TiMiFood</span>
                     <span class="chatbot-status"><span class="status-dot"></span>Đang trực tuyến</span>
@@ -1014,12 +1014,12 @@
     <div id="toast"></div>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
     <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
-    <script src="/assets/js/api.js"></script>
-    <script src="/assets/js/main.js"></script>
-    <script src="/assets/js/checkout.js"></script>
-    <script src="/assets/js/initialization.js"></script>
-    <script src="/assets/js/toast-message.js"></script>
-    <script src="/assets/js/chatbot.js"></script>
+    <script src="./assets/js/api.js"></script>
+    <script src="./assets/js/main.js"></script>
+    <script src="./assets/js/checkout.js"></script>
+    <script src="./assets/js/initialization.js"></script>
+    <script src="./assets/js/toast-message.js"></script>
+    <script src="./assets/js/chatbot.js"></script>
 </body>
 
 </html>

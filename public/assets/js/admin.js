@@ -630,7 +630,7 @@ btnUpdateProductIn.addEventListener("click", async (e) => {
         showProduct();
     } catch (error) {
         console.error("Update product error:", error);
-        toast({ title: "Lỗi", message: "Không thể cập nhật sản phẩm!", type: "error", duration: 3000 });
+        toast({ title: "Lỗi", message: error.message || "Không thể cập nhật sản phẩm!", type: "error", duration: 3000 });
     }
 });
 
@@ -671,7 +671,7 @@ btnAddProductIn.addEventListener("click", async (e) => {
         document.querySelector(".add-product").classList.remove("open");
         showProduct();
     } catch (error) {
-        toast({ title: "Lỗi", message: "Không thể thêm sản phẩm!", type: "error", duration: 3000 });
+        toast({ title: "Lỗi", message: error.message || "Không thể thêm sản phẩm!", type: "error", duration: 3000 });
     }
 });
 

@@ -465,11 +465,11 @@ function openPaymentSim(method, amount) {
     amountVal.innerText = vnd(amount);
 
     if (method === 'momo') {
-        gateImg.src = '/assets/img/icons/momo-icon.png';
-        qrImg.src = '/assets/img/qrthanhtoan/qrmomo.jpg';
+        gateImg.src = './assets/img/icons/momo-icon.png';
+        qrImg.src = './assets/img/qrthanhtoan/qrmomo.jpg';
     } else {
-        gateImg.src = '/assets/img/icons/vnpay-icon.png';
-        qrImg.src = '/assets/img/qrthanhtoan/qrvnpay.jpg';
+        gateImg.src = './assets/img/icons/vnpay-icon.png';
+        qrImg.src = './assets/img/qrthanhtoan/qrvnpay.jpg';
     }
 
     modal.classList.add('open');
