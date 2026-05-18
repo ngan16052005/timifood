@@ -2318,4 +2318,230 @@ label a {
     background: #fff;
 }
 
+/* ==========================================
+   📦 STOCK IN MODAL CUSTOM PREMIUM STYLES 
+   ========================================== */
+.modal.stock-in .modal-container {
+    width: 480px;
+    padding: 30px;
+    overflow: hidden;
+    border-radius: 16px;
+    box-shadow: 0 20px 40px rgba(15, 23, 42, 0.15);
+}
+
+.modal.stock-in .modal-container-title {
+    margin-left: 0;
+    margin-top: 0;
+    font-size: 22px;
+    width: 100%;
+    text-align: center;
+    padding-bottom: 15px;
+    margin-bottom: 25px;
+    border-bottom: 2px solid #f1f5f9;
+    color: #1e293b;
+    font-weight: 700;
+}
+
+.modal.stock-in .modal-close {
+    background-color: #f1f5f9;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.modal.stock-in .modal-close i {
+    color: #64748b;
+}
+
+.modal.stock-in .modal-close:hover {
+    background-color: var(--red) !important;
+}
+
+.modal.stock-in .modal-close:hover i {
+    color: #fff !important;
+}
+
+.modal.stock-in .modal-content {
+    padding: 0;
+}
+
+.modal.stock-in .form-group {
+    margin-bottom: 20px;
+    text-align: left;
+}
+
+.modal.stock-in .form-label {
+    font-size: 14px;
+    color: #475569;
+    font-weight: 600;
+    margin-bottom: 8px;
+    display: block;
+}
+
+.modal.stock-in .form-control {
+    height: 48px;
+    border-radius: 10px;
+    border: 1.5px solid #e2e8f0;
+    padding: 0 16px;
+    font-size: 14.5px;
+    transition: all 0.3s ease;
+    width: 100%;
+    background: #f8fafc;
+    color: #1e293b;
+}
+
+.modal.stock-in textarea.form-control {
+    height: 90px;
+    padding: 12px 16px;
+    resize: none;
+}
+
+.modal.stock-in .form-control:focus {
+    border-color: var(--red) !important;
+    background: #fff;
+    box-shadow: 0 0 0 4px rgba(255, 71, 87, 0.1);
+    outline: none;
+}
+
+.modal.stock-in .form-submit {
+    width: 100%;
+    height: 50px;
+    border-radius: 10px;
+    background: var(--red);
+    color: white;
+    font-weight: 600;
+    font-size: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border: none;
+    margin-top: 25px;
+    position: static;
+    transform: none;
+    left: auto;
+    box-shadow: 0 4px 14px rgba(255, 71, 87, 0.25);
+}
+
+.modal.stock-in .form-submit:hover {
+    background: #e63946 !important;
+    transform: translateY(-2px) !important;
+    box-shadow: 0 6px 20px rgba(255, 71, 87, 0.35);
+}
+
+.modal.stock-in .form-submit i {
+    font-size: 16px;
+    margin-right: 0;
+}
+
+/* ==========================================
+   🎁 VOUCHER MODAL CUSTOM PREMIUM STYLES 
+   ========================================== */
+.modal.voucher .modal-container {
+    width: 480px;
+    padding: 30px;
+    overflow: hidden;
+    border-radius: 16px;
+    box-shadow: 0 20px 40px rgba(15, 23, 42, 0.15);
+}
+
+.modal.voucher .modal-container-title {
+    margin-left: 0;
+    margin-top: 0;
+    font-size: 22px;
+    width: 100%;
+    text-align: center;
+    padding-bottom: 15px;
+    margin-bottom: 25px;
+    border-bottom: 2px solid #f1f5f9;
+    color: #1e293b;
+    font-weight: 700;
+}
+
+.modal.voucher .modal-close {
+    background-color: #f1f5f9;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.modal.voucher .modal-close i {
+    color: #64748b;
+}
+
+.modal.voucher .modal-close:hover {
+    background-color: var(--red) !important;
+}
+
+.modal.voucher .modal-close:hover i {
+    color: #fff !important;
+}
+
+.modal.voucher .form-content {
+    padding: 0;
+}
+
+.modal.voucher .form-group {
+    margin-bottom: 20px;
+    text-align: left;
+}
+
+.modal.voucher .form-label {
+    font-size: 14px;
+    color: #475569;
+    font-weight: 600;
+    margin-bottom: 8px;
+    display: block;
+}
+
+.modal.voucher .form-control {
+    height: 48px;
+    border-radius: 10px;
+    border: 1.5px solid #e2e8f0;
+    padding: 0 16px;
+    font-size: 14.5px;
+    transition: all 0.3s ease;
+    width: 100%;
+    background: #f8fafc;
+    color: #1e293b;
+}
+
+.modal.voucher .form-control:focus {
+    border-color: var(--red) !important;
+    background: #fff;
+    box-shadow: 0 0 0 4px rgba(255, 71, 87, 0.1);
+    outline: none;
+}
+
+.modal.voucher .form-submit {
+    width: 100%;
+    height: 50px;
+    border-radius: 10px;
+    background: var(--red);
+    color: white;
+    font-weight: 600;
+    font-size: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border: none;
+    margin-top: 25px;
+    position: static;
+    transform: none;
+    left: auto;
+    box-shadow: 0 4px 14px rgba(255, 71, 87, 0.25);
+}
+
+.modal.voucher .form-submit:hover {
+    background: #e63946 !important;
+    transform: translateY(-2px) !important;
+    box-shadow: 0 6px 20px rgba(255, 71, 87, 0.35);
+}
+
+.modal.voucher .form-submit i {
+    font-size: 16px;
+    margin-right: 0;
+}
+
 

@@ -160,3 +160,13 @@ Dưới đây là danh sách đầy đủ các hạng mục đã hoàn thiện t
 
 ---
 *Cập nhật lần cuối: 18/05/2026 bởi thaingan & AI Assistant.*
+
+---
+## ✅ Giai đoạn 25: Căn chỉnh & Tối ưu hóa Giao diện Form Nhập kho và Khuyến mãi (Stock In & Voucher Forms UI/UX Polish)
+- [x] **Thiết kế lại Modal Nhập kho (Stock In Form):** Mở rộng kích thước modal đạt chuẩn `480px`, bo tròn góc `16px` cực kỳ hiện đại, giãn cách các dòng `margin-bottom: 20px` rộng rãi, xóa bỏ tình trạng nhãn và ô nhập liệu chạm nhau.
+- [x] **Đồng bộ hóa Modal Khuyến mãi (Voucher Form):** Tạo kiểu đồng bộ với giao diện Nhập kho mới, định hình phông nền slate nhạt thời thượng, bo viền tinh tế và tối ưu hiển thị ô nhập liệu/nút lưu.
+- [x] **Tinh chỉnh Nút xác nhận & Hiệu ứng hover:** Loại bỏ thuộc tính căn giữa tuyệt đối thủ công, tối ưu nút bấm full-width với hiệu ứng bóng mờ `box-shadow` nổi bật, tích hợp chuyển động hover mượt mà và chuyển màu êm ái.
+- [x] **Kiểm thử giao diện tự động:** Xác nhận tính ổn định và thẩm mỹ của form Nhập kho qua trình duyệt tự động và lưu trữ ảnh chụp màn hình kiểm chứng.
+
+---
+*Cập nhật lần cuối: 18/05/2026 bởi thaingan & AI Assistant.*

@@ -225,6 +225,19 @@
 - **Tối ưu Hóa Trải Nghiệm Điều Khiển (UX Control Optimization):** Ngăn chặn hoàn toàn hiện tượng điều hướng sai hướng (hủy liên kết `#` mặc định), ngăn chặn sự kiện nổi bọt ảnh hưởng đến các ô nhập liệu khác, tích hợp cơ chế đóng linh hoạt qua cả nút "Đồng ý & Đóng" lẫn biểu tượng "X" truyền thống.
 - **Responsive & Customized Scrollbar:** Cấu hình thanh cuộn tùy chỉnh siêu mỏng mang tính thẩm mỹ cao và tương thích tối đa với mọi độ phân giải màn hình từ máy tính để bàn đến các thiết bị di động thông minh.
 
+### ✅ Giai đoạn 24: Sửa lỗi hiển thị Banner Trang chủ & Chặn trùng lặp Sản phẩm/Danh mục (Banner Path Fix & Duplicate Validation) (Mới)
+- **Sửa lỗi Banner trắng ở Trang chủ:** Chuyển đổi toàn bộ đường dẫn tuyệt đối `/assets/` thành đường dẫn tương đối `./assets/` trong `index.html`, `admin.html` và `checkout.js`.
+- **Khắc phục lỗi trễ tải ảnh Banner (Lazy-loading above-the-fold):** Thay thế `loading="lazy"` thành `fetchpriority="high"` cho slide ảnh đầu tiên (`banner-6.png`) giúp loại bỏ hiện tượng hiển thị khung trắng khi tải trang.
+- **Kiểm tra trùng lặp Danh mục (Duplicate Category Validation):** Tích hợp kiểm tra trùng lặp tên danh mục (không phân biệt hoa thường và khoảng trắng thừa) khi thêm mới hoặc chỉnh sửa danh mục cả ở phía Server (`POST` & `PUT` `/api/categories`) và Client.
+- **Kiểm tra trùng lặp Sản phẩm (Duplicate Product Validation):** Tích hợp kiểm tra trùng lặp tên món ăn (không phân biệt hoa thường và khoảng trắng thừa) khi thêm mới hoặc chỉnh sửa món ăn cả ở phía Server (`POST` & `PUT` `/api/products`) và Client.
+- **Cập nhật hiển thị lỗi trực quan:** Cải tiến khối `catch` trong file `admin.js` để bắt và hiển thị chính xác thông báo lỗi trùng lặp từ Server qua hệ thống Toast.
+
+### ✅ Giai đoạn 25: Căn chỉnh & Tối ưu hóa Giao diện Form Nhập kho và Khuyến mãi (Stock In & Voucher Forms UI/UX Polish) (Mới)
+- **Thiết kế lại Modal Nhập kho (Stock In Form):** Mở rộng kích thước modal đạt chuẩn `480px`, bo tròn góc `16px` cực kỳ hiện đại, giãn cách các dòng `margin-bottom: 20px` rộng rãi, xóa bỏ tình trạng nhãn và ô nhập liệu chạm nhau.
+- **Đồng bộ hóa Modal Khuyến mãi (Voucher Form):** Tạo kiểu đồng bộ với giao diện Nhập kho mới, định hình phông nền slate nhạt thời thượng, bo viền tinh tế và tối ưu hiển thị ô nhập liệu/nút lưu.
+- **Tinh chỉnh Nút xác nhận & Hiệu ứng hover:** Loại bỏ thuộc tính căn giữa tuyệt đối thủ công, tối ưu nút bấm full-width với hiệu ứng bóng mờ `box-shadow` nổi bật, tích hợp chuyển động hover mượt mà và chuyển màu êm ái.
+- **Kiểm thử giao diện tự động:** Xác nhận tính ổn định và thẩm mỹ của form Nhập kho qua trình duyệt tự động và lưu trữ ảnh chụp màn hình kiểm chứng.
+
 ---
 *Cập nhật lần cuối: 18/05/2026 bởi thaingan & AI Assistant.*
 

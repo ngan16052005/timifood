@@ -61,5 +61,15 @@ File này dùng để lưu trữ các ý tưởng, đoạn code nháp, hoặc c�
     *   Kiểm tra trùng khi tạo mới và khi chỉnh sửa (loại trừ bản ghi hiện tại qua điều kiện `id != @id`).
     *   BBubble lỗi từ API lên và hiển thị qua Toast dạng đỏ đẹp mắt.
 
+## 📌 Căn chỉnh & Tối ưu hóa Giao diện Form Nhập kho và Khuyến mãi (Stock In & Voucher Forms UI/UX Polish):
+*   **Modal Nhập kho (Stock In):**
+    *   Sửa lỗi form cũ quá chật hẹp, các nhãn dính liền ô nhập liệu gây mất thẩm mỹ.
+    *   Mở rộng chiều rộng container lên `480px`, bổ sung đệm `30px`, bo tròn cực đẹp `16px`.
+    *   Định dạng lại tiêu đề căn giữa chuẩn thẻ card, gạch dưới phân tách nhẹ nhàng.
+    *   Cung cấp cấu hình slate nhạt cho các ô `select`, `input`, và `textarea` (cao `90px` chống resize).
+    *   Thay đổi nút bấm thành full-width, di chuyển tĩnh không định vị tuyệt đối đè chồng, thêm bóng đổ đỏ tinh tế chuẩn nhận diện.
+*   **Modal Khuyến mãi (Voucher):**
+    *   Cập nhật cấu hình hoàn toàn đồng bộ với form Nhập kho mới, đem lại trải nghiệm quản trị thống nhất và hiện đại toàn diện.
+
 ---
 *Cập nhật lần cuối: 18/05/2026 bởi thaingan & AI Assistant.*
