@@ -29,11 +29,10 @@
 - Trang quản lý: `admin.html`
 
 ### Hình ảnh giao diện
-![Alt text](<img width="1916" height="993" alt="home" src="https://github.com/user-attachments/assets/1fd04fad-9855-4ed0-b8cd-e975be0247ce" />
-)
+![Alt text]().
 <h4 align="center">Trang chủ</h4>
 
-![Alt text](./assets/img/img-github/detail-product.jpeg)
+![Alt text](public/assets/img/img-github/detail-product.jpeg)
 <h4 align="center">Chi tiết sản phẩm</h4>
 
 ![Alt text](./assets/img/img-github/giohang.jpeg)
