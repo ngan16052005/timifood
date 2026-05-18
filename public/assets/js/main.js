@@ -63,7 +63,7 @@ function openPolicyModal(event) {
     }
 }
 
-function closePolicyModal(event) {
+function closePolicyModal(event, accept = false) {
     if (event) {
         event.preventDefault();
         event.stopPropagation();
@@ -72,6 +72,17 @@ function closePolicyModal(event) {
     if (modal) {
         modal.classList.remove('open');
         body.style.overflow = "auto";
+    }
+    if (accept) {
+        const checkbox = document.getElementById('checkbox-signup');
+        if (checkbox) {
+            checkbox.checked = true;
+            // Clear the checkbox validation error if present
+            const errorMsg = document.querySelector('.form-message-checkbox');
+            if (errorMsg) {
+                errorMsg.innerHTML = '';
+            }
+        }
     }
 }
 
