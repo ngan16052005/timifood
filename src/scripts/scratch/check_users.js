@@ -1,10 +1,10 @@
 const { connectDB } = require('../../config/db');
 
-async function checkVouchers() {
+async function checkUsers() {
     try {
         const pool = await connectDB();
-        const result = await pool.request().query('SELECT * FROM Vouchers');
-        console.log('--- Current Vouchers in DB ---');
+        const result = await pool.request().query('SELECT id, fullname, phone, userType, status FROM Users');
+        console.log('--- Current Users in DB ---');
         console.table(result.recordset);
         process.exit(0);
     } catch (err) {
@@ -13,4 +13,4 @@ async function checkVouchers() {
     }
 }
 
-checkVouchers();
+checkUsers();

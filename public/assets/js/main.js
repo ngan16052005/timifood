@@ -51,6 +51,30 @@ function closeModal() {
     body.style.overflow = "auto";
 }
 
+function openPolicyModal(event) {
+    if (event) {
+        event.preventDefault();
+        event.stopPropagation();
+    }
+    const modal = document.querySelector('.policy-modal');
+    if (modal) {
+        modal.classList.add('open');
+        body.style.overflow = "hidden";
+    }
+}
+
+function closePolicyModal(event) {
+    if (event) {
+        event.preventDefault();
+        event.stopPropagation();
+    }
+    const modal = document.querySelector('.policy-modal');
+    if (modal) {
+        modal.classList.remove('open');
+        body.style.overflow = "auto";
+    }
+}
+
 function increasingNumber(e) {
     let qty = e.parentNode.querySelector('.input-qty');
     if (parseInt(qty.value) < qty.max) {

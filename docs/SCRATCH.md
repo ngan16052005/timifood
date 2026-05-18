@@ -45,5 +45,13 @@ File này dùng để lưu trữ các ý tưởng, đoạn code nháp, hoặc c�
     3. Khôi phục middleware bảo vệ `isAdmin` tại Backend (`server.js`) đối với tất cả các API Vouchers (`GET`, `POST`, `PUT`, `DELETE` /api/vouchers) và API Đánh giá (`GET` /api/admin/reviews).
     4. Cập nhật `admin.js` trong sự kiện `window.onload` để tự động dò tìm phần tử `.admin-role` và gán lại nội dung tương ứng (`Quản trị viên` cho userType 1 và `Nhân viên` cho userType 2) kết hợp giữ nguyên biểu tượng chevron dropdown.
 
+## 📌 Triển khai Giao diện Điều Khoản & Chính Sách Người Dùng Toàn Diện (Comprehensive Website Policy Implementation):
+*   **Thiết kế Modal:** Sử dụng cấu trúc modal Glassmorphic kết hợp bóng mịn màng, tiêu đề header chứa icon `fa-shield-heart` thương hiệu, tích hợp thanh cuộn siêu mỏng thẩm mỹ.
+*   **Hỗ trợ Trigger linh hoạt:**
+    1. Liên kết "Chính sách" trên thanh điều hướng đầu trang (`header-top-right`).
+    2. Nút "Điều khoản" ở chân trang (`widget-contact`).
+    3. Liên kết "chính sách trang web" ngay trong form Đăng ký tài khoản (`checkbox-signup`).
+*   **Logic điều khiển:** Định nghĩa hàm `openPolicyModal(event)` và `closePolicyModal(event)` trong `main.js` để kiểm soát đóng mở, dừng sự kiện nổi bọt (`event.stopPropagation()`) và ngăn ngừa chuyển hướng mặc định của liên kết (`event.preventDefault()`).
+
 ---
 *Cập nhật lần cuối: 18/05/2026 bởi thaingan & AI Assistant.*

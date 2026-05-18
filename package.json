@@ -1,7 +1,7 @@
 {
   "name": "timifood",
   "version": "1.0.0",
-  "description": "<!-- author: hgbaodev --> # Đồ án môn lập trình web và ứng dụng ### Tài khoản Admin",
+  "description": "<!-- author: thaingan --> # Đồ án môn lập trình web và ứng dụng ### Tài khoản Admin",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"

@@ -28,7 +28,7 @@
                     <ul class="header-top-list">
                         <li><a href="">Giới thiệu</a></li>
                         <li><a href="">Cửa hàng</a></li>
-                        <li><a href="">Chính sách</a></li>
+                        <li><a href="javascript:;" onclick="openPolicyModal(event)">Chính sách</a></li>
                     </ul>
                 </div>
             </div>
@@ -347,8 +347,8 @@
                         </div>
                         <div class="form-group">
                             <input class="checkbox" name="checkbox" required="" type="checkbox" id="checkbox-signup">
-                            <label for="checkbox-signup" class="form-checkbox">Tôi đồng ý với <a href="#"
-                                    title="chính sách trang web" target="_blank">chính sách trang web</a></label>
+                            <label for="checkbox-signup" class="form-checkbox">Tôi đồng ý với <a href="javascript:;" onclick="openPolicyModal(event)"
+                                    title="chính sách trang web">chính sách trang web</a></label>
                             <p class="form-message-checkbox form-message"></p>
                         </div>
                         <button class="form-submit" id="signup-button">Đăng ký</button>
@@ -423,6 +423,58 @@
                     </form>
                     <p class="change-login"><a href="javascript:;" class="back-to-login">Quay lại đăng nhập</a></p>
                 </div>
+            </div>
+    </div>
+    <div class="modal policy-modal">
+        <div class="modal-container mdl-cnt">
+            <div class="policy-header">
+                <h3>
+                    <i class="fa-solid fa-shield-heart"></i>
+                    Điều Khoản & Chính Sách TiMi Food
+                </h3>
+                <button class="form-close" onclick="closePolicyModal()"><i class="fa-regular fa-xmark"></i></button>
+            </div>
+            <div class="policy-body">
+                
+                <!-- Section 1 -->
+                <div class="policy-section">
+                    <h4>1. Chính Sách Bảo Mật Thông Tin</h4>
+                    <p>TiMi Food cam kết bảo vệ tuyệt đối dữ liệu cá nhân của quý khách:</p>
+                    <ul>
+                        <li><strong>Dữ liệu thu thập:</strong> Họ tên, số điện thoại, email và địa chỉ giao hàng chỉ được sử dụng cho mục đích xác nhận và thực hiện đơn hàng.</li>
+                        <li><strong>Bảo mật mật khẩu:</strong> Mật khẩu của bạn được mã hóa an toàn bằng công nghệ băm Bcrypt phía máy chủ, đảm bảo không thể bị rò rỉ hay truy cập trái phép.</li>
+                        <li><strong>Cam kết:</strong> Không chia sẻ, bán hoặc cung cấp thông tin cá nhân của quý khách cho bên thứ ba vì bất cứ mục đích thương mại nào.</li>
+                    </ul>
+                </div>
+
+                <!-- Section 2 -->
+                <div class="policy-section">
+                    <h4>2. Điều Khoản Dịch Vụ & Đặt Hàng</h4>
+                    <ul>
+                        <li><strong>Tài khoản mua hàng:</strong> Mỗi khách hàng chỉ đăng ký một tài khoản duy nhất tương ứng với một số điện thoại chính chủ để tránh tranh chấp hoặc đặt nhầm.</li>
+                        <li><strong>Thời gian phục vụ:</strong> Cửa hàng tiếp nhận đơn và giao hàng từ 08:00 đến 22:00 hàng ngày (bao gồm cả thứ Bảy, Chủ nhật và các ngày lễ Tết).</li>
+                        <li><strong>Quy định hủy đơn:</strong> Quý khách chỉ có thể hủy đơn hàng khi trạng thái đơn còn là "Đang chờ xử lý". Một khi cửa hàng đã bắt đầu chế biến món ăn ("Đang chuẩn bị"), đơn hàng không thể hủy.</li>
+                    </ul>
+                </div>
+
+                <!-- Section 3 -->
+                <div class="policy-section">
+                    <h4>3. Chính Sách Giao Nhận & Thanh Toán</h4>
+                    <ul>
+                        <li><strong>Hình thức giao nhận:</strong> Hỗ trợ giao tận nơi (Shipper giao tận nơi trong vòng 15-45 phút tùy khoảng cách) hoặc tự đến lấy trực tiếp tại chi nhánh đã chọn.</li>
+                        <li><strong>Hình thức thanh toán:</strong> Hỗ trợ trả tiền mặt khi nhận hàng (COD), ví điện tử MoMo, hoặc thanh toán qua cổng VNPAY quét mã QR nhanh chóng.</li>
+                        <li><strong>Chính sách đổi trả:</strong> Cam kết hoàn tiền 100% hoặc đổi mới món ăn miễn phí nếu giao sai món, thiếu món, hoặc phát sinh lỗi do nhà sản xuất (món ăn không đạt chuẩn vệ sinh, bị nguội hoặc dập nát do vận chuyển).</li>
+                    </ul>
+                </div>
+
+                <!-- Section 4 -->
+                <div class="policy-section">
+                    <h4>4. Chính Sách Khuyến Mãi & Voucher</h4>
+                    <p>Mỗi đơn hàng chỉ được áp dụng tối đa một mã giảm giá (Voucher). Các điều kiện ràng buộc như giá trị đơn tối thiểu, mức giảm tối đa và hạn sử dụng sẽ được áp dụng tự động bởi hệ thống.</p>
+                </div>
+            </div>
+            <div class="policy-footer">
+                <button onclick="closePolicyModal()">Đồng ý & Đóng</button>
             </div>
         </div>
     </div>
@@ -531,7 +583,7 @@
                                 </a>
                             </li>
                             <li class="widget-contact-item">
-                                <a href="javascript:;">
+                                <a href="javascript:;" onclick="openPolicyModal(event)">
                                     <i class="fa-regular fa-arrow-right"></i>
                                     <span>Điều khoản</span>
                                 </a>
