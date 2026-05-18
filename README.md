@@ -202,6 +202,23 @@
 - **Admin Chat Panel Premium:** Thiết kế Sidebar Tab "Hỗ trợ trực tuyến" sang trọng với bố cục Split-Pane kính mờ hiện đại, hiển thị danh sách khách hàng thông minh, hiệu ứng nhấp nháy Pulse khi có phiên đang chờ tiếp nhận và bong bóng tin nhắn phân màu trực quan.
 - **Nâng cấp AI Chatbot Hybrid:** Bổ sung tùy chọn "Gặp nhân viên hỗ trợ" qua nút gợi ý nhanh và nhận diện từ khóa; tự động thu thập thông tin cá nhân khách vãng lai trước khi kết nối; định tuyến thông minh luồng tin nhắn khách hàng qua cổng Socket; hỗ trợ kết thúc phiên chat để quay lại AI Bot bất cứ lúc nào.
 
+### ✅ Giai đoạn 20: Chuẩn hóa ngữ nghĩa HTML & Tối ưu hóa Form Trực quan (HTML Semantic Cleanups & Autofill Standards) (Mới)
+- **Chuẩn hóa nhãn nhập liệu (Label Standard):** Phân tích cấu trúc các biểu mẫu (Đăng nhập, Đăng ký, Khôi phục mật khẩu, Đổi mật khẩu) và sửa đổi triệt để các thuộc tính `for` của `<label>` bị trống hoặc lệch `id` của `<input>`.
+- **Tách biệt xung đột ID Modal:** Chỉnh sửa thuộc tính `for` và `id` của các ô nhập Số điện thoại và Mật khẩu ở cả Form Đăng nhập và Đăng ký để loại bỏ hoàn toàn hiện tượng trỏ lệch.
+- **Tích hợp Autocomplete nâng cao:** Bổ sung thuộc tính `autocomplete` tiêu chuẩn (`name`, `tel`, `email`, `current-password`, `new-password`, `one-time-code`) giúp nâng cao bảo mật và hỗ trợ người dùng tự điền nhanh.
+- **Đồng bộ hóa thuộc tính Form:** Thiết lập đầy đủ thuộc tính `id` và `name` hợp lệ trên toàn bộ các biểu mẫu, loại bỏ hoàn toàn các lỗi cảnh báo trong tab "Issues" của Chrome Developer Tools, đảm bảo chuẩn SEO tốt nhất.
+
+### ✅ Giai đoạn 21: Sửa lỗi phân quyền Voucher & Tối ưu hóa API Client-Side Error handling (Voucher RBAC Fix & Client Error Handling) (Mới)
+- **Khắc phục lỗi Phân quyền (RBAC Fix):** Thay thế `isAdmin` bằng `isStaffOrAdmin` cho các API quản lý mã giảm giá (`POST`, `PUT`, `DELETE` /api/vouchers) trên Backend để tài khoản Nhân viên (Staff, e.g. Nguyễn Văn Ngân SĐT 0345975990) có thể thao tác quản trị khuyến mãi đồng bộ với giao diện.
+- **Cải thiện Xử lý Lỗi Client-Side:** Cập nhật `api.js` (`updateVoucherStatus`, `deleteVoucher`) để ném ra lỗi rõ ràng khi phản hồi HTTP từ Server không phải là 2xx (`response.ok === false`).
+- **Tương tác Toast Message Chính xác:** Cập nhật `admin.js` (`toggleVoucher`, `deleteVoucher`) để bắt lỗi và hiển thị chính xác thông báo lỗi cụ thể từ Server thay vì luôn hiển thị thông báo "Thành công" giả.
+
+### ✅ Giai đoạn 22: Giới hạn nghiêm ngặt quyền hạn Nhân viên & Chức vụ hiển thị động (Strict Staff Permissions Restriction & Dynamic Role Display) (Mới)
+- **Giới hạn nghiêm ngặt Sidebar:** Ẩn toàn bộ các tab quản lý khác trên thanh Sidebar (Dashboard, Sản phẩm, Danh mục, Tài khoản, Nhập kho, Khuyến mãi, Thống kê, Đánh giá, Nhật ký hệ thống). Chỉ cho phép Nhân viên (Staff, userType = 2) nhìn thấy và truy cập hai tab là **Đơn hàng** (Index 4) và **Hỗ trợ trực tuyến** (Index 10).
+- **Tự động hóa Điều hướng Giao diện:** Gỡ bỏ lớp `active` mặc định của trang tổng quát khi Nhân viên tải trang lần đầu, đảm bảo giao diện luôn tự động chuyển trực tiếp sang trang **Đơn hàng** cùng tiêu đề header đồng bộ.
+- **Thắt chặt Bảo mật API Backend:** Khôi phục middleware bảo vệ `isAdmin` cho toàn bộ các API quản lý mã giảm giá (`GET`, `POST`, `PUT`, `DELETE` /api/vouchers) và API quản lý đánh giá của Admin (`GET` /api/admin/reviews), ngăn chặn tuyệt đối việc Nhân viên cố tình gửi yêu cầu trực tiếp qua cổng API.
+- **Hiển thị chức vụ động:** Cập nhật vùng thông tin cá nhân ở góc trên bên phải để hiển thị chính xác chức vụ của tài khoản đăng nhập bên dưới tên (ví dụ: hiển thị "Nhân viên" cho Staff và "Quản trị viên" cho Admin) thay vì luôn hiển thị cứng chữ "Người quản lý".
+
 ---
-*Dự án hiện đã đạt độ hoàn thiện cao nhất, sẵn sàng cho việc vận hành thực tế với hiệu suất và độ ổn định tối ưu.*
+*Cập nhật lần cuối: 18/05/2026 bởi thaingan & AI Assistant.*
 
