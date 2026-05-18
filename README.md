@@ -29,19 +29,19 @@
 - Trang quản lý: `admin.html`
 
 ### Hình ảnh giao diện
-![Alt text]().
+![Alt text](public/assets/img/img-github/home.png).
 <h4 align="center">Trang chủ</h4>
 
 ![Alt text](public/assets/img/img-github/detail-product.jpeg)
 <h4 align="center">Chi tiết sản phẩm</h4>
 
-![Alt text](./assets/img/img-github/giohang.jpeg)
+![Alt text](public/assets/img/img-github/giohang.jpeg)
 <h4 align="center">Giỏ hàng</h4>
 
-![Alt text](./assets/img/img-github/admin.jpeg)
+![Alt text](public/assets/img/img-github/admin.jpeg)
 <h4 align="center">Trang admin</h4>
 
-![Alt text](./assets/img/img-github/admin-product.jpeg)
+![Alt text](public/assets/img/img-github/admin-product.jpeg)
 <h4 align="center">Quản lý sản phẩm</h4>
 
 ---
