@@ -24,7 +24,7 @@
 6. **Mở Website:** Mở file `index.html` bằng trình duyệt.
 
 ## Thông tin Admin
-- Tài khoản: `hgbaodev` / `0123456789`
+- Tài khoản: `admin` 
 - Mật khẩu: `123456`
 - Trang quản lý: `admin.html`
 
