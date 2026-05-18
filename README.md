@@ -29,7 +29,7 @@
 - Trang quản lý: `admin.html`
 
 ### Hình ảnh giao diện
-![Alt text](./assets/img/screen.jpeg)
+![Alt text](./assets/img/img-github/home.png)
 <h4 align="center">Trang chủ</h4>
 
 ![Alt text](./assets/img/img-github/admin-product.jpeg)
