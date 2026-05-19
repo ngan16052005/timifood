@@ -27,5 +27,5 @@ File này chứa các quy tắc, phong cách lập trình và những lưu ý qu
 ## Tài khoản:
 **Tài khoản Admin: số điện thoại: admin, mật khẩu: 123456**
 **Tài khoản Nhân viên: số điện thoại: 0345975990, mật khẩu: 123456**
-**Tài khoản Khách hàng: số điện thoại: 0345975998, mật khẩu: Anh12345@**
+**Tài khoản Khách hàng: số điện thoại: 0345975998, mật khẩu: Ngan12345@**
 *Cập nhật lần cuối: 17/05/2026*
