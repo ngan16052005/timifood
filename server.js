@@ -24,7 +24,7 @@ const transporter = nodemailer.createTransport({
     }
 });
 
-const SECRET_KEY = 'TiMiFood_Secret_Key_2026';
+const SECRET_KEY = process.env.JWT_SECRET || 'TiMiFood_Secret_Key_2026';
 
 // Global error handlers to prevent silent crashes
 process.on('uncaughtException', (err) => {
@@ -39,16 +39,23 @@ const { Server } = require('socket.io');
 
 const app = express();
 const server = http.createServer(app);
+const corsOrigin = process.env.CORS_ORIGIN || '*';
+const parsedCorsOrigin = corsOrigin === '*' ? '*' : corsOrigin.split(',').map(s => s.trim());
+
 const io = new Server(server, {
     cors: {
-        origin: "*",
+        origin: parsedCorsOrigin,
         methods: ["GET", "POST"]
     }
 });
 
 const PORT = process.env.PORT || 3500;
 
-app.use(cors());
+app.use(cors({
+    origin: parsedCorsOrigin,
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    credentials: true
+}));
 app.use(bodyParser.json());
 
 // Logging middleware
@@ -1385,32 +1392,6 @@ app.put('/api/orders/:id/status', authenticateToken, isStaffOrAdmin, async (req,
     }
 });
 
-// Delete order (Admin)
-app.delete('/api/orders/:id', authenticateToken, async (req, res) => {
-    if (!pool) {
-        return res.status(500).json({ message: 'Database not connected' });
-    }
-    const transaction = new sql.Transaction(pool);
-    try {
-        const { id } = req.params;
-        console.log(`Attempting to delete order: ${id}`);
-        await transaction.begin();
-        const request = new sql.Request(transaction);
-        await request.input('orderId', sql.NVarChar, id)
-            .query('DELETE FROM OrderDetails WHERE orderId=@orderId; DELETE FROM Orders WHERE id=@orderId;');
-        await transaction.commit();
-        console.log(`Successfully deleted order: ${id}`);
-        res.json({ success: true, message: 'Order deleted successfully' });
-    } catch (err) {
-        console.error(`Error deleting order ${req.params.id}:`, err);
-        try {
-            if (transaction) await transaction.rollback();
-        } catch (rollbackErr) {
-            console.error('Rollback Error:', rollbackErr);
-        }
-        res.status(500).json({ message: 'Error deleting order', error: err.message });
-    }
-});
 // --- VOUCHER MANAGEMENT ---
 
 // Get all vouchers (Admin only)

@@ -79,5 +79,12 @@ File này dùng để lưu trữ các ý tưởng, đoạn code nháp, hoặc c�
     3.  **Tự động cập nhật:** Lắng nghe sự kiện thay đổi của trường Số điện thoại người nhận (`sdtnhan`) và bất kỳ sự thay đổi tổng tiền nào (cập nhật giỏ hàng, phí vận chuyển, áp dụng voucher) để tái tạo mã QR ngay lập tức, đảm bảo nội dung chuyển khoản dạng `TiMiFood <Số điện thoại>` (chuẩn hóa không dấu và ký tự đặc biệt) luôn chính xác.
     4.  **Đồng bộ hóa:** Đồng bộ hóa ảnh QR hiển thị cả trên accordion mini tại trang checkout và cửa sổ mô phỏng thanh toán trực tuyến.
 
+## 📌 Tối ưu Bảo mật & Refactor Code (Security Hardening & Code Cleanup):
+*   **SECRET_KEY:** Chuyển từ hardcode `'TiMiFood_Secret_Key_2026'` sang `process.env.JWT_SECRET` với fallback. Biến mới `JWT_SECRET` đã thêm vào `.env`.
+*   **CORS:** Thay `origin: "*"` cứng bằng biến `CORS_ORIGIN` từ `.env`. Hỗ trợ nhiều domain phân tách bằng dấu phẩy (`parsedCorsOrigin`). Mặc định `*` cho development.
+*   **Duplicate Route:** Phát hiện 2 route `DELETE /api/orders/:id` (dòng ~511 và ~1393 cũ). Express chỉ chạy route đầu tiên, route thứ 2 là dead code → đã xóa.
+*   **NPM Scripts:** Thêm `"start"` và `"dev"` vào `package.json` → chạy bằng `npm start` hoặc `npm run dev`.
+*   **`.env.example`:** Tạo file mẫu với đầy đủ comment tiếng Việt hướng dẫn cấu hình.
+
 ---
 *Cập nhật lần cuối: 20/05/2026 bởi thaingan & AI Assistant.*

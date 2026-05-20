@@ -186,4 +186,12 @@ Dưới đây là danh sách đầy đủ các hạng mục đã hoàn thiện t
 - [x] **Cập nhật server.js:** Trả về `orderId` trong response của `createOrder` để client sử dụng.
 
 ---
+## ✅ Giai đoạn 28: Tối ưu Bảo mật & Refactor Code (Security Hardening & Code Cleanup)
+- [x] **Di chuyển SECRET_KEY vào biến môi trường:** Chuyển khóa bí mật JWT từ hardcode trong `server.js` sang file `.env` (`JWT_SECRET`), tăng cường bảo mật và linh hoạt khi triển khai.
+- [x] **Cải thiện cấu hình CORS:** Nâng cấp từ `origin: "*"` tĩnh sang đọc từ biến môi trường `CORS_ORIGIN`, hỗ trợ cấu hình nhiều domain bằng dấu phẩy, sẵn sàng cho triển khai production.
+- [x] **Xóa route trùng lặp (Dead Code):** Phát hiện và loại bỏ route `DELETE /api/orders/:id` bị trùng lặp (dead code — không bao giờ được thực thi do Express ưu tiên route đăng ký trước).
+- [x] **Thêm scripts NPM tiêu chuẩn:** Bổ sung `npm start` và `npm run dev` vào `package.json` thay vì chạy thủ công `node server.js`.
+- [x] **Tạo file `.env.example`:** Cung cấp file mẫu cấu hình biến môi trường với hướng dẫn chi tiết bằng tiếng Việt, giúp cài đặt nhanh chóng khi clone dự án.
+
+---
 *Cập nhật lần cuối: 20/05/2026 bởi thaingan & AI Assistant.*
