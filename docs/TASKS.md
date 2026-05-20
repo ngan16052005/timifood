@@ -201,5 +201,63 @@ Dưới đây là danh sách đầy đủ các hạng mục đã hoàn thiện t
   - `src/socket/handlers.js` — Socket.io handlers & Live Chat sessions
 
 ---
+## ⬜ Giai đoạn 29: Tối ưu SEO & Meta Tags (SEO Optimization)
+> **Độ khó:** ⭐ | **Thời gian ước tính:** ~1 giờ
+
+- [ ] **Meta Tags đầy đủ:** Thêm `<meta description>`, `<meta keywords>`, Open Graph (`og:title`, `og:description`, `og:image`), Twitter Card cho trang chủ và trang admin.
+- [ ] **Cấu trúc Heading chuẩn SEO:** Đảm bảo mỗi trang chỉ có 1 thẻ `<h1>`, sử dụng phân cấp `<h2>`, `<h3>` hợp lý.
+- [ ] **Tạo `robots.txt`:** Cho phép crawler index trang chủ, chặn trang admin và API.
+- [ ] **Tạo `sitemap.xml`:** Liệt kê các trang chính của website.
+- [ ] **Favicon chuẩn đa kích thước:** Thêm favicon `16x16`, `32x32`, `180x180` (Apple Touch Icon) và `192x192` (Android).
+- [ ] **Nén tài nguyên (Gzip/Compression):** Thêm middleware `compression` vào Express để giảm dung lượng response.
+
+---
+## ⬜ Giai đoạn 30: Trang Giới thiệu & Liên hệ (About Us & Contact Page)
+> **Độ khó:** ⭐⭐ | **Thời gian ước tính:** 2-3 giờ
+
+- [ ] **Trang Giới thiệu (`about.html`):** Thiết kế trang "Về chúng tôi" với câu chuyện thương hiệu TiMiFood, sứ mệnh, tầm nhìn, đội ngũ — phong cách Premium Glassmorphism.
+- [ ] **Trang Liên hệ (`contact.html`):** Form liên hệ gửi email qua API, nhúng Google Maps, hiển thị thông tin chi nhánh, số hotline.
+- [ ] **Hiệu ứng Scroll Animation:** Sử dụng Intersection Observer API để tạo hiệu ứng fade-in, slide-up khi cuộn trang.
+- [ ] **Cập nhật Navigation:** Thêm link "Giới thiệu" và "Liên hệ" vào thanh menu chính.
+
+---
+## ⬜ Giai đoạn 31: Nâng cấp trang Đơn hàng Khách hàng (Customer Order History Upgrade)
+> **Độ khó:** ⭐⭐ | **Thời gian ước tính:** 2-3 giờ
+
+- [ ] **Giao diện Card Timeline:** Thiết kế lại trang "Đơn hàng đã mua" sang dạng card timeline đẹp mắt, hiện đại hơn.
+- [ ] **Bộ lọc trạng thái:** Thêm tab/filter lọc theo trạng thái (Tất cả / Chờ xử lý / Đang giao / Hoàn thành / Đã hủy).
+- [ ] **Tìm kiếm đơn hàng:** Ô tìm kiếm theo mã đơn hàng (`DH001`, `DH002`...).
+- [ ] **Tổng chi tiêu tích lũy:** Hiển thị tổng số tiền khách hàng đã chi qua tất cả đơn hàng hoàn thành.
+- [ ] **Nút Đặt lại (Re-order):** Cho phép khách hàng đặt lại toàn bộ món ăn từ đơn hàng cũ với 1 click.
+
+---
+## ⬜ Giai đoạn 32: Sản phẩm Yêu thích — Wishlist (Favorites / Wishlist Feature)
+> **Độ khó:** ⭐⭐ | **Thời gian ước tính:** 2-3 giờ
+
+- [ ] **Nút ❤️ trên thẻ sản phẩm:** Thêm icon trái tim trên mỗi card sản phẩm, toggle yêu thích/bỏ yêu thích.
+- [ ] **Bảng `Favorites` trong Database:** Tạo bảng lưu trữ wishlist (`userPhone`, `productId`, `addedAt`).
+- [ ] **API Wishlist (CRUD):** Endpoints: GET danh sách yêu thích, POST thêm, DELETE xóa.
+- [ ] **Trang/Mục Yêu thích:** Hiển thị danh sách sản phẩm yêu thích riêng của từng khách hàng với nút "Thêm vào giỏ hàng nhanh".
+
+---
+## ⬜ Giai đoạn 33: Lịch sử Chat & Lưu trữ Database (Chat History Persistence)
+> **Độ khó:** ⭐⭐⭐ | **Thời gian ước tính:** 3-4 giờ
+
+- [ ] **Bảng `ChatSessions` + `ChatMessages`:** Tạo cấu trúc database lưu trữ phiên chat và tin nhắn, thay thế in-memory hiện tại.
+- [ ] **Lưu trữ tự động:** Mọi tin nhắn Live Chat được ghi vào DB song song với broadcast Socket.io.
+- [ ] **Admin xem lại lịch sử chat:** Giao diện cho Admin duyệt lại các phiên hỗ trợ cũ theo ngày, SĐT khách hàng.
+- [ ] **Thống kê hỗ trợ:** Dashboard hiển thị: Tổng phiên chat / Thời gian phản hồi trung bình / Nhân viên xử lý nhiều nhất.
+
+---
+## ⬜ Giai đoạn 34: Chế độ Tối — Dark Mode (Dark Mode Implementation)
+> **Độ khó:** ⭐⭐⭐ | **Thời gian ước tính:** 4-5 giờ
+
+- [ ] **Nút chuyển đổi Dark/Light:** Toggle button trên header với hiệu ứng chuyển đổi mượt mà (mặt trời ↔ mặt trăng).
+- [ ] **CSS Variables cho Dark Mode:** Thiết kế hệ thống biến CSS (`--bg-primary`, `--text-primary`, `--card-bg`...) cho cả 2 chế độ.
+- [ ] **Lưu trữ tùy chọn:** Ghi nhớ lựa chọn Dark/Light vào `localStorage`, tự động áp dụng khi quay lại.
+- [ ] **Auto-detect hệ thống:** Hỗ trợ `prefers-color-scheme` để tự động phát hiện chế độ tối của hệ điều hành.
+- [ ] **Áp dụng cho cả Admin Dashboard:** Đảm bảo trang quản trị cũng hoạt động tốt với Dark Mode.
+
+---
 *Cập nhật lần cuối: 20/05/2026 bởi thaingan & AI Assistant.*
 
