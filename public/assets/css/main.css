@@ -2933,6 +2933,33 @@ input[type=number] {
     filter: brightness(1.1);
 }
 
+.btn-payos-link {
+    display: inline-block;
+    padding: 12px 20px;
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+    background: #00b894;
+    color: #fff;
+    text-decoration: none;
+    transition: 0.3s;
+    margin-bottom: 15px;
+    text-align: center;
+}
+.btn-payos-link:hover {
+    background: #009475;
+    color: #fff;
+}
+.payment-sim-warning {
+    background: #ffeaa7;
+    color: #d63031;
+    padding: 8px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    margin-bottom: 15px;
+}
+
 
 .bill-total {
     margin-bottom: 20px;

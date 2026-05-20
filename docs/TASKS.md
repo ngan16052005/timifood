@@ -169,4 +169,21 @@ Dưới đây là danh sách đầy đủ các hạng mục đã hoàn thiện t
 - [x] **Kiểm thử giao diện tự động:** Xác nhận tính ổn định và thẩm mỹ của form Nhập kho qua trình duyệt tự động và lưu trữ ảnh chụp màn hình kiểm chứng.
 
 ---
-*Cập nhật lần cuối: 18/05/2026 bởi thaingan & AI Assistant.*
+## ✅ Giai đoạn 26: Tích hợp mã QR Thanh toán Động (Dynamic QR Payment Integration)
+- [x] **Mã QR động tại màn hình Checkout:** Tích hợp sinh mã QR thanh toán động cho cả VNPAY (qua VietQR API ngân hàng MB) và MoMo (qua link nhantien.momo.vn) dựa trên tổng số tiền thực tế của đơn hàng (sau khi cộng phí ship, áp mã giảm giá).
+- [x] **Mã QR động tại Modal mô phỏng thanh toán:** Cập nhật màn hình popup mô phỏng thanh toán khi nhấn đặt hàng bằng thẻ online để tự động điền số tiền và nội dung chuyển khoản động theo thông tin đơn hàng.
+- [x] **Nội dung chuyển khoản tùy biến và tự động:** Tự động tạo nội dung chuyển khoản dạng `TiMiFood <Số điện thoại>` (không chứa dấu và ký tự đặc biệt) đồng thời tự động cập nhật lại mã QR bất cứ khi nào khách hàng nhập/thay đổi Số điện thoại người nhận.
+
+---
+## ✅ Giai đoạn 27: Tích hợp Cổng Thanh toán PayOS Thực tế & Webhook Tự động (PayOS Real Payment Gateway Integration)
+- [x] **Tích hợp PayOS SDK (@payos/node):** Cài đặt và cấu hình thư viện `@payos/node` v2.x, khởi tạo SDK có điều kiện dựa trên biến môi trường với cơ chế graceful fallback.
+- [x] **API tạo liên kết thanh toán (POST /api/payos/create-payment-link):** Endpoint bảo mật (JWT) nhận orderId, amount, description để trả về `checkoutUrl` và `qrCode` thật từ PayOS.
+- [x] **API Webhook (POST /api/payos/webhook):** Endpoint nhận kết quả thanh toán từ PayOS, xác minh chữ ký, cập nhật trạng thái đơn hàng, gửi thông báo và email tự động.
+- [x] **Nâng cấp luồng Checkout Online:** Đơn hàng được lưu vào DB trước, sau đó gọi API PayOS. Thành công → hiển thị QR thật + nút mở cổng thanh toán. Thất bại → fallback mô phỏng + banner cảnh báo vàng.
+- [x] **Trang kết quả thanh toán:** Tạo `checkout-success.html` và `checkout-cancel.html` với giao diện cao cấp.
+- [x] **Cấu hình .env mẫu:** Bổ sung placeholder cho 3 key PayOS kèm hướng dẫn.
+- [x] **Cập nhật api.js:** Thêm hàm `createPayOSPaymentLink` vào `window.api`.
+- [x] **Cập nhật server.js:** Trả về `orderId` trong response của `createOrder` để client sử dụng.
+
+---
+*Cập nhật lần cuối: 20/05/2026 bởi thaingan & AI Assistant.*

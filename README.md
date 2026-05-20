@@ -238,6 +238,19 @@
 - **Tinh chỉnh Nút xác nhận & Hiệu ứng hover:** Loại bỏ thuộc tính căn giữa tuyệt đối thủ công, tối ưu nút bấm full-width với hiệu ứng bóng mờ `box-shadow` nổi bật, tích hợp chuyển động hover mượt mà và chuyển màu êm ái.
 - **Kiểm thử giao diện tự động:** Xác nhận tính ổn định và thẩm mỹ của form Nhập kho qua trình duyệt tự động và lưu trữ ảnh chụp màn hình kiểm chứng.
 
+### ✅ Giai đoạn 26: Tích hợp mã QR Thanh toán Động (Dynamic QR Payment Integration) (Mới)
+- **Mã QR động tại màn hình Checkout:** Tích hợp sinh mã QR thanh toán động cho cả VNPAY (qua VietQR API ngân hàng MB) và MoMo (qua link nhantien.momo.vn) dựa trên tổng số tiền thực tế của đơn hàng (sau khi cộng phí ship, áp mã giảm giá).
+- **Mã QR động tại Modal mô phỏng thanh toán:** Cập nhật màn hình popup mô phỏng thanh toán khi nhấn đặt hàng bằng thẻ online để tự động điền số tiền và nội dung chuyển khoản động theo thông tin đơn hàng.
+- **Nội dung chuyển khoản tùy biến và tự động:** Tự động tạo nội dung chuyển khoản dạng `TiMiFood <Số điện thoại>` (không chứa dấu và ký tự đặc biệt) đồng thời tự động cập nhật lại mã QR bất cứ khi nào khách hàng nhập/thay đổi Số điện thoại người nhận.
+
+### ✅ Giai đoạn 27: Tích hợp Cổng Thanh toán PayOS Thực tế & Webhook Tự động (PayOS Real Payment Gateway Integration) (Mới)
+- **Tích hợp PayOS SDK (@payos/node):** Cài đặt và cấu hình thư viện `@payos/node` v2.x, khởi tạo SDK có điều kiện dựa trên biến môi trường (PAYOS_CLIENT_ID, PAYOS_API_KEY, PAYOS_CHECKSUM_KEY) với cơ chế graceful fallback khi chưa cấu hình.
+- **API tạo liên kết thanh toán (POST /api/payos/create-payment-link):** Endpoint bảo mật (JWT) cho phép client gửi orderId, amount, description để nhận về `checkoutUrl` (trang thanh toán PayOS) và `qrCode` (mã QR thanh toán) thật từ PayOS.
+- **API Webhook nhận kết quả (POST /api/payos/webhook):** Endpoint không cần auth cho PayOS gọi lại khi giao dịch hoàn tất — tự động xác minh chữ ký, cập nhật trạng thái đơn hàng sang "Đang giao", ghi chú `[Đã thanh toán qua PayOS]`, gửi thông báo cho cả khách hàng và admin, ghi log hoạt động và gửi email xác nhận.
+- **Nâng cấp luồng Checkout Online:** Khi khách chọn thanh toán online (MoMo/VNPAY), đơn hàng được lưu vào DB trước (status=0), sau đó gọi API tạo link PayOS. Nếu thành công hiển thị QR thật + nút "Mở cổng thanh toán PayOS"; nếu thất bại tự động chuyển sang chế độ mô phỏng với banner cảnh báo vàng.
+- **Trang kết quả thanh toán:** Tạo `checkout-success.html` và `checkout-cancel.html` với giao diện cao cấp, hiển thị thông tin đơn hàng và trạng thái thanh toán tương ứng.
+- **Cấu hình .env mẫu:** Bổ sung placeholder cho 3 key PayOS trong file `.env` kèm hướng dẫn comment rõ ràng.
+
 ---
-*Cập nhật lần cuối: 18/05/2026 bởi thaingan & AI Assistant.*
+*Cập nhật lần cuối: 20/05/2026 bởi thaingan & AI Assistant.*
 

@@ -3,6 +3,7 @@ let priceFinal = document.getElementById("checkout-cart-price-final");
 let currentVoucher = null;
 let currentDiscount = 0;
 let currentCheckoutProduct = null;
+let currentTotalBill = 0;
 
 // Trang thanh toan
 async function thanhtoanpage(option, product) {
@@ -179,6 +180,16 @@ async function thanhtoanpage(option, product) {
         document.getElementById('sdtnhan').value = currentUser.phone || "";
         document.getElementById('diachinhan').value = currentUser.address || "";
     }
+
+    // Lang nghe thay doi SDT de cap nhat QR Code dong
+    const sdtNhanInput = document.getElementById('sdtnhan');
+    if (sdtNhanInput) {
+        sdtNhanInput.addEventListener('input', () => {
+            if (currentTotalBill > 0) {
+                updateDynamicQRCodes(currentTotalBill);
+            }
+        });
+    }
 }
 
 async function showProductCart() {
@@ -296,7 +307,32 @@ window.changeQtyBuyNow = function(delta) {
 }
 
 function updateCheckoutTotal(total) {
+    currentTotalBill = total;
     priceFinal.innerText = vnd(total);
+    updateDynamicQRCodes(total);
+}
+
+function updateDynamicQRCodes(amount) {
+    if (!amount || amount <= 0) return;
+
+    const currentUser = localStorage.getItem('currentuser') ? JSON.parse(localStorage.getItem('currentuser')) : null;
+    const phoneInput = document.getElementById('sdtnhan');
+    const phone = phoneInput && phoneInput.value.trim() ? phoneInput.value.trim() : (currentUser ? currentUser.phone : 'Guest');
+    
+    // Loai bo dau tieng Viet, ky tu dac biet cho noi dung chuyen khoan
+    const description = `TiMiFood ${phone}`.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-zA-Z0-9 ]/g, "");
+
+    // 1. Cap nhat mini QR VNPAY (MB Bank 24888816052005)
+    const vnpayMiniQR = document.querySelector('.payment-item[data-payment="vnpay"] .payment-qr-mini img');
+    if (vnpayMiniQR) {
+        vnpayMiniQR.src = `https://img.vietqr.io/image/MB-24888816052005-qr_only.png?amount=${amount}&addInfo=${encodeURIComponent(description)}&accountName=${encodeURIComponent("NGUYEN VAN NGAN")}`;
+    }
+
+    // 2. Cap nhat mini QR MoMo (0345975990)
+    const momoMiniQR = document.querySelector('.payment-item[data-payment="momo"] .payment-qr-mini img');
+    if (momoMiniQR) {
+        momoMiniQR.src = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(`https://nhantien.momo.vn/0345975990/${amount}`)}`;
+    }
 }
 
 // Close Page Checkout
@@ -455,21 +491,60 @@ async function getCartTotal() {
 
 // Mo phong thanh toan online
 let pendingOrderData = null;
+let currentSimOrderId = null;
 
-function openPaymentSim(method, amount) {
+async function openPaymentSim(method, amount, orderId) {
     const modal = document.querySelector('.modal-payment-sim');
     const gateImg = document.getElementById('payment-gate-img');
     const qrImg = document.getElementById('payment-qr-img');
     const amountVal = document.getElementById('payment-amount-value');
+    const warningBanner = document.getElementById('payment-sim-warning');
+    const payosLink = document.getElementById('payment-payos-link');
 
+    currentSimOrderId = orderId;
     amountVal.innerText = vnd(amount);
+
+    if (warningBanner) warningBanner.style.display = 'none';
+    if (payosLink) payosLink.style.display = 'none';
 
     if (method === 'momo') {
         gateImg.src = './assets/img/icons/momo-icon.png';
-        qrImg.src = './assets/img/qrthanhtoan/qrmomo.jpg';
     } else {
         gateImg.src = './assets/img/icons/vnpay-icon.png';
-        qrImg.src = './assets/img/qrthanhtoan/qrvnpay.jpg';
+    }
+
+    // Cố gắng tạo link PayOS thật từ backend
+    try {
+        const currentUser = localStorage.getItem('currentuser') ? JSON.parse(localStorage.getItem('currentuser')) : null;
+        const description = `TiMiFood ${orderId}`;
+        
+        const payosResult = await window.api.createPayOSPaymentLink(orderId, amount, description);
+        if (payosResult && payosResult.success) {
+            // Hiển thị QR của PayOS và nút thanh toán trực tiếp
+            qrImg.src = payosResult.qrCode || `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(payosResult.checkoutUrl)}`;
+            if (payosLink) {
+                payosLink.href = payosResult.checkoutUrl;
+                payosLink.style.display = 'inline-block';
+            }
+        } else {
+            throw new Error("PayOS chưa được cấu hình");
+        }
+    } catch (err) {
+        console.warn("[Checkout] Không tạo được liên kết PayOS thật, chuyển sang chế độ mô phỏng:", err.message);
+        
+        // Chuyển sang chế độ mô phỏng (Mock/Simulation)
+        if (warningBanner) warningBanner.style.display = 'block';
+        
+        const currentUser = localStorage.getItem('currentuser') ? JSON.parse(localStorage.getItem('currentuser')) : null;
+        const phoneInput = document.getElementById('sdtnhan');
+        const phone = phoneInput && phoneInput.value.trim() ? phoneInput.value.trim() : (currentUser ? currentUser.phone : 'Guest');
+        const description = `TiMiFood ${phone}`.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-zA-Z0-9 ]/g, "");
+
+        if (method === 'momo') {
+            qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(`https://nhantien.momo.vn/0345975990/${amount}`)}`;
+        } else {
+            qrImg.src = `https://img.vietqr.io/image/MB-24888816052005-qr_only.png?amount=${amount}&addInfo=${encodeURIComponent(description)}&accountName=${encodeURIComponent("NGUYEN VAN NGAN")}`;
+        }
     }
 
     modal.classList.add('open');
@@ -478,28 +553,27 @@ function openPaymentSim(method, amount) {
 function closePaymentSim() {
     document.querySelector('.modal-payment-sim').classList.remove('open');
     pendingOrderData = null;
+    currentSimOrderId = null;
 }
 
 async function confirmPaymentSim() {
-    if (pendingOrderData) {
+    if (currentSimOrderId) {
         try {
-            const result = await window.api.createOrder(pendingOrderData);
+            // Giả lập thanh toán thành công: cập nhật trạng thái đơn hàng sang Đang giao (status = 1)
+            const result = await window.api.updateOrderStatus(currentSimOrderId, 1);
             if (result.success) {
-                // Reliance on notification system to show the toast
+                toast({ title: 'Thành công', message: 'Xác nhận thanh toán thành công (Mô phỏng)!', type: 'success', duration: 3000 });
+                closePaymentSim();
+                closecheckout();
+                
+                // Đồng bộ thông báo để admin thấy ngay
                 if (typeof syncNotificationsFromServer === 'function') {
                     syncNotificationsFromServer();
                 }
-                closePaymentSim();
-                closecheckout();
-                // Clear cart if ordered from cart
-                if (!pendingOrderData.isBuyNow) {
-                    let currentUser = JSON.parse(localStorage.getItem('currentuser'));
-                    currentUser.cart = [];
-                    localStorage.setItem('currentuser', JSON.stringify(currentUser));
-                    updateCartCount();
-                }
+                
+                if (typeof renderOrderProduct === 'function') await renderOrderProduct();
             } else {
-                toast({ title: 'Lỗi', message: result.message || 'Đã có lỗi xảy ra khi thanh toán!', type: 'error', duration: 3000 });
+                toast({ title: 'Lỗi', message: result.message || 'Lỗi khi cập nhật đơn hàng!', type: 'error', duration: 3000 });
             }
         } catch (error) {
             console.error("Payment confirmation error:", error);
@@ -636,8 +710,28 @@ async function xulyDathang(product) {
 
     // Neu thanh toan online
     if (paymentMethod !== 'cash') {
-        pendingOrderData = donhang;
-        openPaymentSim(paymentMethod, finalTotal);
+        try {
+            // Lưu đơn hàng trước với trạng thái status = 0 (Chờ xử lý)
+            const result = await window.api.createOrder(donhang);
+            if (result.success) {
+                // Mở modal thanh toán (truyền thêm orderId mới tạo)
+                await openPaymentSim(paymentMethod, finalTotal, result.orderId);
+                
+                // Xoá giỏ hàng sau khi đặt thành công
+                if (product == undefined) {
+                    let currentUserObj = JSON.parse(localStorage.getItem('currentuser'));
+                    currentUserObj.cart = [];
+                    localStorage.setItem('currentuser', JSON.stringify(currentUserObj));
+                    if (typeof updateCartCount === 'function') updateCartCount();
+                    try { await window.api.updateCart(currentUserObj.phone, []); } catch(e) {}
+                }
+            } else {
+                toast({ title: 'Lỗi', message: result.message || 'Lỗi khi tạo đơn hàng!', type: 'error', duration: 3000 });
+            }
+        } catch (error) {
+            console.error("Lỗi khi tạo đơn hàng online:", error);
+            toast({ title: 'Lỗi', message: 'Không thể kết nối máy chủ!', type: 'error', duration: 3000 });
+        }
         return;
     }
 

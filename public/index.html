@@ -911,6 +911,7 @@
                 <button class="form-close" onclick="closePaymentSim()"><i class="fa-regular fa-xmark"></i></button>
             </div>
             <div class="payment-sim-body">
+                <div id="payment-sim-warning" class="payment-sim-warning" style="display: none;">Chế độ mô phỏng (Chưa cấu hình PayOS)</div>
                 <div class="payment-gate-info">
                     <img id="payment-gate-img" src="" alt="">
                     <p>Đang xử lý giao dịch...</p>
@@ -919,6 +920,7 @@
                     <img id="payment-qr-img" src="" alt="QR Code">
                     <p>Quét mã QR để thanh toán</p>
                 </div>
+                <a id="payment-payos-link" class="btn-payos-link" href="#" target="_blank" style="display: none;">Mở cổng thanh toán PayOS</a>
                 <div class="payment-amount">
                     <span>Số tiền cần thanh toán:</span>
                     <h4 id="payment-amount-value">0đ</h4>

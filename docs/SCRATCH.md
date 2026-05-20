@@ -71,5 +71,13 @@ File này dùng để lưu trữ các ý tưởng, đoạn code nháp, hoặc c�
 *   **Modal Khuyến mãi (Voucher):**
     *   Cập nhật cấu hình hoàn toàn đồng bộ với form Nhập kho mới, đem lại trải nghiệm quản trị thống nhất và hiện đại toàn diện.
 
+## 📌 Tích hợp mã QR Thanh toán Động (Dynamic QR Payment Integration):
+*   **Mục tiêu:** Nâng cấp hệ thống thanh toán để thay thế các ảnh QR Code tĩnh lỗi thời bằng mã QR động tạo thời gian thực, chứa chính xác số tiền cần thanh toán và nội dung chuyển khoản tự động.
+*   **Giải pháp đã thực hiện:**
+    1.  **VNPAY (VietQR qua Ngân hàng MB):** Sử dụng API miễn phí của VietQR (`https://img.vietqr.io/image/MB-24888816052005-qr_only.png`) để sinh mã QR động.
+    2.  **MoMo (Ví điện tử):** Sử dụng dịch vụ link nhận tiền MoMo (`https://nhantien.momo.vn/0345975990/<amount>`) kết hợp API sinh QR code (`https://api.qrserver.com/`) để sinh ảnh QR khi quét sẽ mở ứng dụng MoMo và tự động điền số tiền.
+    3.  **Tự động cập nhật:** Lắng nghe sự kiện thay đổi của trường Số điện thoại người nhận (`sdtnhan`) và bất kỳ sự thay đổi tổng tiền nào (cập nhật giỏ hàng, phí vận chuyển, áp dụng voucher) để tái tạo mã QR ngay lập tức, đảm bảo nội dung chuyển khoản dạng `TiMiFood <Số điện thoại>` (chuẩn hóa không dấu và ký tự đặc biệt) luôn chính xác.
+    4.  **Đồng bộ hóa:** Đồng bộ hóa ảnh QR hiển thị cả trên accordion mini tại trang checkout và cửa sổ mô phỏng thanh toán trực tuyến.
+
 ---
-*Cập nhật lần cuối: 18/05/2026 bởi thaingan & AI Assistant.*
+*Cập nhật lần cuối: 20/05/2026 bởi thaingan & AI Assistant.*

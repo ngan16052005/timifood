@@ -717,5 +717,26 @@ window.api = {
             console.error("getLiveChats error:", error);
             throw error;
         }
+    },
+
+    createPayOSPaymentLink: async (orderId, amount, description) => {
+        showLoader();
+        try {
+            const response = await fetch(`${BASE_URL}/payos/create-payment-link`, {
+                method: 'POST',
+                headers: getHeaders(),
+                body: JSON.stringify({ orderId, amount, description })
+            });
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.message || 'Không thể tạo liên kết thanh toán PayOS');
+            }
+            return await response.json();
+        } catch (error) {
+            console.error("PayOS API error:", error);
+            throw error;
+        } finally {
+            hideLoader();
+        }
     }
 };
