@@ -192,6 +192,14 @@ Dưới đây là danh sách đầy đủ các hạng mục đã hoàn thiện t
 - [x] **Xóa route trùng lặp (Dead Code):** Phát hiện và loại bỏ route `DELETE /api/orders/:id` bị trùng lặp (dead code — không bao giờ được thực thi do Express ưu tiên route đăng ký trước).
 - [x] **Thêm scripts NPM tiêu chuẩn:** Bổ sung `npm start` và `npm run dev` vào `package.json` thay vì chạy thủ công `node server.js`.
 - [x] **Tạo file `.env.example`:** Cung cấp file mẫu cấu hình biến môi trường với hướng dẫn chi tiết bằng tiếng Việt, giúp cài đặt nhanh chóng khi clone dự án.
+- [x] **Tách `server.js` thành modules:** Giảm từ 2109 dòng → 1713 dòng bằng cách tách:
+  - `src/middleware/auth.js` — JWT authentication, phân quyền Admin/Staff
+  - `src/middleware/rateLimiter.js` — Rate limiting cho login, OTP, đăng ký, đổi mật khẩu
+  - `src/helpers/email.js` — Nodemailer transporter & gửi email đơn hàng
+  - `src/helpers/notification.js` — Tạo thông báo + phát Socket.io real-time
+  - `src/helpers/logger.js` — Ghi log hoạt động hệ thống
+  - `src/socket/handlers.js` — Socket.io handlers & Live Chat sessions
 
 ---
 *Cập nhật lần cuối: 20/05/2026 bởi thaingan & AI Assistant.*
+

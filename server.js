@@ -5,8 +5,12 @@ const path = require('path');
 const { sql, connectDB } = require('./src/config/db');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
-const nodemailer = require('nodemailer');
 require('dotenv').config();
+
+// --- Module imports (Tách module - Giai đoạn 28) ---
+const { authenticateToken, isAdmin, isStaffOrAdmin, SECRET_KEY } = require('./src/middleware/auth');
+const { loginLimiter, otpLimiter, resetPasswordLimiter, registerLimiter, changePasswordLimiter } = require('./src/middleware/rateLimiter');
+const { transporter, sendOrderEmail } = require('./src/helpers/email');
 
 const PayOS = require('@payos/node');
 const payos = (process.env.PAYOS_CLIENT_ID && process.env.PAYOS_API_KEY && process.env.PAYOS_CHECKSUM_KEY)
@@ -15,16 +19,6 @@ const payos = (process.env.PAYOS_CLIENT_ID && process.env.PAYOS_API_KEY && proce
 
 // OTP Storage (Phone -> {otp, expiry})
 const otpStore = new Map();
-
-const transporter = nodemailer.createTransport({
-    service: 'gmail',
-    auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS
-    }
-});
-
-const SECRET_KEY = process.env.JWT_SECRET || 'TiMiFood_Secret_Key_2026';
 
 // Global error handlers to prevent silent crashes
 process.on('uncaughtException', (err) => {
@@ -64,195 +58,13 @@ app.use((req, res, next) => {
     next();
 });
 
-// Active Live Chat sessions in memory (Key: customerPhone)
-let activeChats = {};
+// Socket.io & Live Chat handlers (tách module)
+const { activeChats, getActiveChatsSummary } = require('./src/socket/handlers')({ io });
 
-function getActiveChatsSummary() {
-    return Object.values(activeChats).map(c => ({
-        phone: c.phone,
-        fullname: c.fullname,
-        status: c.status,
-        staffPhone: c.staffPhone,
-        staffName: c.staffName,
-        createdAt: c.createdAt,
-        messages: c.messages,
-        lastMessage: c.messages[c.messages.length - 1] || null
-    }));
-}
-
-// Socket.io Connection
-io.on('connection', (socket) => {
-    console.log('A user connected:', socket.id);
-    
-    socket.on('joinAdmin', () => {
-        socket.join('adminRoom');
-        console.log(`Socket ${socket.id} joined adminRoom`);
-    });
-
-    socket.on('joinUser', (userPhone) => {
-        socket.join(`userRoom_${userPhone}`);
-        console.log(`Socket ${socket.id} joined userRoom_${userPhone}`);
-    });
-
-    // --- LIVE CHAT REAL-TIME EVENT LISTENERS ---
-    
-    // Customer requests support
-    socket.on('client_request_live_chat', (data) => {
-        const { phone, fullname } = data;
-        if (!phone) return;
-
-        console.log(`[LiveChat] Customer ${fullname} (${phone}) requested live support.`);
-        
-        // Initialize active chat session
-        activeChats[phone] = {
-            socketId: socket.id,
-            phone: phone,
-            fullname: fullname || 'Khách vãng lai',
-            messages: [],
-            status: 'waiting',
-            staffPhone: null,
-            staffName: null,
-            createdAt: new Date()
-        };
-
-        // Inform customer
-        socket.emit('live_chat_status', { status: 'waiting' });
-
-        // Broadcast to all staff in adminRoom
-        io.to('adminRoom').emit('new_chat_session', {
-            phone: phone,
-            fullname: activeChats[phone].fullname,
-            status: 'waiting',
-            createdAt: activeChats[phone].createdAt
-        });
-        
-        io.to('adminRoom').emit('active_chats_updated', getActiveChatsSummary());
-    });
-
-    // Staff accepts and joins support chat
-    socket.on('staff_join_chat', (data) => {
-        const { staffPhone, staffName, customerPhone } = data;
-        if (!customerPhone || !activeChats[customerPhone]) {
-            socket.emit('staff_join_error', { message: 'Phiên hỗ trợ này không còn tồn tại!' });
-            return;
-        }
-
-        console.log(`[LiveChat] Staff ${staffName} (${staffPhone}) accepted chat with ${customerPhone}`);
-
-        // Update session
-        activeChats[customerPhone].status = 'chatting';
-        activeChats[customerPhone].staffPhone = staffPhone;
-        activeChats[customerPhone].staffName = staffName;
-
-        // Inform customer via userRoom_${customerPhone}
-        io.to(`userRoom_${customerPhone}`).emit('chat_session_active', {
-            staffName: staffName,
-            status: 'chatting'
-        });
-        io.to(`userRoom_${customerPhone}`).emit('staff_join_chat', {
-            staffName: staffName,
-            status: 'chatting'
-        });
-
-        // Inform staff joining success and return current chat history
-        socket.emit('staff_join_success', {
-            customerPhone: customerPhone,
-            fullname: activeChats[customerPhone].fullname,
-            messages: activeChats[customerPhone].messages
-        });
-
-        // Broadcast updated chats to staff dashboard
-        io.to('adminRoom').emit('active_chats_updated', getActiveChatsSummary());
-    });
-
-    // Route real-time message between customer and staff
-    socket.on('send_chat_message', (data) => {
-        const phone = data.phone || data.room;
-        const rawSender = data.sender; // 'customer' | 'client' | 'staff'
-        const text = data.text;
-
-        if (!phone || !activeChats[phone]) {
-            console.log(`[LiveChat] [WARNING] Chat session not found for phone: ${phone}`);
-            return;
-        }
-
-        const sender = (rawSender === 'staff' || rawSender === 'admin') ? 'staff' : 'customer';
-
-        const msgObj = {
-            sender: sender,
-            text: text,
-            timestamp: new Date()
-        };
-
-        // Save to memory log
-        activeChats[phone].messages.push(msgObj);
-
-        console.log(`[LiveChat] [${sender.toUpperCase()}] to ${phone}: ${text}`);
-
-        if (sender === 'customer') {
-            // Forward to admins in adminRoom
-            io.to('adminRoom').emit('receive_chat_message', {
-                customerPhone: phone,
-                sender: 'customer',
-                text: text,
-                message: msgObj
-            });
-        } else {
-            // Forward to customer in userRoom_${phone}
-            io.to(`userRoom_${phone}`).emit('receive_chat_message', {
-                customerPhone: phone,
-                sender: 'staff',
-                text: text,
-                message: msgObj
-            });
-        }
-
-        // Broadcast updated active chats list to all admins (triggers automatic UI and message list re-render)
-        io.to('adminRoom').emit('active_chats_updated', getActiveChatsSummary());
-    });
-
-    // Terminate chat session
-    socket.on('end_live_chat', (data) => {
-        const { phone, sender } = data;
-        if (!phone || !activeChats[phone]) return;
-
-        console.log(`[LiveChat] Chat ended for client (${phone}) by ${sender}`);
-
-        // Notify client
-        io.to(`userRoom_${phone}`).emit('chat_session_ended', {
-            message: 'Cuộc trò chuyện đã kết thúc. Trợ lý ảo AI sẽ tiếp tục hỗ trợ bạn!'
-        });
-
-        // Cleanup
-        delete activeChats[phone];
-
-        // Broadcast update to admins
-        io.to('adminRoom').emit('active_chats_updated', getActiveChatsSummary());
-        io.to('adminRoom').emit('chat_session_ended_admin', { customerPhone: phone });
-    });
-
-    socket.on('error', (err) => {
-        console.error(`[Socket] Connection error on socket ${socket.id}:`, err);
-    });
-
-    socket.on('disconnect', () => {
-        console.log('User disconnected:', socket.id);
-        
-        // Find if disconnected user had an active chat session
-        for (const phone in activeChats) {
-            if (activeChats[phone].socketId === socket.id) {
-                console.log(`[LiveChat] Client (${phone}) disconnected, ending chat session`);
-                io.to('adminRoom').emit('chat_session_ended_admin', { customerPhone: phone });
-                delete activeChats[phone];
-                io.to('adminRoom').emit('active_chats_updated', getActiveChatsSummary());
-                break;
-            }
-        }
-    });
-});
 
 
 let pool;
+let createNotification, createLog;
 async function startServer() {
     try {
         pool = await connectDB();
@@ -273,6 +85,10 @@ async function startServer() {
                 END
             `);
             console.log('Database initialized successfully.');
+
+            // Khởi tạo helper functions sau khi pool sẵn sàng
+            ({ createNotification } = require('./src/helpers/notification')({ pool, sql, io }));
+            ({ createLog } = require('./src/helpers/logger')({ pool, sql }));
         }
 
         // Verify email transporter configuration
@@ -298,219 +114,7 @@ async function startServer() {
     }
 }
 
-// --- MIDDLEWARE ---
-const rateLimiterStore = new Map();
 
-const rateLimiter = (limitCount, windowMs, message) => {
-    return (req, res, next) => {
-        const now = Date.now();
-        // Dọn dẹp bộ nhớ định kỳ (xác suất 10% mỗi request) để tránh rò rỉ bộ nhớ
-        if (Math.random() < 0.1) {
-            for (const [key, value] of rateLimiterStore.entries()) {
-                if (now > value.resetTime) {
-                    rateLimiterStore.delete(key);
-                }
-            }
-        }
-
-        const ip = req.ip || req.headers['x-forwarded-for'] || req.socket.remoteAddress;
-        const routeKey = `${ip}:${req.path}`;
-        
-        let clientData = rateLimiterStore.get(routeKey);
-        
-        if (!clientData) {
-            rateLimiterStore.set(routeKey, {
-                count: 1,
-                resetTime: now + windowMs
-            });
-            return next();
-        }
-        
-        if (now > clientData.resetTime) {
-            clientData.count = 1;
-            clientData.resetTime = now + windowMs;
-            return next();
-        }
-        
-        clientData.count++;
-        if (clientData.count > limitCount) {
-            return res.status(429).json({
-                success: false,
-                message: message || 'Bạn đã thực hiện quá nhiều yêu cầu. Vui lòng thử lại sau.'
-            });
-        }
-        
-        next();
-    };
-};
-
-const loginLimiter = rateLimiter(10, 5 * 60 * 1000, 'Bạn đã đăng nhập quá nhiều lần. Vui lòng thử lại sau 5 phút.');
-const otpLimiter = rateLimiter(3, 5 * 60 * 1000, 'Bạn đã yêu cầu gửi mã OTP quá nhiều lần. Vui lòng thử lại sau 5 phút.');
-const resetPasswordLimiter = rateLimiter(5, 10 * 60 * 1000, 'Bạn đã thực hiện khôi phục mật khẩu quá nhiều lần. Vui lòng thử lại sau 10 phút.');
-const registerLimiter = rateLimiter(10, 60 * 60 * 1000, 'Bạn đã đăng ký quá nhiều tài khoản từ địa chỉ IP này. Vui lòng thử lại sau 1 giờ.');
-const changePasswordLimiter = rateLimiter(5, 10 * 60 * 1000, 'Bạn đã đổi mật khẩu quá nhiều lần. Vui lòng thử lại sau 10 phút.');
-
-const authenticateToken = (req, res, next) => {
-    const authHeader = req.headers['authorization'];
-    const token = authHeader && authHeader.split(' ')[1];
-
-    if (!token) return res.status(401).json({ message: 'Bạn cần đăng nhập để thực hiện thao tác này' });
-
-    jwt.verify(token, SECRET_KEY, (err, user) => {
-        if (err) return res.status(403).json({ message: 'Phiên đăng nhập hết hạn hoặc không hợp lệ' });
-        req.user = user;
-        next();
-    });
-};
-
-const isAdmin = (req, res, next) => {
-    if (req.user && req.user.userType === 1) {
-        next();
-    } else {
-        res.status(403).json({ message: 'Access denied. Admin only.' });
-    }
-};
-
-const isStaffOrAdmin = (req, res, next) => {
-    if (req.user && (req.user.userType === 1 || req.user.userType === 2)) {
-        next();
-    } else {
-        res.status(403).json({ message: 'Access denied. Staff or Admin only.' });
-    }
-};
-
-// Helper function to create notifications
-async function createNotification(userPhone, title, message, type = 'info') {
-    console.log(`[Notification] Creating for ${userPhone}: ${title}`);
-    try {
-        if (!pool) {
-            console.error("[Notification] Error: DB pool not initialized");
-            return false;
-        }
-        const result = await pool.request()
-            .input('userPhone', sql.NVarChar, userPhone)
-            .input('title', sql.NVarChar, title)
-            .input('message', sql.NVarChar, message)
-            .input('type', sql.NVarChar, type)
-            .query(`INSERT INTO Notifications (userPhone, title, message, type, isRead, createdAt) 
-                    OUTPUT INSERTED.id
-                    VALUES (@userPhone, @title, @message, @type, 0, GETDATE())`);
-        
-        const newNotiId = result.recordset[0].id;
-        console.log(`[Notification] Success: Created for ${userPhone}, ID: ${newNotiId}`);
-
-        // Emit real-time notification
-        const notiData = {
-            id: newNotiId,
-            title,
-            message,
-            type,
-            createdAt: new Date().toISOString(),
-            isRead: false
-        };
-
-        if (userPhone === 'ADMIN') {
-            io.to('adminRoom').emit('newNotification', notiData);
-        } else {
-            // Emit to the specific user's room!
-            io.to(`userRoom_${userPhone}`).emit('userNotification', notiData);
-            console.log(`[Socket] Emitted userNotification to userRoom_${userPhone}:`, notiData);
-        }
-
-        return true;
-    } catch (err) {
-        console.error("[Notification] Error creating notification:", err);
-        return false;
-    }
-}
-
-// Helper function to create system logs
-async function createLog(userPhone, action, details) {
-    console.log(`[Log] ${userPhone}: ${action} - ${details}`);
-    try {
-        if (!pool) return false;
-        await pool.request()
-            .input('userPhone', sql.NVarChar, userPhone)
-            .input('action', sql.NVarChar, action)
-            .input('details', sql.NVarChar, details)
-            .query('INSERT INTO SystemLogs (userPhone, action, details, createdAt) VALUES (@userPhone, @action, @details, GETDATE())');
-        return true;
-    } catch (err) {
-        console.error("[Log] Error creating system log:", err);
-        return false;
-    }
-}
-
-// Email transporter already initialized at the top
-
-async function sendOrderEmail(orderId, customerEmail, statusName, orderDetails, retries = 3) {
-    console.log(`[Email] Sending order update for #${orderId} to ${customerEmail}`);
-    
-    if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS || !customerEmail || customerEmail === 'your-email@gmail.com') {
-        console.warn("[Email] Skipping email send: Missing credentials or default placeholder email");
-        return;
-    }
-
-    const mailOptions = {
-        from: process.env.MAIL_FROM || process.env.EMAIL_USER,
-        to: customerEmail,
-        subject: `TiMi Food - Cập nhật đơn hàng #${orderId}`,
-        html: `
-            <div style="font-family: Arial, sans-serif; padding: 20px; border: 1px solid #eee; max-width: 600px; border-radius: 10px;">
-                <div style="text-align: center; margin-bottom: 20px;">
-                    <h1 style="color: #B5292F; margin: 0;">TiMi Food</h1>
-                    <p style="color: #666; font-size: 14px;">Cảm ơn bạn đã tin tưởng dịch vụ của chúng tôi!</p>
-                </div>
-                <div style="background-color: #f9f9f9; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
-                    <h2 style="color: #333; font-size: 18px; margin-top: 0;">Thông báo trạng thái đơn hàng</h2>
-                    <p>Chào bạn,</p>
-                    <p>Đơn hàng <strong>#${orderId}</strong> của bạn đã được cập nhật trạng thái mới:</p>
-                    <div style="background: #B5292F; color: white; padding: 10px 20px; display: inline-block; border-radius: 5px; font-weight: bold; font-size: 16px;">
-                        ${statusName}
-                    </div>
-                </div>
-                <div style="border-top: 1px solid #eee; padding-top: 20px;">
-                    <h3 style="color: #333; font-size: 16px;">Thông tin đơn hàng:</h3>
-                    <table style="width: 100%; font-size: 14px;">
-                        <tr>
-                            <td style="color: #666; padding: 5px 0;">Tổng thanh toán:</td>
-                            <td style="text-align: right; font-weight: bold; color: #ee4d2d;">${new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(orderDetails.totalPrice)}</td>
-                        </tr>
-                        <tr>
-                            <td style="color: #666; padding: 5px 0;">Địa chỉ giao hàng:</td>
-                            <td style="text-align: right;">${orderDetails.receiverAddress}</td>
-                        </tr>
-                        <tr>
-                            <td style="color: #666; padding: 5px 0;">Số điện thoại:</td>
-                            <td style="text-align: right;">${orderDetails.receiverPhone}</td>
-                        </tr>
-                    </table>
-                </div>
-                <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee; text-align: center; color: #999; font-size: 12px;">
-                    <p>Đây là email tự động, vui lòng không phản hồi email này.</p>
-                    <p>&copy; 2026 TiMi Food. All rights reserved.</p>
-                </div>
-            </div>
-        `
-    };
-
-    for (let attempt = 1; attempt <= retries; attempt++) {
-        try {
-            await transporter.sendMail(mailOptions);
-            console.log(`[Email] Email sent successfully to ${customerEmail} (Attempt ${attempt}/${retries})`);
-            return;
-        } catch (error) {
-            console.error(`[Email] Attempt ${attempt} failed to send email:`, error.message);
-            if (attempt === retries) {
-                console.error("[Email] All retry attempts exhausted. Failed to send order email.");
-            } else {
-                const backoffMs = attempt * 2000;
-                console.log(`[Email] Retrying in ${backoffMs}ms...`);
-                await new Promise(resolve => setTimeout(resolve, backoffMs));
-            }
-        }
-    }
-}
 
 // Delete order (Customer can delete history of completed/cancelled orders)
 app.delete('/api/orders/:id', authenticateToken, async (req, res) => {
