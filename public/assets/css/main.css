@@ -115,8 +115,13 @@ img {
 }
 
 @keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
 }
 
 
@@ -2959,10 +2964,12 @@ input[type=number] {
     margin-bottom: 15px;
     text-align: center;
 }
+
 .btn-payos-link:hover {
     background: #009475;
     color: #fff;
 }
+
 .payment-sim-warning {
     background: #ffeaa7;
     color: #d63031;
@@ -3761,7 +3768,8 @@ input[type=number] {
 .modal {
     backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
-    background-color: rgba(15, 23, 42, 0.4) !important; /* Soft premium navy dark overlay */
+    background-color: rgba(15, 23, 42, 0.4) !important;
+    /* Soft premium navy dark overlay */
     transition: opacity 0.4s cubic-bezier(0.25, 0.8, 0.25, 1), visibility 0.4s ease !important;
 }
 
@@ -3771,16 +3779,20 @@ input[type=number] {
     opacity: 0;
     transition: transform 0.45s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.4s ease !important;
 }
+
 .modal.open .modal-container {
     transform: scale(1) translateY(0) !important;
     opacity: 1 !important;
 }
 
 /* 3. Sleek close button animations */
-.modal-close, .form-close {
+.modal-close,
+.form-close {
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
 }
-.modal-close:hover, .form-close:hover {
+
+.modal-close:hover,
+.form-close:hover {
     background-color: var(--red) !important;
     color: var(--white) !important;
     transform: scale(1.1) rotate(90deg);
@@ -3791,6 +3803,7 @@ input[type=number] {
 .cart-item {
     transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
 }
+
 .cart-item:hover {
     background-color: #fbfbfb;
     padding-left: 8px !important;
@@ -3801,6 +3814,7 @@ input[type=number] {
 .cart-item-delete {
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
 }
+
 .cart-item-delete:hover {
     background-color: #c0392b !important;
     transform: scale(1.05);
@@ -3808,9 +3822,11 @@ input[type=number] {
 }
 
 /* 6. Premium hover animations for Cart Actions */
-button.them-mon, button.thanh-toan {
+button.them-mon,
+button.thanh-toan {
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
 }
+
 button.them-mon:hover {
     background-color: #f8fafc !important;
     border-color: var(--red) !important;
@@ -3818,6 +3834,7 @@ button.them-mon:hover {
     transform: translateY(-2px);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
 }
+
 button.thanh-toan:hover:not(.disabled) {
     background-color: #c0392b !important;
     transform: translateY(-2px);
@@ -3828,6 +3845,7 @@ button.thanh-toan:hover:not(.disabled) {
 .is-form {
     transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
 }
+
 .is-form:hover {
     background-color: var(--red) !important;
     color: white !important;
@@ -3839,6 +3857,7 @@ button.thanh-toan:hover:not(.disabled) {
 .modal-footer-control button {
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
 }
+
 .modal-footer-control button:hover {
     background-color: #c0392b !important;
     transform: translateY(-2px);
@@ -3868,10 +3887,12 @@ button.thanh-toan:hover:not(.disabled) {
     z-index: 999;
     transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
+
 .chatbot-toggle:hover {
     transform: scale(1.1) translateY(-3px);
     box-shadow: 0 12px 28px rgba(231, 76, 60, 0.5);
 }
+
 .chatbot-pulse {
     position: absolute;
     width: 100%;
@@ -3881,9 +3902,17 @@ button.thanh-toan:hover:not(.disabled) {
     animation: chatbotPulse 2s infinite;
     z-index: -1;
 }
+
 @keyframes chatbotPulse {
-    0% { transform: scale(1); opacity: 1; }
-    100% { transform: scale(1.5); opacity: 0; }
+    0% {
+        transform: scale(1);
+        opacity: 1;
+    }
+
+    100% {
+        transform: scale(1.5);
+        opacity: 0;
+    }
 }
 
 /* 2. Chatbot Container */
@@ -3908,6 +3937,7 @@ button.thanh-toan:hover:not(.disabled) {
     visibility: hidden;
     transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
+
 .chatbot-container.open {
     transform: translateY(0) scale(1);
     opacity: 1;
@@ -3924,11 +3954,13 @@ button.thanh-toan:hover:not(.disabled) {
     justify-content: space-between;
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
 }
+
 .chatbot-header-info {
     display: flex;
     align-items: center;
     gap: 12px;
 }
+
 .chatbot-avatar {
     width: 40px;
     height: 40px;
@@ -3937,12 +3969,14 @@ button.thanh-toan:hover:not(.disabled) {
     background: white;
     object-fit: cover;
 }
+
 .chatbot-name {
     font-weight: 700;
     font-size: 15px;
     display: block;
     margin-bottom: 2px;
 }
+
 .chatbot-status {
     font-size: 11px;
     opacity: 0.9;
@@ -3950,6 +3984,7 @@ button.thanh-toan:hover:not(.disabled) {
     align-items: center;
     gap: 4px;
 }
+
 .status-dot {
     width: 6px;
     height: 6px;
@@ -3958,12 +3993,14 @@ button.thanh-toan:hover:not(.disabled) {
     display: inline-block;
     box-shadow: 0 0 8px #2ecc71;
 }
+
 .chatbot-header-actions i {
     cursor: pointer;
     font-size: 16px;
     transition: transform 0.2s;
     padding: 4px;
 }
+
 .chatbot-header-actions i:hover {
     transform: scale(1.2);
 }
@@ -3978,6 +4015,7 @@ button.thanh-toan:hover:not(.disabled) {
     gap: 12px;
     scroll-behavior: smooth;
 }
+
 .chat-msg {
     max-width: 85%;
     padding: 10px 14px;
@@ -3987,16 +4025,26 @@ button.thanh-toan:hover:not(.disabled) {
     word-wrap: break-word;
     animation: chatMessageFadeIn 0.3s ease forwards;
 }
+
 @keyframes chatMessageFadeIn {
-    from { opacity: 0; transform: translateY(8px); }
-    to { opacity: 1; transform: translateY(0); }
+    from {
+        opacity: 0;
+        transform: translateY(8px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
+
 .chat-msg.bot {
     align-self: flex-start;
     background-color: #f1f5f9;
     color: #1e293b;
     border-bottom-left-radius: 2px;
 }
+
 .chat-msg.user {
     align-self: flex-end;
     background: linear-gradient(135deg, var(--red) 0%, #ff5e3a 100%);
@@ -4015,6 +4063,7 @@ button.thanh-toan:hover:not(.disabled) {
     border-radius: 12px;
     border-bottom-left-radius: 2px;
 }
+
 .typing-dot {
     width: 6px;
     height: 6px;
@@ -4022,11 +4071,26 @@ button.thanh-toan:hover:not(.disabled) {
     border-radius: 50%;
     animation: typingBounce 1.4s infinite ease-in-out;
 }
-.typing-dot:nth-child(2) { animation-delay: 0.2s; }
-.typing-dot:nth-child(3) { animation-delay: 0.4s; }
+
+.typing-dot:nth-child(2) {
+    animation-delay: 0.2s;
+}
+
+.typing-dot:nth-child(3) {
+    animation-delay: 0.4s;
+}
+
 @keyframes typingBounce {
-    0%, 80%, 100% { transform: translateY(0); }
-    40% { transform: translateY(-6px); }
+
+    0%,
+    80%,
+    100% {
+        transform: translateY(0);
+    }
+
+    40% {
+        transform: translateY(-6px);
+    }
 }
 
 /* 5. Quick Replies Suggestions */
@@ -4037,6 +4101,7 @@ button.thanh-toan:hover:not(.disabled) {
     gap: 8px;
     border-top: 1px solid rgba(0, 0, 0, 0.05);
 }
+
 .quick-reply-btn {
     padding: 6px 12px;
     border-radius: 20px;
@@ -4048,6 +4113,7 @@ button.thanh-toan:hover:not(.disabled) {
     font-weight: 500;
     transition: all 0.2s ease;
 }
+
 .quick-reply-btn:hover {
     border-color: var(--red);
     color: var(--red);
@@ -4063,6 +4129,7 @@ button.thanh-toan:hover:not(.disabled) {
     border-top: 1px solid rgba(0, 0, 0, 0.05);
     background: white;
 }
+
 .chatbot-input-area input {
     flex: 1;
     border: 1px solid #e2e8f0;
@@ -4072,9 +4139,11 @@ button.thanh-toan:hover:not(.disabled) {
     font-size: 13.5px;
     transition: border-color 0.2s;
 }
+
 .chatbot-input-area input:focus {
     border-color: var(--red);
 }
+
 .chatbot-input-area button {
     width: 40px;
     height: 40px;
@@ -4090,6 +4159,7 @@ button.thanh-toan:hover:not(.disabled) {
     transition: transform 0.2s;
     box-shadow: 0 4px 10px rgba(231, 76, 60, 0.25);
 }
+
 .chatbot-input-area button:hover {
     transform: scale(1.08);
 }
@@ -4102,6 +4172,7 @@ button.thanh-toan:hover:not(.disabled) {
     margin-top: 8px;
     width: 100%;
 }
+
 .chat-product-card {
     display: flex;
     gap: 12px;
@@ -4109,32 +4180,37 @@ button.thanh-toan:hover:not(.disabled) {
     border-radius: 8px;
     padding: 8px;
     border: 1px solid #e2e8f0;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.02);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
 }
+
 .chat-product-img {
     width: 55px;
     height: 55px;
     border-radius: 6px;
     object-fit: cover;
 }
+
 .chat-product-info {
     flex: 1;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
 }
+
 .chat-product-title {
     font-size: 12px;
     font-weight: 600;
     color: #1e293b;
     margin: 0;
 }
+
 .chat-product-price {
     font-size: 11.5px;
     color: var(--red);
     font-weight: 700;
     margin: 2px 0;
 }
+
 .chat-product-btn {
     align-self: flex-start;
     border: none;
@@ -4147,6 +4223,7 @@ button.thanh-toan:hover:not(.disabled) {
     cursor: pointer;
     transition: background 0.2s;
 }
+
 .chat-product-btn:hover {
     background: #c0392b;
 }
@@ -4161,12 +4238,14 @@ button.thanh-toan:hover:not(.disabled) {
     border-left: 2px solid #e2e8f0;
     position: relative;
 }
+
 .chat-timeline-item {
     position: relative;
     padding-left: 8px;
     font-size: 12px;
     color: #64748b;
 }
+
 .chat-timeline-item::before {
     content: '';
     position: absolute;
@@ -4178,17 +4257,21 @@ button.thanh-toan:hover:not(.disabled) {
     background-color: #cbd5e1;
     border: 2px solid white;
 }
+
 .chat-timeline-item.active {
     font-weight: 600;
     color: #1e293b;
 }
+
 .chat-timeline-item.active::before {
     background-color: #2ecc71;
     box-shadow: 0 0 6px #2ecc71;
 }
+
 .chat-timeline-item.completed {
     color: #475569;
 }
+
 .chat-timeline-item.completed::before {
     background-color: var(--red);
 }
@@ -4201,6 +4284,7 @@ button.thanh-toan:hover:not(.disabled) {
         bottom: 200px;
         height: 460px;
     }
+
     .chatbot-toggle {
         bottom: 125px;
         right: 20px;
@@ -4325,7 +4409,8 @@ button.thanh-toan:hover:not(.disabled) {
     background: rgba(0, 0, 0, 0.04);
     color: #666;
     transition: all 0.3s ease;
-    position: static; /* override form-close absolute */
+    position: static;
+    /* override form-close absolute */
     display: flex;
     align-items: center;
     justify-content: center;
@@ -4344,13 +4429,16 @@ button.thanh-toan:hover:not(.disabled) {
         width: 95%;
         max-height: 90vh;
     }
+
     .policy-body {
         padding: 20px;
         font-size: 13.5px;
     }
+
     .policy-header {
         padding: 15px 20px;
     }
+
     .policy-header h3 {
         font-size: 18px;
     }

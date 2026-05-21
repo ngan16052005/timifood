@@ -159,167 +159,47 @@
             </div>
         </div>
     </div>
-    <main class="main-wrapper">
-        <div class="container" id="trangchu">
-            <h1 class="sr-only">TiMi Food — Đặt món ăn ngon, giao tận nơi tại Hải Phòng</h1>
-            <div class="home-slider">
-                <div class="slider-wrapper">
-                    <div class="slider-item active">
-                        <img src="./assets/img/banners/banner-6.png" alt="Banner 6" fetchpriority="high">
-                    </div>
-                    <div class="slider-item">
-                        <img src="./assets/img/banners/banner-2.png" alt="Banner 2" loading="lazy">
-                    </div>
-                    <div class="slider-item">
-                        <img src="./assets/img/banners/banner-3.png" alt="Banner 3" loading="lazy">
-                    </div>
-                    <div class="slider-item">
-                        <img src="./assets/img/banners/banner-4.png" alt="Banner 4" loading="lazy">
-                    </div>
-                    <div class="slider-item">
-                        <img src="./assets/img/banners/banner-5.png" alt="Banner 5" loading="lazy">
-                    </div>
-                </div>
-                <button class="slider-nav prev" onclick="changeSlide(-1)"><i
-                        class="fa-regular fa-chevron-left"></i></button>
-                <button class="slider-nav next" onclick="changeSlide(1)"><i
-                        class="fa-regular fa-chevron-right"></i></button>
-                <div class="slider-dots">
-                    <span class="dot active" onclick="currentSlide(0)"></span>
-                    <span class="dot" onclick="currentSlide(1)"></span>
-                    <span class="dot" onclick="currentSlide(2)"></span>
-                    <span class="dot" onclick="currentSlide(3)"></span>
-                    <span class="dot" onclick="currentSlide(4)"></span>
-                </div>
+    <main class="main-wrapper about-page">
+    <div class="container">
+        <div class="about-hero" style="text-align: center; padding: 60px 0;">
+            <h1 style="font-size: 2.5rem; margin-bottom: 20px; background: -webkit-linear-gradient(45deg, var(--red), #ff8a66); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Về TiMi Food</h1>
+            <p style="font-size: 1.2rem; color: var(--text-color); max-width: 800px; margin: 0 auto; line-height: 1.6;">Khơi nguồn từ niềm đam mê ẩm thực, TiMi Food mang đến trải nghiệm đặt món trực tuyến nhanh chóng, tiện lợi và an toàn nhất tại Hải Phòng.</p>
+        </div>
+        <div class="about-content" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 40px; margin-bottom: 60px;">
+            <div class="about-card glassmorphism-card" style="background: rgba(255,255,255,0.7); backdrop-filter: blur(15px); border-radius: 20px; padding: 40px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); border: 1px solid rgba(255,255,255,0.5); transform: translateY(50px); opacity: 0; transition: all 0.8s ease;">
+                <div style="font-size: 3rem; color: var(--red); margin-bottom: 20px;"><i class="fa-light fa-bullseye-arrow"></i></div>
+                <h3 style="font-size: 1.5rem; margin-bottom: 15px;">Sứ mệnh</h3>
+                <p style="color: #666; line-height: 1.6;">Kết nối hàng triệu thực khách với những bữa ăn ngon, chất lượng với tốc độ giao hàng nhanh nhất, mang lại niềm vui trong từng bữa ăn.</p>
             </div>
-            <div class="home-service" id="home-service">
-                <div class="home-service-item">
-                    <div class="home-service-item-icon">
-                        <i class="fa-light fa-person-carry-box"></i>
-                    </div>
-                    <div class="home-service-item-content">
-                        <h4 class="home-service-item-content-h">GIAO HÀNG NHANH</h4>
-                        <p class="home-service-item-content-desc">Cho tất cả đơn hàng</p>
-                    </div>
-                </div>
-                <div class="home-service-item">
-                    <div class="home-service-item-icon">
-                        <i class="fa-light fa-shield-heart"></i>
-                    </div>
-                    <div class="home-service-item-content">
-                        <h4 class="home-service-item-content-h">SẢN PHẨM AN TOÀN</h4>
-                        <p class="home-service-item-content-desc">Cam kết chất lượng</p>
-                    </div>
-                </div>
-                <div class="home-service-item">
-                    <div class="home-service-item-icon">
-                        <i class="fa-light fa-headset"></i>
-                    </div>
-                    <div class="home-service-item-content">
-                        <h4 class="home-service-item-content-h">HỖ TRỢ 24/7</h4>
-                        <p class="home-service-item-content-desc">Tất cả ngày trong tuần</p>
-                    </div>
-                </div>
-                <div class="home-service-item">
-                    <div class="home-service-item-icon">
-                        <i class="fa-light fa-circle-dollar"></i>
-                    </div>
-                    <div class="home-service-item-content">
-                        <h4 class="home-service-item-content-h">HOÀN LẠI TIỀN</h4>
-                        <p class="home-service-item-content-desc">Nếu không hài lòng</p>
-                    </div>
-                </div>
+            <div class="about-card glassmorphism-card" style="background: rgba(255,255,255,0.7); backdrop-filter: blur(15px); border-radius: 20px; padding: 40px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); border: 1px solid rgba(255,255,255,0.5); transform: translateY(50px); opacity: 0; transition: all 0.8s ease; transition-delay: 0.2s;">
+                <div style="font-size: 3rem; color: var(--red); margin-bottom: 20px;"><i class="fa-light fa-eye"></i></div>
+                <h3 style="font-size: 1.5rem; margin-bottom: 15px;">Tầm nhìn</h3>
+                <p style="color: #666; line-height: 1.6;">Trở thành nền tảng đặt đồ ăn số 1 tại Hải Phòng và mở rộng ra các tỉnh thành lân cận trong 5 năm tới.</p>
             </div>
-            <div class="home-title-block" id="home-title">
-                <h2 class="home-title">Khám phá thực đơn của chúng tôi</h2>
-            </div>
-            <div class="home-products" id="home-products">
-            </div>
-            <div class="page-nav">
-                <ul class="page-nav-list">
-                </ul>
+            <div class="about-card glassmorphism-card" style="background: rgba(255,255,255,0.7); backdrop-filter: blur(15px); border-radius: 20px; padding: 40px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); border: 1px solid rgba(255,255,255,0.5); transform: translateY(50px); opacity: 0; transition: all 0.8s ease; transition-delay: 0.4s;">
+                <div style="font-size: 3rem; color: var(--red); margin-bottom: 20px;"><i class="fa-light fa-users"></i></div>
+                <h3 style="font-size: 1.5rem; margin-bottom: 15px;">Đội ngũ</h3>
+                <p style="color: #666; line-height: 1.6;">Gồm những con người trẻ trung, nhiệt huyết và am hiểu sâu sắc về văn hóa ẩm thực địa phương.</p>
             </div>
         </div>
-        <div class="container" id="account-user">
-            <div class="main-account">
-                <div class="main-account-header">
-                    <h3>Thông tin tài khoản của bạn</h3>
-                    <p>Quản lý thông tin để bảo mật tài khoản</p>
-                </div>
-                <div class="main-account-body">
-                    <div class="main-account-body-col">
-                        <form action="" class="info-user">
-                            <div class="form-group">
-                                <label for="infoname" class="form-label">Họ và tên</label>
-                                <input class="form-control" type="text" name="infoname" id="infoname" placeholder="">
-                            </div>
-                            <div class="form-group">
-                                <label for="infophone" class="form-label">Số điện thoại</label>
-                                <input class="form-control" type="text" name="infophone" id="infophone" disabled="true"
-                                    placeholder="">
-                            </div>
-                            <div class="form-group">
-                                <label for="infoemail" class="form-label">Email</label>
-                                <input class="form-control" type="email" name="infoemail" id="infoemail"
-                                    placeholder="Thêm địa chỉ email của bạn">
-                                <span class="inforemail-error form-message"></span>
-                            </div>
-                            <div class="form-group">
-                                <label for="infoaddress" class="form-label">Địa chỉ</label>
-                                <input class="form-control" type="text" name="infoaddress" id="infoaddress"
-                                    placeholder="Thêm địa chỉ giao hàng của bạn">
-                            </div>
-                        </form>
-                    </div>
-                    <div class="main-account-body-col">
-                        <form action="" class="change-password">
-                            <div class="form-group">
-                                <label for="password-cur-info" class="form-label w60">Mật khẩu hiện tại</label>
-                                <input class="form-control" type="password" name="current-password" id="password-cur-info"
-                                    autocomplete="current-password" placeholder="Nhập mật khẩu hiện tại">
-                                <span class="password-cur-info-error form-message"></span>
-                            </div>
-                            <div class="form-group">
-                                <label for="password-after-info" class="form-label w60">Mật khẩu mới </label>
-                                <input class="form-control" type="password" name="new-password" id="password-after-info"
-                                    autocomplete="new-password" placeholder="Nhập mật khẩu mới">
-                                <small class="form-text text-muted" style="font-size: 0.8rem; color: #666;">Tối thiểu 8 ký tự, gồm chữ hoa, chữ thường và số</small>
-                                <span class="password-after-info-error form-message"></span>
-                            </div>
-                            <div class="form-group">
-                                <label for="password-comfirm-info" class="form-label w60">Xác nhận mật khẩu mới</label>
-                                <input class="form-control" type="password" name="confirm-password" id="password-comfirm-info"
-                                    autocomplete="new-password" placeholder="Nhập lại mật khẩu mới">
-                                <span class="password-after-comfirm-error form-message"></span>
-                            </div>
-                        </form>
-                    </div>
-                    <div class="main-account-body-row">
-                        <div>
-                            <button id="save-info-user" onclick="changeInformation()"><i
-                                    class="fa-regular fa-floppy-disk"></i> Lưu thay đổi</button>
-                        </div>
-                        <div>
-                            <button id="save-password" onclick="changePassword()"><i class="fa-regular fa-key"></i> Đổi
-                                mật khẩu</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="container" id="order-history">
-            <div class="main-account">
-                <div class="main-account-header">
-                    <h3>Quản lý đơn hàng của bạn</h3>
-                    <p>Xem chi tiết, trạng thái của những đơn hàng đã đặt.</p>
-                </div>
-                <div class="main-account-body">
-                    <div class="order-history-section">
-                    </div>
-                </div>
-            </div>
-        </div>
-    </main>
+    </div>
+</main>
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                }
+            });
+        });
+        document.querySelectorAll('.about-card').forEach((card) => {
+            observer.observe(card);
+        });
+    });
+</script>
+
     <div class="modal product-detail">
         <button class="modal-close close-popup"><i class="fa-thin fa-xmark"></i></button>
         <div class="modal-container mdl-cnt" id="product-detail-content">

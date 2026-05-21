@@ -212,13 +212,13 @@ Dưới đây là danh sách đầy đủ các hạng mục đã hoàn thiện t
 - [x] **Nén tài nguyên (Gzip/Compression):** Thêm middleware `compression` vào Express để giảm dung lượng response.
 
 ---
-## ⬜ Giai đoạn 30: Trang Giới thiệu & Liên hệ (About Us & Contact Page)
+## ✅ Giai đoạn 30: Trang Giới thiệu & Liên hệ (About Us & Contact Page)
 > **Độ khó:** ⭐⭐ | **Thời gian ước tính:** 2-3 giờ
 
-- [ ] **Trang Giới thiệu (`about.html`):** Thiết kế trang "Về chúng tôi" với câu chuyện thương hiệu TiMiFood, sứ mệnh, tầm nhìn, đội ngũ — phong cách Premium Glassmorphism.
-- [ ] **Trang Liên hệ (`contact.html`):** Form liên hệ gửi email qua API, nhúng Google Maps, hiển thị thông tin chi nhánh, số hotline.
-- [ ] **Hiệu ứng Scroll Animation:** Sử dụng Intersection Observer API để tạo hiệu ứng fade-in, slide-up khi cuộn trang.
-- [ ] **Cập nhật Navigation:** Thêm link "Giới thiệu" và "Liên hệ" vào thanh menu chính.
+- [x] **Trang Giới thiệu (`about.html`):** Thiết kế trang "Về chúng tôi" với câu chuyện thương hiệu TiMiFood, sứ mệnh, tầm nhìn, đội ngũ — phong cách Premium Glassmorphism.
+- [x] **Trang Liên hệ (`contact.html`):** Form liên hệ gửi email qua API, nhúng Google Maps, hiển thị thông tin chi nhánh, số hotline.
+- [x] **Hiệu ứng Scroll Animation:** Sử dụng Intersection Observer API để tạo hiệu ứng fade-in, slide-up khi cuộn trang.
+- [x] **Cập nhật Navigation:** Thêm link "Giới thiệu" và "Liên hệ" vào footer (theo yêu cầu không thêm vào trang chủ header).
 
 ---
 ## ⬜ Giai đoạn 31: Nâng cấp trang Đơn hàng Khách hàng (Customer Order History Upgrade)

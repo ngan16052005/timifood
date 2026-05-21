@@ -86,5 +86,14 @@ File này dùng để lưu trữ các ý tưởng, đoạn code nháp, hoặc c�
 *   **NPM Scripts:** Thêm `"start"` và `"dev"` vào `package.json` → chạy bằng `npm start` hoặc `npm run dev`.
 *   **`.env.example`:** Tạo file mẫu với đầy đủ comment tiếng Việt hướng dẫn cấu hình.
 
+## 📌 Giai đoạn 30: Trang Giới thiệu & Liên hệ:
+*   Đã thiết kế mới 2 file `about.html` và `contact.html` với cấu trúc HTML giữ nguyên Header và Footer từ `index.html`.
+*   Phần `<main>` của cả hai trang được xây dựng theo phong cách **Premium Glassmorphism**:
+    *   Sử dụng màu nền `rgba(255,255,255,0.7/0.8)` kết hợp `backdrop-filter: blur(15px)`.
+    *   Bo tròn góc, đổ bóng mềm, đường viền mờ tinh tế.
+*   Tích hợp hiệu ứng **Scroll Animation** qua `IntersectionObserver` giúp các khối nội dung Fade-in và Slide-up mượt mà khi người dùng cuộn tới.
+*   Trang Liên hệ tích hợp Form gửi tin nhắn và nhúng **Google Maps** hiển thị vị trí chi nhánh Hải Phòng.
+*   **Lưu ý Navigation:** Tuân thủ yêu cầu người dùng, KHÔNG thêm liên kết vào thanh menu chính trên Header (để không phá vỡ cấu trúc trang chủ), CHỈ cập nhật liên kết trong mục "Liên kết" của thẻ Footer (`about.html` cho Về chúng tôi, và `contact.html` cho Liên hệ).
+
 ---
-*Cập nhật lần cuối: 20/05/2026 bởi thaingan & AI Assistant.*
+*Cập nhật lần cuối: 21/05/2026 bởi thaingan & AI Assistant.*

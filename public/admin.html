@@ -163,6 +163,12 @@
                             <div class="hidden-sidebar">Hỗ trợ trực tuyến</div>
                         </a>
                     </li>
+                    <li class="sidebar-list-item tab-content">
+                        <a href="#" class="sidebar-link">
+                            <div class="sidebar-icon"><i class="fa-light fa-envelope-open-text"></i></div>
+                            <div class="hidden-sidebar">Liên hệ</div>
+                        </a>
+                    </li>
                 </ul>
             </div>
         </aside>
@@ -656,6 +662,42 @@
                 </div>
             </div>
 
+            <!-- Contacts Section -->
+            <div class="section">
+                <div class="admin-control">
+                    <div class="admin-control-left">
+                        <h3 class="title-section">Quản lý hộp thư liên hệ</h3>
+                    </div>
+                    <div class="admin-control-center">
+                        <form action="" class="form-search">
+                            <span class="search-btn"><i class="fa-light fa-magnifying-glass"></i></span>
+                            <input id="form-search-contact" type="text" class="form-search-input"
+                                placeholder="Tìm kiếm tên, email, tiêu đề..." oninput="showContacts()">
+                        </form>
+                    </div>
+                    <div class="admin-control-right">
+                        <button class="btn-reset-order" onclick="showContacts()"><i
+                                class="fa-light fa-arrow-rotate-right"></i></button>
+                    </div>
+                </div>
+                <div class="table">
+                    <table width="100%">
+                        <thead>
+                            <tr>
+                                <td>Tên</td>
+                                <td>Email</td>
+                                <td>Tiêu đề</td>
+                                <td>Thời gian</td>
+                                <td>Trạng thái</td>
+                                <td>Thao tác</td>
+                            </tr>
+                        </thead>
+                        <tbody id="show-contacts">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
         </main>
     </div>
     <div class="modal add-product">
@@ -912,6 +954,17 @@
             </div>
         </div>
     </div>
+    <!-- View Contact Modal -->
+    <div class="modal view-contact-modal">
+        <div class="modal-container">
+            <h3 class="modal-container-title">CHI TIẾT LIÊN HỆ</h3>
+            <button class="modal-close" onclick="closeContactModal()"><i class="fa-regular fa-xmark"></i></button>
+            <div class="modal-content" style="padding: 20px;">
+                <div id="contact-detail-content" style="line-height: 1.6; max-height: 500px; overflow-y: auto;">
+                    <!-- Content injected via JS -->
+                </div>
+            </div>
+        </div>
+    </div>
 </body>
-
 </html>

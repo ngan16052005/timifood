@@ -11,7 +11,7 @@ require('dotenv').config();
 // --- Module imports (Tách module - Giai đoạn 28) ---
 const { authenticateToken, isAdmin, isStaffOrAdmin, SECRET_KEY } = require('./src/middleware/auth');
 const { loginLimiter, otpLimiter, resetPasswordLimiter, registerLimiter, changePasswordLimiter } = require('./src/middleware/rateLimiter');
-const { transporter, sendOrderEmail } = require('./src/helpers/email');
+const { transporter, sendOrderEmail, sendContactEmail, sendReplyEmail } = require('./src/helpers/email');
 
 const PayOS = require('@payos/node');
 const payos = (process.env.PAYOS_CLIENT_ID && process.env.PAYOS_API_KEY && process.env.PAYOS_CHECKSUM_KEY)
@@ -73,7 +73,6 @@ async function startServer() {
         if (!pool) {
             console.error('Could not connect to database. Server starting without DB...');
         } else {
-            // Ensure SystemLogs table exists
             await pool.request().query(`
                 IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'SystemLogs')
                 BEGIN
@@ -82,6 +81,19 @@ async function startServer() {
                         userPhone NVARCHAR(20),
                         action NVARCHAR(100),
                         details NVARCHAR(MAX),
+                        createdAt DATETIME DEFAULT GETDATE()
+                    )
+                END
+                
+                IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'Contacts')
+                BEGIN
+                    CREATE TABLE Contacts (
+                        id INT PRIMARY KEY IDENTITY(1,1),
+                        name NVARCHAR(100),
+                        email NVARCHAR(100),
+                        subject NVARCHAR(200),
+                        message NVARCHAR(MAX),
+                        status INT DEFAULT 0, -- 0: Unread, 1: Read/Resolved
                         createdAt DATETIME DEFAULT GETDATE()
                     )
                 END
@@ -1697,6 +1709,102 @@ app.post('/api/payos/webhook', async (req, res) => {
     } catch (error) {
         console.error("PayOS Webhook processing error:", error);
         res.status(500).json({ success: false, message: error.message });
+    }
+});
+// Contact API
+app.post('/api/contact', async (req, res) => {
+    try {
+        const { name, email, subject, message } = req.body;
+        if (!name || !email || !subject || !message) {
+            return res.status(400).json({ success: false, message: 'Vui lòng điền đầy đủ thông tin' });
+        }
+        
+        await pool.request()
+            .input('name', sql.NVarChar, name)
+            .input('email', sql.NVarChar, email)
+            .input('subject', sql.NVarChar, subject)
+            .input('message', sql.NVarChar, message)
+            .query('INSERT INTO Contacts (name, email, subject, message) VALUES (@name, @email, @subject, @message)');
+        
+        // Notify admin via socket/system notification
+        if (createNotification) {
+            await createNotification("ADMIN", "Liên hệ mới", `Có liên hệ mới từ ${name} (${email}) - ${subject}`, "system");
+        }
+
+        res.json({ success: true, message: 'Tin nhắn đã được gửi thành công' });
+    } catch (error) {
+        console.error('Error sending contact message:', error);
+        res.status(500).json({ success: false, message: 'Đã xảy ra lỗi khi lưu liên hệ. Vui lòng thử lại sau.' });
+    }
+});
+
+// Admin get contacts
+app.get('/api/contacts', authenticateToken, isAdmin, async (req, res) => {
+    try {
+        const result = await pool.request().query('SELECT * FROM Contacts ORDER BY createdAt DESC');
+        res.json(result.recordset);
+    } catch (error) {
+        res.status(500).json({ success: false, message: 'Lỗi lấy danh sách liên hệ' });
+    }
+});
+
+// Admin update contact status
+app.put('/api/contacts/:id/status', authenticateToken, isAdmin, async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { status } = req.body;
+        await pool.request()
+            .input('id', sql.Int, id)
+            .input('status', sql.Int, status)
+            .query('UPDATE Contacts SET status = @status WHERE id = @id');
+        res.json({ success: true });
+    } catch (error) {
+        res.status(500).json({ success: false, message: 'Lỗi cập nhật trạng thái liên hệ' });
+    }
+});
+
+// Admin reply to contact
+app.post('/api/contacts/:id/reply', authenticateToken, isAdmin, async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { replyMessage } = req.body;
+        
+        // 1. Get contact info
+        const result = await pool.request()
+            .input('id', sql.Int, id)
+            .query('SELECT * FROM Contacts WHERE id = @id');
+            
+        if (result.recordset.length === 0) {
+            return res.status(404).json({ success: false, message: 'Không tìm thấy liên hệ' });
+        }
+        
+        const contact = result.recordset[0];
+        
+        // 2. Send email
+        await sendReplyEmail(contact.email, contact.subject, replyMessage);
+        
+        // 3. Update status to Replied (2)
+        await pool.request()
+            .input('id', sql.Int, id)
+            .query('UPDATE Contacts SET status = 2 WHERE id = @id');
+            
+        res.json({ success: true, message: 'Đã gửi phản hồi thành công' });
+    } catch (error) {
+        console.error('Error sending reply:', error);
+        res.status(500).json({ success: false, message: 'Đã xảy ra lỗi khi gửi phản hồi' });
+    }
+});
+
+// Admin delete contact
+app.delete('/api/contacts/:id', authenticateToken, isAdmin, async (req, res) => {
+    try {
+        const { id } = req.params;
+        await pool.request()
+            .input('id', sql.Int, id)
+            .query('DELETE FROM Contacts WHERE id = @id');
+        res.json({ success: true });
+    } catch (error) {
+        res.status(500).json({ success: false, message: 'Lỗi xóa liên hệ' });
     }
 });
 

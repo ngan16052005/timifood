@@ -89,6 +89,13 @@ socket.on('newNotification', (latest) => {
         read: latest.isRead
     });
     updateAdminNotificationUI();
+    
+    // Auto refresh specific tabs if active
+    if (latest.title && latest.title.toLowerCase().includes('liên hệ')) {
+        if (typeof showContacts === 'function') {
+            showContacts();
+        }
+    }
 });
 
 async function syncAdminNotifications() {

@@ -77,4 +77,83 @@ async function sendOrderEmail(orderId, customerEmail, statusName, orderDetails, 
     }
 }
 
-module.exports = { transporter, sendOrderEmail };
+async function sendContactEmail(name, email, subject, message) {
+    console.log(`[Email] Sending contact message from ${name} (${email})`);
+    
+    if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
+        console.warn("[Email] Skipping contact email send: Missing credentials");
+        return;
+    }
+
+    const mailOptions = {
+        from: process.env.MAIL_FROM || process.env.EMAIL_USER,
+        to: process.env.EMAIL_USER, // Send to admin email
+        replyTo: email,
+        subject: `[Liên Hệ Mới] ${subject}`,
+        html: `
+            <div style="font-family: Arial, sans-serif; padding: 20px; border: 1px solid #eee; max-width: 600px; border-radius: 10px;">
+                <div style="text-align: center; margin-bottom: 20px;">
+                    <h1 style="color: #B5292F; margin: 0;">TiMi Food - Liên Hệ Mới</h1>
+                </div>
+                <div style="background-color: #f9f9f9; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+                    <p><strong>Người gửi:</strong> ${name}</p>
+                    <p><strong>Email:</strong> <a href="mailto:${email}">${email}</a></p>
+                    <p><strong>Tiêu đề:</strong> ${subject}</p>
+                </div>
+                <div style="border-top: 1px solid #eee; padding-top: 20px;">
+                    <h3 style="color: #333; font-size: 16px;">Nội dung tin nhắn:</h3>
+                    <p style="white-space: pre-wrap; line-height: 1.6; color: #444;">${message}</p>
+                </div>
+            </div>
+        `
+    };
+
+    try {
+        await transporter.sendMail(mailOptions);
+        console.log(`[Email] Contact email sent successfully`);
+    } catch (error) {
+        console.error(`[Email] Failed to send contact email:`, error.message);
+        throw error;
+    }
+}
+
+async function sendReplyEmail(toEmail, originalSubject, replyMessage) {
+    console.log(`[Email] Sending reply email to ${toEmail}`);
+    
+    if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
+        console.warn("[Email] Skipping reply email send: Missing credentials");
+        return;
+    }
+
+    const mailOptions = {
+        from: `"TiMi Food" <${process.env.EMAIL_USER}>`,
+        to: toEmail,
+        subject: `Phản hồi: ${originalSubject}`,
+        html: `
+            <div style="font-family: Arial, sans-serif; padding: 20px; border: 1px solid #eee; max-width: 600px; border-radius: 10px;">
+                <div style="text-align: center; margin-bottom: 20px;">
+                    <h1 style="color: #B5292F; margin: 0;">TiMi Food</h1>
+                    <p style="color: #666; font-size: 14px;">Bộ phận Hỗ trợ Khách hàng</p>
+                </div>
+                <div style="background-color: #f9f9f9; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+                    <h2 style="color: #333; font-size: 18px; margin-top: 0;">Phản hồi cho yêu cầu của bạn</h2>
+                    <p style="white-space: pre-wrap; line-height: 1.6; color: #444;">${replyMessage}</p>
+                </div>
+                <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee; text-align: center; color: #999; font-size: 12px;">
+                    <p>Nếu bạn có thêm bất kỳ câu hỏi nào, xin vui lòng phản hồi lại email này.</p>
+                    <p>&copy; 2026 TiMi Food. All rights reserved.</p>
+                </div>
+            </div>
+        `
+    };
+
+    try {
+        await transporter.sendMail(mailOptions);
+        console.log(`[Email] Reply email sent successfully`);
+    } catch (error) {
+        console.error(`[Email] Failed to send reply email:`, error.message);
+        throw error;
+    }
+}
+
+module.exports = { transporter, sendOrderEmail, sendContactEmail, sendReplyEmail };
