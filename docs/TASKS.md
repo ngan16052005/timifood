@@ -201,15 +201,15 @@ Dưới đây là danh sách đầy đủ các hạng mục đã hoàn thiện t
   - `src/socket/handlers.js` — Socket.io handlers & Live Chat sessions
 
 ---
-## ⬜ Giai đoạn 29: Tối ưu SEO & Meta Tags (SEO Optimization)
+## ✅ Giai đoạn 29: Tối ưu SEO & Meta Tags (SEO Optimization)
 > **Độ khó:** ⭐ | **Thời gian ước tính:** ~1 giờ
 
-- [ ] **Meta Tags đầy đủ:** Thêm `<meta description>`, `<meta keywords>`, Open Graph (`og:title`, `og:description`, `og:image`), Twitter Card cho trang chủ và trang admin.
-- [ ] **Cấu trúc Heading chuẩn SEO:** Đảm bảo mỗi trang chỉ có 1 thẻ `<h1>`, sử dụng phân cấp `<h2>`, `<h3>` hợp lý.
-- [ ] **Tạo `robots.txt`:** Cho phép crawler index trang chủ, chặn trang admin và API.
-- [ ] **Tạo `sitemap.xml`:** Liệt kê các trang chính của website.
-- [ ] **Favicon chuẩn đa kích thước:** Thêm favicon `16x16`, `32x32`, `180x180` (Apple Touch Icon) và `192x192` (Android).
-- [ ] **Nén tài nguyên (Gzip/Compression):** Thêm middleware `compression` vào Express để giảm dung lượng response.
+- [x] **Meta Tags đầy đủ:** Thêm `<meta description>`, `<meta keywords>`, Open Graph (`og:title`, `og:description`, `og:image`), Twitter Card cho trang chủ và trang admin.
+- [x] **Cấu trúc Heading chuẩn SEO:** Đảm bảo mỗi trang chỉ có 1 thẻ `<h1>`, sử dụng phân cấp `<h2>`, `<h3>` hợp lý.
+- [x] **Tạo `robots.txt`:** Cho phép crawler index trang chủ, chặn trang admin và API.
+- [x] **Tạo `sitemap.xml`:** Liệt kê các trang chính của website.
+- [x] **Favicon chuẩn đa kích thước:** Thêm favicon `16x16`, `32x32`, `180x180` (Apple Touch Icon) và `192x192` (Android).
+- [x] **Nén tài nguyên (Gzip/Compression):** Thêm middleware `compression` vào Express để giảm dung lượng response.
 
 ---
 ## ⬜ Giai đoạn 30: Trang Giới thiệu & Liên hệ (About Us & Contact Page)
@@ -259,5 +259,5 @@ Dưới đây là danh sách đầy đủ các hạng mục đã hoàn thiện t
 - [ ] **Áp dụng cho cả Admin Dashboard:** Đảm bảo trang quản trị cũng hoạt động tốt với Dark Mode.
 
 ---
-*Cập nhật lần cuối: 20/05/2026 bởi thaingan & AI Assistant.*
+*Cập nhật lần cuối: 21/05/2026 bởi thaingan & AI Assistant.*
 

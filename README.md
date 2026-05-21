@@ -251,6 +251,20 @@
 - **Trang kết quả thanh toán:** Tạo `checkout-success.html` và `checkout-cancel.html` với giao diện cao cấp, hiển thị thông tin đơn hàng và trạng thái thanh toán tương ứng.
 - **Cấu hình .env mẫu:** Bổ sung placeholder cho 3 key PayOS trong file `.env` kèm hướng dẫn comment rõ ràng.
 
+### ✅ Giai đoạn 28: Tối ưu Bảo mật & Refactor Code (Security Hardening & Code Cleanup)
+- **Di chuyển SECRET_KEY vào biến môi trường** và cải thiện cấu hình CORS đọc từ `.env`.
+- **Xóa route trùng lặp** (dead code) và thêm scripts NPM tiêu chuẩn (`npm start`, `npm run dev`).
+- **Tách `server.js` thành modules** giảm từ 2109 dòng → 1713 dòng (middleware, helpers, socket handlers).
+
+### ✅ Giai đoạn 29: Tối ưu SEO & Meta Tags (SEO Optimization) (Mới)
+- **Meta Tags đầy đủ cho trang chủ:** Thêm `<meta description>`, `<meta keywords>`, Open Graph (`og:title`, `og:description`, `og:image`, `og:url`, `og:locale`), Twitter Card (`summary_large_image`) để tối ưu chia sẻ mạng xã hội.
+- **Meta Tags trang Admin:** Thêm `<meta robots="noindex, nofollow">` ngăn crawler index trang quản trị, bổ sung `<meta description>` mô tả chức năng.
+- **Cấu trúc Heading chuẩn SEO:** Thêm `<h1>` duy nhất (ẩn qua class `.sr-only`) cho trang chủ, đổi `lang="en"` → `lang="vi"` trên tất cả trang HTML.
+- **Tạo `robots.txt`:** Cho phép crawler index trang chủ, chặn `/admin.html`, `/api/`, `/data/`, `/checkout-*.html`.
+- **Tạo `sitemap.xml`:** Liệt kê các trang chính với `lastmod`, `changefreq`, `priority` chuẩn.
+- **Favicon chuẩn đa kích thước:** Sinh 4 kích thước từ favicon gốc: `16x16`, `32x32`, `180x180` (Apple Touch Icon), `192x192` (Android Chrome).
+- **Nén tài nguyên Gzip (Compression):** Cài đặt và tích hợp middleware `compression` vào Express giảm ~60-70% dung lượng response.
+
 ---
-*Cập nhật lần cuối: 20/05/2026 bởi thaingan & AI Assistant.*
+*Cập nhật lần cuối: 21/05/2026 bởi thaingan & AI Assistant.*
 

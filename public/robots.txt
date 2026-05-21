@@ -1,0 +1,14 @@
+# TiMi Food - Robots.txt
+# Cho phep crawler index trang chu, chan trang admin va API
+
+User-agent: *
+Allow: /
+Allow: /index.html
+Disallow: /admin.html
+Disallow: /api/
+Disallow: /checkout-success.html
+Disallow: /checkout-cancel.html
+Disallow: /data/
+
+# Sitemap
+Sitemap: https://timifood.vn/sitemap.xml

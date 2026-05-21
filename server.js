@@ -1,6 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
+const compression = require('compression');
 const path = require('path');
 const { sql, connectDB } = require('./src/config/db');
 const jwt = require('jsonwebtoken');
@@ -50,6 +51,7 @@ app.use(cors({
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     credentials: true
 }));
+app.use(compression()); // Gzip compression - Giảm dung lượng response
 app.use(bodyParser.json());
 
 // Logging middleware

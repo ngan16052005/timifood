@@ -244,6 +244,19 @@ input[type="checkbox"]:checked+label:before {
     margin: 0 auto;
 }
 
+/* SEO: Screen Reader Only - Ẩn trực quan nhưng vẫn đọc được bởi crawler/screen reader */
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
 .dnone {
     display: none !important;
 }
