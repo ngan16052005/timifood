@@ -622,7 +622,7 @@ login.addEventListener('click', () => {
 signup.addEventListener('click', () => {
     container.classList.remove('active');
     document.querySelector('.form-content.forgot-password').style.display = 'none';
-    document.querySelector('.form-content.login').style.display = 'block';
+    document.querySelector('.form-content.login').style.display = '';
 })
 
 // Quên mật khẩu
@@ -658,7 +658,7 @@ forgotPasswordLink.addEventListener('click', () => {
 
 backToLogin.addEventListener('click', () => {
     forgotPasswordForm.style.display = 'none';
-    loginForm.style.display = 'block';
+    loginForm.style.display = '';
 });
 
 // Gửi mã OTP
@@ -2438,3 +2438,5 @@ if (fbCompleteBtn) {
         }
     });
 }
+
+
