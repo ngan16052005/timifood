@@ -1065,13 +1065,13 @@
     </div>
     <!-- News Add/Edit Modal -->
     <div class="modal add-news-modal">
-        <div class="modal-container" style="max-width: 800px;">
+        <div class="modal-container" style="width: 800px; padding-bottom: 20px;">
             <h3 class="modal-container-title add-news-e">THÊM TIN TỨC MỚI</h3>
             <h3 class="modal-container-title edit-news-e" style="display: none;">CHỈNH SỬA TIN TỨC</h3>
             <button class="modal-close" onclick="closeNewsModal()"><i class="fa-regular fa-xmark"></i></button>
             <div class="modal-content">
-                <form action="" class="add-news-form" id="news-form" onsubmit="submitNews(event)">
-                    <div class="modal-content-left" style="width: 35%;">
+                <form action="" class="add-news-form add-product-form" id="news-form" onsubmit="submitNews(event)">
+                    <div class="modal-content-left">
                         <img src="./assets/img/blank-image.png" alt="" class="upload-image-preview" id="news-img-preview">
                         <div class="form-group file">
                             <label for="up-news-img" class="form-label-file"><i
@@ -1080,7 +1080,7 @@
                                 type="file" class="form-control" onchange="uploadNewsImage(this)">
                         </div>
                     </div>
-                    <div class="modal-content-right" style="width: 65%;">
+                    <div class="modal-content-right">
                         <input type="hidden" id="news-id">
                         <input type="hidden" id="news-img-url">
                         <div class="form-group">

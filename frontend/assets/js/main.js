@@ -2224,7 +2224,7 @@ window.addEventListener('load', function () {
         if (loginContainer) {
             google.accounts.id.renderButton(
                 loginContainer,
-                { theme: 'outline', size: 'large', width: '100%', text: 'signin_with', locale: 'vi' }
+                { theme: 'outline', size: 'large', width: 360, text: 'signin_with', locale: 'vi' }
             );
         }
 
@@ -2233,7 +2233,7 @@ window.addEventListener('load', function () {
         if (signupContainer) {
             google.accounts.id.renderButton(
                 signupContainer,
-                { theme: 'outline', size: 'large', width: '100%', text: 'signup_with', locale: 'vi' }
+                { theme: 'outline', size: 'large', width: 360, text: 'signup_with', locale: 'vi' }
             );
         }
     }
