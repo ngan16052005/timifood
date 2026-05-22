@@ -2328,7 +2328,7 @@ let currentFacebookToken = null;
 
 window.fbAsyncInit = function() {
     FB.init({
-        appId      : 'your_facebook_app_id', // Replace with dynamic env var later
+        appId      : '1685926412545108',
         cookie     : true,
         xfbml      : true,
         version    : 'v19.0'
