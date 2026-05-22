@@ -1068,19 +1068,17 @@ header {
 }
 
 .modal-container::-webkit-scrollbar {
-    width: 5px;
+    width: 6px;
     height: 0;
 }
 
 .modal-container::-webkit-scrollbar-track {
-    margin: 370px 0 80px;
+    margin: 5px 0;
 }
 
 .modal-container::-webkit-scrollbar-thumb {
-    background: rgba(0, 0, 0, 0);
+    background: rgba(0, 0, 0, 0.2);
     border-radius: 10px;
-    -webkit-box-shadow: rgba(255, 255, 255, 0.3) 0 0 0 1px;
-    box-shadow: rgba(255, 255, 255, 0.3) 0 0 0 1px;
 }
 
 .modal-container:hover::-webkit-scrollbar-thumb {
