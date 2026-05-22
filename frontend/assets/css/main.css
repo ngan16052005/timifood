@@ -1074,6 +1074,7 @@ header {
 
 .modal-container::-webkit-scrollbar-track {
     margin: 5px 0;
+    background: #fff;
 }
 
 .modal-container::-webkit-scrollbar-thumb {
