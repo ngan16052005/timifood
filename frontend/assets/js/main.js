@@ -2217,7 +2217,7 @@ window.addEventListener('load', function () {
         if (loginContainer) {
             google.accounts.id.renderButton(
                 loginContainer,
-                { theme: 'outline', size: 'large', width: '100%', text: 'continue_with', locale: 'vi' }
+                { theme: 'outline', size: 'large', width: '100%', text: 'signin_with', locale: 'vi' }
             );
         }
 
