@@ -4445,3 +4445,28 @@ button.thanh-toan:hover:not(.disabled) {
 #wishlist-section { display: none !important; }
 #wishlist-section.open { display: block !important; }
 
+
+.btn-facebook {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    background: #fff;
+    border: 1px solid #dadce0;
+    border-radius: 4px;
+    height: 40px;
+    cursor: pointer;
+    font-family: 'Roboto', arial, sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    color: #3c4043;
+    transition: background-color 0.2s ease;
+    white-space: nowrap;
+    padding: 0 5px;
+}
+
+.btn-facebook:hover {
+    background-color: #f4f8ff;
+}
+
