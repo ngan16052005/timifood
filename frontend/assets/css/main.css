@@ -1243,25 +1243,28 @@ h2.product-title {
 }
 
 .modal-container .forms {
-    width: 200%;
-    display: flex;
-    align-items: flex-start;
-    /* height: 545px; */
-    /* transition: height 0.2s ease; */
+    width: 100%;
 }
 
 .modal-container.active .forms {
     height: auto;
 }
 
+.modal-container .login {
+    display: none;
+}
+
+.modal-container.active .login {
+    display: block;
+}
+
 .modal-container.active .sign-up {
-    margin-left: -50%;
+    display: none;
 }
 
 .form-content {
     padding: 20px;
-    width: 50%;
-    /* transition: margin-left 0.15s ease; */
+    width: 100%;
 }
 
 .form-title {
