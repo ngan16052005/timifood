@@ -1246,13 +1246,13 @@ h2.product-title {
 .modal-container .forms {
     width: 200%;
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     /* height: 545px; */
     /* transition: height 0.2s ease; */
 }
 
 .modal-container.active .forms {
-    height: 375px;
+    height: auto;
 }
 
 .modal-container.active .sign-up {
