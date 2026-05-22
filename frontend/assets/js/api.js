@@ -441,6 +441,47 @@ window.api = {
         }
     },
 
+    // --- FAVORITES APIs ---
+    getFavorites: async () => {
+        try {
+            const response = await fetch(`${BASE_URL}/favorites`, {
+                headers: getHeaders()
+            });
+            if (!response.ok) return [];
+            return await response.json();
+        } catch (error) {
+            console.error("Get favorites error:", error);
+            return [];
+        }
+    },
+
+    addFavorite: async (productId) => {
+        try {
+            const response = await fetch(`${BASE_URL}/favorites`, {
+                method: 'POST',
+                headers: getHeaders(),
+                body: JSON.stringify({ productId })
+            });
+            return await response.json();
+        } catch (error) {
+            console.error("Add favorite error:", error);
+            throw error;
+        }
+    },
+
+    removeFavorite: async (productId) => {
+        try {
+            const response = await fetch(`${BASE_URL}/favorites/${productId}`, {
+                method: 'DELETE',
+                headers: getHeaders()
+            });
+            return await response.json();
+        } catch (error) {
+            console.error("Remove favorite error:", error);
+            throw error;
+        }
+    },
+
     getReviews: async (productId) => {
         try {
             const response = await fetch(`${BASE_URL}/products/${productId}/reviews`);

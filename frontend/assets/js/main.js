@@ -1013,6 +1013,7 @@ function kiemtradangnhap() {
             <span class="text-tk">${user.fullname} <i class="fa-sharp fa-solid fa-caret-down"></span>`
         document.querySelector('.header-middle-right-menu').innerHTML = `<li><a href="javascript:;" onclick="myAccount()"><i class="fa-light fa-circle-user"></i> Tài khoản của tôi</a></li>
             <li><a href="javascript:;" onclick="orderHistory()"><i class="fa-regular fa-bags-shopping"></i> Đơn hàng đã mua</a></li>
+            <li><a href="javascript:;" onclick="openWishlist()"><i class="fa-regular fa-heart"></i> Sản phẩm yêu thích</a></li>
             <li class="border"><a id="logout" href="javascript:;"><i class="fa-light fa-right-from-bracket"></i> Thoát tài khoản</a></li>`
         document.querySelector('#logout').addEventListener('click',logOut)
         
@@ -1058,6 +1059,7 @@ window.addEventListener('load', async () => {
         }
     }
 
+    await loadUserFavorites();
     updateAmount();
     await updateCartTotal();
     await showProductHome();
@@ -1069,6 +1071,7 @@ function myAccount() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
     document.getElementById('trangchu').classList.add('hide');
     document.getElementById('order-history').classList.remove('open');
+    if (document.getElementById('wishlist-section')) document.getElementById('wishlist-section').classList.remove('open');
     document.getElementById('account-user').classList.add('open');
     userInfo();
 }
@@ -1077,9 +1080,19 @@ function myAccount() {
 function orderHistory() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
     document.getElementById('account-user').classList.remove('open');
+    if (document.getElementById('wishlist-section')) document.getElementById('wishlist-section').classList.remove('open');
     document.getElementById('trangchu').classList.add('hide');
     document.getElementById('order-history').classList.add('open');
     renderOrderProduct();
+}
+
+async function openWishlist() {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    document.getElementById('trangchu').classList.add('hide');
+    document.getElementById('account-user').classList.remove('open');
+    document.getElementById('order-history').classList.remove('open');
+    if (document.getElementById('wishlist-section')) document.getElementById('wishlist-section').classList.add('open');
+    await renderFavorites();
 }
 
 function emailIsValid(email) {
@@ -1172,6 +1185,23 @@ async function changePassword() {
 // Helper functions replaced by API calls in specific components
 
 // Quan ly don hang
+let currentOrderFilter = 'all';
+let currentOrderSearch = '';
+
+async function filterOrders(status = null, btn = null) {
+    if (status !== null) {
+        currentOrderFilter = status;
+        if (btn) {
+            document.querySelectorAll('.order-tab-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+        }
+    }
+    const searchInput = document.getElementById('order-search-input');
+    if (searchInput) {
+        currentOrderSearch = searchInput.value.trim().toLowerCase();
+    }
+    await renderOrderProduct();
+}
 async function renderOrderProduct() {
     let currentUser = JSON.parse(localStorage.getItem('currentuser'));
     if(!currentUser) return;
@@ -1182,8 +1212,23 @@ async function renderOrderProduct() {
         let arrDonHang = orders.filter(o => o.khachhang === currentUser.phone);
         const products = await window.api.getProducts();
 
+        // Tính tổng chi tiêu (trạng thái = 2 là Hoàn thành)
+        let totalSpent = arrDonHang.filter(o => o.trangthai === 2).reduce((sum, o) => sum + o.tongtien, 0);
+        const totalSpentEl = document.getElementById('total-spent-amount');
+        if (totalSpentEl) totalSpentEl.innerText = vnd(totalSpent);
+
+        // Lọc theo tab trạng thái
+        if (currentOrderFilter !== 'all') {
+            arrDonHang = arrDonHang.filter(o => o.trangthai == currentOrderFilter);
+        }
+
+        // Lọc theo từ khóa tìm kiếm (Mã đơn)
+        if (currentOrderSearch !== '') {
+            arrDonHang = arrDonHang.filter(o => o.id.toLowerCase().includes(currentOrderSearch));
+        }
+
         if (arrDonHang.length == 0) {
-            orderHtml = `<div class="empty-order-section"><img src="./assets/img/empty-order.jpg" alt="" class="empty-order-img" loading="lazy"><p>Chưa có đơn hàng nào</p></div>`;
+            orderHtml = `<div class="empty-order-section"><img src="./assets/img/empty-order.jpg" alt="" class="empty-order-img" loading="lazy"><p>Không tìm thấy đơn hàng nào</p></div>`;
         } else {
             // Sắp xếp đơn mới nhất lên đầu
             arrDonHang.sort((a, b) => b.id.localeCompare(a.id));
@@ -1226,9 +1271,10 @@ async function renderOrderProduct() {
                     `;
                 }
                 
-                // Cho phép xóa lịch sử nếu đã hoàn thành hoặc đã hủy
+                // Cho phép xóa lịch sử hoặc Đặt lại nếu đã hoàn thành hoặc đã hủy
                 if (item.trangthai === 2 || item.trangthai === 3) {
                     controlButtons += `
+                        <button class="btn-order-detail" style="color: #52c41a; border-color: #52c41a;" onclick="reorderProducts('${item.id}')"><i class="fa-solid fa-rotate-right"></i> Đặt lại</button>
                         <button class="btn-order-detail" style="color: #ff4d4f; border-color: #ff4d4f" onclick="deleteOrderUser('${item.id}')"><i class="fa-regular fa-trash"></i> Xóa lịch sử</button>
                     `;
                 }
@@ -1262,6 +1308,59 @@ async function renderOrderProduct() {
         document.querySelector(".order-history-section").innerHTML = orderHtml;
     } catch (error) {
         console.error("Error rendering order history:", error);
+    }
+}
+
+async function reorderProducts(orderId) {
+    try {
+        const details = await window.api.getOrderDetails(orderId);
+        const products = await window.api.getProducts();
+        
+        let currentUser = JSON.parse(localStorage.getItem('currentuser'));
+        if (!currentUser) return;
+        
+        let cart = currentUser.cart || [];
+        let itemsAdded = 0;
+        
+        for (let d of details) {
+            const prod = products.find(p => (p.id == d.productId || p.id == d.id) && p.status == 1);
+            if (prod) {
+                let exist = cart.find(item => item.id == prod.id);
+                if (exist) {
+                    exist.soluong = parseInt(exist.soluong) + parseInt(d.soluong);
+                } else {
+                    cart.push({
+                        id: prod.id,
+                        title: prod.title,
+                        img: prod.img,
+                        price: prod.price, // Dùng giá mới nhất của SP thay vì giá cũ trong đơn hàng
+                        soluong: d.soluong,
+                        note: d.note || ""
+                    });
+                }
+                itemsAdded++;
+            }
+        }
+        
+        if (itemsAdded > 0) {
+            currentUser.cart = cart;
+            localStorage.setItem('currentuser', JSON.stringify(currentUser));
+            await window.api.updateCart(currentUser.phone, cart);
+            updateAmount();
+            toast({ title: 'Thành công', message: `Đã thêm ${itemsAdded} món từ đơn cũ vào giỏ!`, type: 'success', duration: 3000 });
+            // Tắt bảng order history và mở giỏ hàng
+            document.getElementById('order-history').classList.remove('open');
+            document.getElementById('trangchu').classList.remove('hide');
+            
+            // Cập nhật lại HTML giỏ hàng rồi mới mở modal
+            await showCart();
+            document.querySelector('.modal-cart').classList.add('open');
+        } else {
+            toast({ title: 'Thông báo', message: 'Tất cả món trong đơn này đã ngừng bán!', type: 'warning', duration: 3000 });
+        }
+    } catch (e) {
+        console.error(e);
+        toast({ title: 'Lỗi', message: 'Không thể đặt lại đơn hàng!', type: 'error', duration: 3000 });
     }
 }
 
@@ -1506,18 +1605,27 @@ window.addEventListener("scroll", () => {
 // Page
 function renderProducts(showProduct) {
     let productHtml = '';
+    const homeTitle = document.getElementById("home-title");
+    const homeProducts = document.getElementById('home-products');
+    
+    // Bỏ qua nếu không phải trang chủ (không có phần tử home-products)
+    if (!homeProducts) return;
+
     if(showProduct.length == 0) {
-        document.getElementById("home-title").style.display = "none";
+        if (homeTitle) homeTitle.style.display = "none";
         productHtml = `<div class="no-result"><div class="no-result-h">Tìm kiếm không có kết quả</div><div class="no-result-p">Xin lỗi, chúng tôi không thể tìm được kết quả hợp với tìm kiếm của bạn</div><div class="no-result-i"><i class="fa-light fa-face-sad-cry"></i></div></div>`;
     } else {
-        document.getElementById("home-title").style.display = "block";
+        if (homeTitle) homeTitle.style.display = "block";
         showProduct.forEach((product) => {
+            let isFav = typeof userFavorites !== 'undefined' && userFavorites.includes(product.id);
+            let favIcon = isFav ? '<i class="fa-solid fa-heart" style="color: #ff4d4f;"></i>' : '<i class="fa-regular fa-heart" style="color: #ff4d4f;"></i>';
             productHtml += `<div class="col-product">
             <article class="card-product" >
-                <div class="card-header">
+                <div class="card-header" style="position: relative;">
                     <a href="#" class="card-image-link" onclick="detailProduct(${product.id})">
                     <img class="card-image" src="${product.img}" alt="${product.title}" loading="lazy">
                     </a>
+                    <button class="btn-favorite" onclick="toggleFavorite(${product.id}, event, this)" style="position: absolute; top: 10px; right: 10px; background: rgba(255, 255, 255, 0.9); border: none; border-radius: 50%; width: 35px; height: 35px; cursor: pointer; box-shadow: 0 2px 10px rgba(0,0,0,0.1); z-index: 2; transition: all 0.3s; display: flex; align-items: center; justify-content: center; font-size: 1.1rem;">${favIcon}</button>
                 </div>
                 <div class="food-info">
                     <div class="card-content">
@@ -1542,7 +1650,7 @@ function renderProducts(showProduct) {
         </div>`;
         });
     }
-    document.getElementById('home-products').innerHTML = productHtml;
+    homeProducts.innerHTML = productHtml;
 }
 
 // Find Product
@@ -1629,11 +1737,14 @@ async function showProductHome() {
 }
 
 function setupPagination(productAll, perPage) {
-    document.querySelector('.page-nav-list').innerHTML = '';
+    const navList = document.querySelector('.page-nav-list');
+    if (!navList) return;
+    
+    navList.innerHTML = '';
     let page_count = Math.ceil(productAll.length / perPage);
     for (let i = 1; i <= page_count; i++) {
         let li = paginationChange(i, productAll, currentPage);
-        document.querySelector('.page-nav-list').appendChild(li);
+        navList.appendChild(li);
     }
 }
 
@@ -1992,6 +2103,100 @@ async function loadCategories() {
 
 // Call on load
 document.addEventListener('DOMContentLoaded', loadCategories);
+
+// --- WISHLIST / FAVORITES ---
+let userFavorites = [];
+
+async function loadUserFavorites() {
+    let currentUser = localStorage.getItem('currentuser') ? JSON.parse(localStorage.getItem('currentuser')) : null;
+    if (!currentUser) {
+        userFavorites = [];
+        return;
+    }
+    userFavorites = await window.api.getFavorites();
+}
+
+async function toggleFavorite(productId, event, btnElement) {
+    if (event) {
+        event.stopPropagation();
+        event.preventDefault();
+    }
+    let currentUser = localStorage.getItem('currentuser') ? JSON.parse(localStorage.getItem('currentuser')) : null;
+    if (!currentUser) {
+        toast({ title: 'Cảnh báo', message: 'Vui lòng đăng nhập để sử dụng tính năng Yêu thích!', type: 'warning', duration: 3000 });
+        openLoginModal();
+        return;
+    }
+
+    try {
+        if (userFavorites.includes(productId)) {
+            await window.api.removeFavorite(productId);
+            userFavorites = userFavorites.filter(id => id !== productId);
+            if(btnElement) btnElement.innerHTML = '<i class="fa-regular fa-heart" style="color: #ff4d4f;"></i>';
+            toast({ title: 'Thành công', message: 'Đã bỏ yêu thích món ăn', type: 'success', duration: 2000 });
+        } else {
+            await window.api.addFavorite(productId);
+            userFavorites.push(productId);
+            if(btnElement) btnElement.innerHTML = '<i class="fa-solid fa-heart" style="color: #ff4d4f;"></i>';
+            toast({ title: 'Thành công', message: 'Đã thêm món ăn vào yêu thích', type: 'success', duration: 2000 });
+        }
+        
+        const wishlistSection = document.getElementById('wishlist-section');
+        if (wishlistSection && wishlistSection.classList.contains('open')) {
+            renderFavorites();
+        }
+    } catch (e) {
+        toast({ title: 'Lỗi', message: 'Không thể cập nhật danh sách yêu thích', type: 'error', duration: 3000 });
+    }
+}
+
+async function renderFavorites() {
+    const wishlistContainer = document.getElementById('wishlist-products');
+    if (!wishlistContainer) return;
+    
+    if (userFavorites.length === 0) {
+        wishlistContainer.innerHTML = `<div class="empty-order-section" style="grid-column: 1/-1; text-align: center; padding: 50px 0;"><i class="fa-regular fa-heart-crack" style="font-size: 5rem; color: #ccc; margin-bottom: 20px;"></i><p>Bạn chưa có món ăn yêu thích nào</p></div>`;
+        return;
+    }
+    
+    const products = await window.api.getProducts();
+    const favProducts = products.filter(p => userFavorites.includes(p.id));
+    
+    let productHtml = '';
+    favProducts.forEach((product) => {
+        let favIcon = '<i class="fa-solid fa-heart" style="color: #ff4d4f;"></i>';
+        productHtml += `<div class="col-product" style="width: 100%">
+        <article class="card-product" >
+            <div class="card-header" style="position: relative;">
+                <a href="#" class="card-image-link" onclick="detailProduct(${product.id})">
+                <img class="card-image" src="${product.img}" alt="${product.title}" loading="lazy">
+                </a>
+                <button class="btn-favorite" onclick="toggleFavorite(${product.id}, event, this)" style="position: absolute; top: 10px; right: 10px; background: rgba(255, 255, 255, 0.9); border: none; border-radius: 50%; width: 35px; height: 35px; cursor: pointer; box-shadow: 0 2px 10px rgba(0,0,0,0.1); z-index: 2; display: flex; align-items: center; justify-content: center; font-size: 1.1rem;">${favIcon}</button>
+            </div>
+            <div class="food-info">
+                <div class="card-content">
+                    <div class="card-title">
+                        <a href="#" class="card-title-link" onclick="detailProduct(${product.id})">${product.title}</a>
+                    </div>
+                    <div class="card-rating">
+                        ${renderStars(product.avgRating)}
+                        <span class="review-count">(${product.reviewCount || 0})</span>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <div class="product-price">
+                        <span class="current-price">${vnd(product.price)}</span>
+                    </div>
+                <div class="product-buy">
+                    <button onclick="detailProduct(${product.id})" class="card-button order-item"><i class="fa-regular fa-cart-shopping-fast"></i> Đặt món</button>
+                </div> 
+            </div>
+            </div>
+        </article>
+    </div>`;
+    });
+    wishlistContainer.innerHTML = productHtml;
+}
 
 
 

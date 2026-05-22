@@ -1,5 +1,5 @@
 // Factory function - nhận io từ server.js
-module.exports = function({ io }) {
+module.exports = function({ io, pool, sql }) {
 
     // Active Live Chat sessions in memory (Key: customerPhone)
     let activeChats = {};
@@ -34,15 +34,34 @@ module.exports = function({ io }) {
         // --- LIVE CHAT REAL-TIME EVENT LISTENERS ---
         
         // Customer requests support
-        socket.on('client_request_live_chat', (data) => {
+        socket.on('client_request_live_chat', async (data) => {
             const { phone, fullname } = data;
             if (!phone) return;
 
             console.log(`[LiveChat] Customer ${fullname} (${phone}) requested live support.`);
             
+            let dbSessionId = null;
+            if (pool && sql) {
+                try {
+                    const result = await pool.request()
+                        .input('phone', sql.NVarChar, phone)
+                        .input('name', sql.NVarChar, fullname || 'Khách vãng lai')
+                        .input('status', sql.NVarChar, 'waiting')
+                        .query(`
+                            INSERT INTO ChatSessions (customerPhone, customerName, status, createdAt)
+                            OUTPUT INSERTED.id
+                            VALUES (@phone, @name, @status, GETDATE())
+                        `);
+                    dbSessionId = result.recordset[0].id;
+                } catch (e) {
+                    console.error('DB Error creating chat session:', e);
+                }
+            }
+
             // Initialize active chat session
             activeChats[phone] = {
                 socketId: socket.id,
+                dbSessionId: dbSessionId,
                 phone: phone,
                 fullname: fullname || 'Khách vãng lai',
                 messages: [],
@@ -67,7 +86,7 @@ module.exports = function({ io }) {
         });
 
         // Staff accepts and joins support chat
-        socket.on('staff_join_chat', (data) => {
+        socket.on('staff_join_chat', async (data) => {
             const { staffPhone, staffName, customerPhone } = data;
             if (!customerPhone || !activeChats[customerPhone]) {
                 socket.emit('staff_join_error', { message: 'Phiên hỗ trợ này không còn tồn tại!' });
@@ -80,6 +99,23 @@ module.exports = function({ io }) {
             activeChats[customerPhone].status = 'chatting';
             activeChats[customerPhone].staffPhone = staffPhone;
             activeChats[customerPhone].staffName = staffName;
+
+            if (pool && sql && activeChats[customerPhone].dbSessionId) {
+                try {
+                    await pool.request()
+                        .input('staffPhone', sql.NVarChar, staffPhone)
+                        .input('staffName', sql.NVarChar, staffName)
+                        .input('status', sql.NVarChar, 'chatting')
+                        .input('id', sql.Int, activeChats[customerPhone].dbSessionId)
+                        .query(`
+                            UPDATE ChatSessions 
+                            SET staffPhone = @staffPhone, staffName = @staffName, status = @status 
+                            WHERE id = @id
+                        `);
+                } catch (e) {
+                    console.error('DB Error updating chat session:', e);
+                }
+            }
 
             // Inform customer via userRoom_${customerPhone}
             io.to(`userRoom_${customerPhone}`).emit('chat_session_active', {
@@ -103,7 +139,7 @@ module.exports = function({ io }) {
         });
 
         // Route real-time message between customer and staff
-        socket.on('send_chat_message', (data) => {
+        socket.on('send_chat_message', async (data) => {
             const phone = data.phone || data.room;
             const rawSender = data.sender; // 'customer' | 'client' | 'staff'
             const text = data.text;
@@ -123,6 +159,22 @@ module.exports = function({ io }) {
 
             // Save to memory log
             activeChats[phone].messages.push(msgObj);
+
+            // Persist to DB
+            if (pool && sql && activeChats[phone].dbSessionId) {
+                try {
+                    await pool.request()
+                        .input('sessionId', sql.Int, activeChats[phone].dbSessionId)
+                        .input('sender', sql.NVarChar, sender)
+                        .input('text', sql.NVarChar, text)
+                        .query(`
+                            INSERT INTO ChatMessages (sessionId, sender, text, timestamp) 
+                            VALUES (@sessionId, @sender, @text, GETDATE())
+                        `);
+                } catch (e) {
+                    console.error('DB Error inserting chat message:', e);
+                }
+            }
 
             console.log(`[LiveChat] [${sender.toUpperCase()}] to ${phone}: ${text}`);
 
@@ -149,11 +201,22 @@ module.exports = function({ io }) {
         });
 
         // Terminate chat session
-        socket.on('end_live_chat', (data) => {
+        socket.on('end_live_chat', async (data) => {
             const { phone, sender } = data;
             if (!phone || !activeChats[phone]) return;
 
             console.log(`[LiveChat] Chat ended for client (${phone}) by ${sender}`);
+
+            // Persist to DB
+            if (pool && sql && activeChats[phone].dbSessionId) {
+                try {
+                    await pool.request()
+                        .input('id', sql.Int, activeChats[phone].dbSessionId)
+                        .query(`UPDATE ChatSessions SET status = 'ended', endedAt = GETDATE() WHERE id = @id`);
+                } catch (e) {
+                    console.error('DB Error ending chat session:', e);
+                }
+            }
 
             // Notify client
             io.to(`userRoom_${phone}`).emit('chat_session_ended', {
@@ -172,13 +235,24 @@ module.exports = function({ io }) {
             console.error(`[Socket] Connection error on socket ${socket.id}:`, err);
         });
 
-        socket.on('disconnect', () => {
+        socket.on('disconnect', async () => {
             console.log('User disconnected:', socket.id);
             
             // Find if disconnected user had an active chat session
             for (const phone in activeChats) {
                 if (activeChats[phone].socketId === socket.id) {
                     console.log(`[LiveChat] Client (${phone}) disconnected, ending chat session`);
+                    
+                    if (pool && sql && activeChats[phone].dbSessionId) {
+                        try {
+                            await pool.request()
+                                .input('id', sql.Int, activeChats[phone].dbSessionId)
+                                .query(`UPDATE ChatSessions SET status = 'ended', endedAt = GETDATE() WHERE id = @id`);
+                        } catch (e) {
+                            console.error('DB Error ending chat session on disconnect:', e);
+                        }
+                    }
+
                     io.to('adminRoom').emit('chat_session_ended_admin', { customerPhone: phone });
                     delete activeChats[phone];
                     io.to('adminRoom').emit('active_chats_updated', getActiveChatsSummary());

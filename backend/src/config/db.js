@@ -9,7 +9,8 @@ const config = {
     port: parseInt(process.env.DB_PORT),
     options: {
         encrypt: true, // For Azure
-        trustServerCertificate: true // For local development
+        trustServerCertificate: true, // For local development
+        useUTC: false // Fix timezone conversion for GETDATE()
     }
 };
 

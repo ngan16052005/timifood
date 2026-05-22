@@ -293,11 +293,11 @@
                     <div class="admin-control-right">
                         <form action="" class="fillter-date">
                             <div>
-                                <label for="time-start">Từ</label>
+                                <label for="time-start-user">Từ</label>
                                 <input type="date" class="form-control-date" id="time-start-user" onchange="showUser()">
                             </div>
                             <div>
-                                <label for="time-end">Đến</label>
+                                <label for="time-end-user">Đến</label>
                                 <input type="date" class="form-control-date" id="time-end-user" onchange="showUser()">
                             </div>
                         </form>
@@ -460,11 +460,11 @@
                     <div class="admin-control-right">
                         <form action="" class="fillter-date">
                             <div>
-                                <label for="time-start">Từ</label>
+                                <label for="time-start-tk">Từ</label>
                                 <input type="date" class="form-control-date" id="time-start-tk" onchange="thongKe()">
                             </div>
                             <div>
-                                <label for="time-end">Đến</label>
+                                <label for="time-end-tk">Đến</label>
                                 <input type="date" class="form-control-date" id="time-end-tk" onchange="thongKe()">
                             </div>
                         </form>
@@ -616,6 +616,9 @@
                     <div class="admin-control-left">
                         <h3 class="title-section"><i class="fa-light fa-headset" style="margin-right: 8px;"></i>Trung tâm Hỗ trợ trực tuyến</h3>
                     </div>
+                    <div class="admin-control-right">
+                        <button class="btn-control-large" onclick="openChatHistoryModal()"><i class="fa-light fa-clock-rotate-left"></i> Lịch sử chat</button>
+                    </div>
                 </div>
                 
                 <div class="chat-support-layout">
@@ -724,7 +727,7 @@
                             <span class="form-message"></span>
                         </div>
                         <div class="form-group">
-                            <label for="category" class="form-label">Chọn món</label>
+                            <label for="chon-mon" class="form-label">Chọn món</label>
                             <select name="category" id="chon-mon">
                                 <option>Món chay</option>
                                 <option>Món mặn</option>
@@ -962,6 +965,53 @@
             <div class="modal-content" style="padding: 20px;">
                 <div id="contact-detail-content" style="line-height: 1.6; max-height: 500px; overflow-y: auto;">
                     <!-- Content injected via JS -->
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Chat History Modal -->
+    <div class="modal chat-history-modal">
+        <div class="modal-container" style="max-width: 900px; width: 90%;">
+            <h3 class="modal-container-title">LỊCH SỬ HỖ TRỢ TRỰC TUYẾN</h3>
+            <button class="modal-close" onclick="closeChatHistoryModal()"><i class="fa-regular fa-xmark"></i></button>
+            <div class="modal-content" style="padding: 20px;">
+                <div class="admin-control" style="margin-bottom: 15px;">
+                    <div class="admin-control-center" style="display: flex; gap: 10px;">
+                        <input type="text" id="chat-history-phone" class="form-search-input" placeholder="Tìm theo SĐT Khách hàng" style="flex: 1;">
+                        <input type="date" id="chat-history-date" class="form-search-input" style="flex: 1;">
+                        <button class="btn-control-large" onclick="loadChatHistory()"><i class="fa-light fa-filter"></i> Lọc</button>
+                    </div>
+                </div>
+                
+                <div class="table" style="max-height: 400px; overflow-y: auto;">
+                    <table width="100%">
+                        <thead>
+                            <tr>
+                                <td>ID</td>
+                                <td>Thời gian</td>
+                                <td>Khách hàng</td>
+                                <td>Nhân viên</td>
+                                <td>Trạng thái</td>
+                                <td>Thao tác</td>
+                            </tr>
+                        </thead>
+                        <tbody id="chat-history-list">
+                            <!-- Injected by JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Chat Messages View Modal -->
+    <div class="modal chat-messages-modal">
+        <div class="modal-container" style="width: 90%; max-width: 600px;">
+            <h3 class="modal-container-title" style="margin-right: 40px; margin-bottom: 0;">NỘI DUNG TRÒ CHUYỆN</h3>
+            <button class="modal-close" onclick="closeChatMessagesModal()"><i class="fa-regular fa-xmark"></i></button>
+            <div class="modal-content" style="padding: 20px;">
+                <div class="chat-window-messages" id="chat-history-messages-content" style="height: 500px; border: 1px solid #eee; border-radius: 8px; overflow-y: auto;">
+                    <!-- Messages flow dynamically -->
                 </div>
             </div>
         </div>

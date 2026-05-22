@@ -4443,3 +4443,6 @@ button.thanh-toan:hover:not(.disabled) {
         font-size: 18px;
     }
 }
+#wishlist-section { display: none !important; }
+#wishlist-section.open { display: block !important; }
+

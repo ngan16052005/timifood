@@ -82,9 +82,9 @@ window.onload = async () => {
     // Header Title and Quick Search
     const sidebarLinks = document.querySelectorAll('.sidebar-link');
     const headerTitle = document.getElementById('admin-header-title');
-    
+
     sidebarLinks.forEach(link => {
-        link.addEventListener('click', function() {
+        link.addEventListener('click', function () {
             const sidebarText = this.querySelector('.hidden-sidebar');
             if (sidebarText && headerTitle) {
                 const sectionName = sidebarText.innerText;
@@ -123,7 +123,7 @@ window.onload = async () => {
     if (currentUser) {
         const nameAcc = document.getElementById("name-acc");
         if (nameAcc) nameAcc.innerHTML = currentUser.fullname;
-        
+
         const topName = document.getElementById('admin-top-name');
         if (topName) topName.innerText = currentUser.fullname;
 
@@ -146,7 +146,7 @@ function applyPermissions(userType) {
 
     if (userType == 2) { // Nhân viên (Staff)
         console.log("Quyền hạn: Nhân viên - Chỉ xem Đơn hàng & Hỗ trợ trực tuyến");
-        
+
         // Các index menu cần ẩn: 0: Tổng quát, 1: Sản phẩm, 2: Danh mục, 3: Tài khoản, 5: Nhập kho, 6: Khuyến mãi, 7: Thống kê, 8: Đánh giá, 9: Nhật ký
         const forbiddenIndexes = [0, 1, 2, 3, 5, 6, 7, 8, 9];
         forbiddenIndexes.forEach(index => {
@@ -156,14 +156,14 @@ function applyPermissions(userType) {
         // Tự động gỡ bỏ active khỏi các mục khác và chuyển sang mục Đơn hàng (Index 4)
         const activeSidebar = document.querySelector(".sidebar-list-item.active");
         if (activeSidebar) activeSidebar.classList.remove("active");
-        
+
         const activeSection = document.querySelector(".section.active");
         if (activeSection) activeSection.classList.remove("active");
 
         if (sidebarItems[4] && sections[4]) {
             sidebarItems[4].classList.add("active");
             sections[4].classList.add("active");
-            
+
             // Cập nhật tiêu đề tiêu đề header
             const headerTitle = document.getElementById('admin-header-title');
             if (headerTitle) headerTitle.innerText = "Đơn hàng";
@@ -216,7 +216,7 @@ for (let i = 0; i < sidebars.length; i++) {
         document.querySelector(".section.active").classList.remove("active");
         sidebars[i].classList.add("active");
         sections[i].classList.add("active");
-        
+
         // Nếu là tab Danh mục (Index 2)
         if (i === 2) {
             await showCategories();
@@ -354,8 +354,8 @@ function showProductArr(arr) {
                         <span class="list-category">${product.category}</span>
                         <div class="list-stock ${product.stock < 10 ? 'low-stock' : ''}" style="margin-top: 5px; font-weight: 500; color: ${product.stock < 10 ? '#ef4444' : '#64748b'}">
                             <i class="fa-light fa-box-open"></i> Kho: ${product.stock} 
-                            ${product.stock <= 0 ? '<span style="font-size: 11px; background: #fee2e2; color: #ef4444; padding: 2px 6px; border-radius: 4px; margin-left: 5px;">Hết hàng</span>' : 
-                              (product.stock < 10 ? '<span style="font-size: 11px; background: #fee2e2; color: #ef4444; padding: 2px 6px; border-radius: 4px; margin-left: 5px;">Sắp hết hàng</span>' : '')}
+                            ${product.stock <= 0 ? '<span style="font-size: 11px; background: #fee2e2; color: #ef4444; padding: 2px 6px; border-radius: 4px; margin-left: 5px;">Hết hàng</span>' :
+                    (product.stock < 10 ? '<span style="font-size: 11px; background: #fee2e2; color: #ef4444; padding: 2px 6px; border-radius: 4px; margin-left: 5px;">Sắp hết hàng</span>' : '')}
                         </div>
                     </div>
                 </div>
@@ -421,7 +421,7 @@ async function initAdmin() {
 
         const products = await window.api.getProducts(null, true);
         const orders = await window.api.getOrders(true);
-        
+
         showOrder(orders);
 
         if (isAdmin) {
@@ -440,22 +440,22 @@ async function initAdmin() {
         }
 
         // Set latest order ID for notifications
-            if (isFirstLoad) {
-                if (orders && orders.length > 0) {
-                    const ids = orders.map(o => {
-                        const numericPart = o.id.replace('DH', '');
-                        return parseInt(numericPart) || 0;
-                    });
-                    latestOrderId = Math.max(...ids);
-                }
-                // Start clock
-                updateClock();
-                setInterval(updateClock, 1000);
-
-                // Initial check for order list refresh
-                startOrderListPolling();
-                isFirstLoad = false;
+        if (isFirstLoad) {
+            if (orders && orders.length > 0) {
+                const ids = orders.map(o => {
+                    const numericPart = o.id.replace('DH', '');
+                    return parseInt(numericPart) || 0;
+                });
+                latestOrderId = Math.max(...ids);
             }
+            // Start clock
+            updateClock();
+            setInterval(updateClock, 1000);
+
+            // Initial check for order list refresh
+            startOrderListPolling();
+            isFirstLoad = false;
+        }
     } catch (error) {
         console.error("Failed to initialize admin stats:", error);
     }
@@ -480,11 +480,11 @@ function startOrderListPolling() {
             if (Array.isArray(orders)) {
                 const currentOrderCount = orders.length;
                 const lastKnownCount = parseInt(localStorage.getItem('admin_last_order_count')) || 0;
-                
+
                 if (currentOrderCount !== lastKnownCount) {
                     localStorage.setItem('admin_last_order_count', currentOrderCount);
                     if (typeof showOrder === 'function') showOrder(orders);
-                    
+
                     // Update stats if we are on dashboard
                     const currentUser = JSON.parse(localStorage.getItem("currentuser"));
                     if (currentUser && currentUser.userType == 1) {
@@ -574,7 +574,7 @@ var indexCur;
 async function editProduct(id) {
     let index = productsData.findIndex(item => item.id == id);
     indexCur = index;
-    
+
     document.querySelectorAll(".add-product-e").forEach(item => {
         item.style.display = "none";
     })
@@ -582,7 +582,7 @@ async function editProduct(id) {
         item.style.display = "block";
     })
     document.querySelector(".add-product").classList.add("open");
-    
+
     document.querySelector(".upload-image-preview").src = productsData[index].img;
     document.getElementById("ten-mon").value = productsData[index].title;
     document.getElementById("gia-moi").value = productsData[index].price;
@@ -603,7 +603,7 @@ btnUpdateProductIn.addEventListener("click", async (e) => {
         toast({ title: "Lỗi", message: "Không tìm thấy sản phẩm!", type: "error", duration: 3000 });
         return;
     }
-    
+
     let idProduct = productsData[indexCur].id;
     let imgProductCur = getPathImage(document.querySelector(".upload-image-preview").src)
     let titleProductCur = document.getElementById("ten-mon").value;
@@ -727,12 +727,12 @@ async function changeStatus(id, newStatus) {
         await window.api.updateOrderStatus(id, newStatus);
         let msg = newStatus == 1 ? 'Đã duyệt đơn hàng!' : 'Đã xác nhận thanh toán!';
         toast({ title: 'Thành công', message: msg, type: 'success', duration: 2000 });
-        
+
         // Refresh orders and UI
         const orders = await window.api.getOrders();
         showOrder(orders);
         await thongKe();
-        
+
         // Re-render detail modal to update button
         await detailOrder(id);
     } catch (error) {
@@ -1181,7 +1181,7 @@ async function thongKe(mode) {
 
         let arrDetail = [];
         orders.forEach((order, index) => {
-            if (order.trangthai != 2) return; 
+            if (order.trangthai != 2) return;
             const details = allDetailsResults[index];
             if (Array.isArray(details)) {
                 details.forEach(item => {
@@ -1239,7 +1239,7 @@ async function showThongKe(arr, mode) {
     let mergeObj = mergeObjThongKe(arr);
     showOverview(mergeObj);
     // Use background fetch for advanced charts to avoid blocking the table render
-    initAdvancedCharts(); 
+    initAdvancedCharts();
 
     if (mode === 0) {
         document.getElementById("the-loai-tk").value = "Tất cả";
@@ -1296,7 +1296,7 @@ function updateStatisticsChart(topProducts) {
     const canvas = document.getElementById('statisticsChart');
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
-    
+
     const labels = topProducts.map(item => item.title.length > 15 ? item.title.substring(0, 15) + "..." : item.title);
     const revenueData = topProducts.map(item => item.totalRevenue);
     const quantityData = topProducts.map(item => item.totalQuantity);
@@ -1315,7 +1315,7 @@ function updateStatisticsChart(topProducts) {
                     borderColor: '#6366f1',
                     backgroundColor: (context) => {
                         const chart = context.chart;
-                        const {ctx, chartArea} = chart;
+                        const { ctx, chartArea } = chart;
                         if (!chartArea) return null;
                         const gradient = ctx.createLinearGradient(0, chartArea.bottom, 0, chartArea.top);
                         gradient.addColorStop(0, 'rgba(99, 102, 241, 0)');
@@ -1360,7 +1360,7 @@ function updateStatisticsChart(topProducts) {
                         font: { size: 13, weight: '500' }
                     }
                 },
-                title: { 
+                title: {
                     display: false
                 },
                 tooltip: {
@@ -1369,22 +1369,22 @@ function updateStatisticsChart(topProducts) {
                     borderRadius: 12,
                     usePointStyle: true,
                     callbacks: {
-                        label: (context) => context.datasetIndex === 0 ? 
-                            ` Doanh thu: ${new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(context.raw)}` : 
+                        label: (context) => context.datasetIndex === 0 ?
+                            ` Doanh thu: ${new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(context.raw)}` :
                             ` Số lượng: ${context.raw} món`
                     }
                 }
             },
             scales: {
-                y: { 
-                    type: 'linear', 
-                    position: 'left', 
+                y: {
+                    type: 'linear',
+                    position: 'left',
                     grid: { color: 'rgba(0, 0, 0, 0.04)', drawBorder: false },
-                    ticks: { callback: v => v >= 1000000 ? (v/1000000)+'M' : v >= 1000 ? (v/1000)+'k' : v } 
+                    ticks: { callback: v => v >= 1000000 ? (v / 1000000) + 'M' : v >= 1000 ? (v / 1000) + 'k' : v }
                 },
-                y1: { 
-                    type: 'linear', 
-                    position: 'right', 
+                y1: {
+                    type: 'linear',
+                    position: 'right',
                     grid: { display: false },
                     beginAtZero: true,
                     suggestedMax: Math.max(...quantityData) + 2 // Giúp đường line không bị sát mép trên nếu data bằng nhau
@@ -1487,9 +1487,9 @@ function updateTrendChart(monthlyRevenue) {
                 legend: { display: false }
             },
             scales: {
-                y: { 
+                y: {
                     beginAtZero: true,
-                    ticks: { callback: v => v >= 1000000 ? (v/1000000)+'M' : v >= 1000 ? (v/1000)+'k' : v } 
+                    ticks: { callback: v => v >= 1000000 ? (v / 1000000) + 'M' : v >= 1000 ? (v / 1000) + 'k' : v }
                 },
                 x: { grid: { display: false } }
             }
@@ -1794,9 +1794,9 @@ async function exportOrdersToExcel() {
         const worksheet = XLSX.utils.json_to_sheet(data);
         const workbook = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(workbook, worksheet, "Danh sách đơn hàng");
-        
+
         // Auto-size columns
-        const maxWidths = Object.keys(data[0]).map(key => 
+        const maxWidths = Object.keys(data[0]).map(key =>
             Math.max(...data.map(obj => obj[key] ? obj[key].toString().length : 0), key.length)
         );
         worksheet["!cols"] = maxWidths.map(w => ({ w: w + 2 }));
@@ -1826,7 +1826,7 @@ async function exportStatisticsToExcel() {
 
         let arrDetail = [];
         orders.forEach((order, index) => {
-            if (order.trangthai != 2) return; 
+            if (order.trangthai != 2) return;
             const details = allDetailsResults[index];
             if (Array.isArray(details)) {
                 details.forEach(item => {
@@ -1887,7 +1887,7 @@ async function exportStatisticsToPDF() {
         const currentCategory = document.getElementById("the-loai-tk").value || "Tất cả";
         const timeStart = document.getElementById("time-start-tk").value;
         const timeEnd = document.getElementById("time-end-tk").value;
-        
+
         let filterRange = "Tất cả thời gian";
         if (timeStart && timeEnd) {
             filterRange = `Từ ${formatDate(timeStart)} Đến ${formatDate(timeEnd)}`;
@@ -1925,7 +1925,7 @@ async function exportStatisticsToPDF() {
                 const title = pTag ? pTag.innerText : cells[1].innerText;
                 const quantity = cells[2].innerText;
                 const revenue = cells[3].innerText;
-                
+
                 tableRowsHtml += `
                 <tr style="border-bottom: 1px solid #e2e8f0;">
                     <td style="padding: 8px 10px; border: 1px solid #e2e8f0; text-align: center;">${stt}</td>
@@ -1941,9 +1941,9 @@ async function exportStatisticsToPDF() {
         tempContainer.style.position = "absolute";
         tempContainer.style.left = "-9999px";
         tempContainer.style.top = "-9999px";
-        
+
         const currentDate = new Date().toLocaleString('vi-VN');
-        
+
         tempContainer.innerHTML = `
         <div id="pdf-report-document" style="padding: 40px; font-family: Arial, sans-serif; color: #1e293b; background: #fff; width: 750px; box-sizing: border-box;">
             <!-- Brand Header -->
@@ -2048,20 +2048,20 @@ async function exportStatisticsToPDF() {
             </div>
         </div>
         `;
-        
+
         document.body.appendChild(tempContainer);
 
         const opt = {
-            margin:       [10, 10, 10, 10],
-            filename:     `TiMiFood_BaoCaoDoanhThu_${new Date().toLocaleDateString('vi-VN').replace(/\//g, '-')}.pdf`,
-            image:        { type: 'jpeg', quality: 0.98 },
-            html2canvas:  { scale: 2, useCORS: true, letterRendering: true },
-            jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            margin: [10, 10, 10, 10],
+            filename: `TiMiFood_BaoCaoDoanhThu_${new Date().toLocaleDateString('vi-VN').replace(/\//g, '-')}.pdf`,
+            image: { type: 'jpeg', quality: 0.98 },
+            html2canvas: { scale: 2, useCORS: true, letterRendering: true },
+            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
         };
 
         const element = document.getElementById("pdf-report-document");
         await html2pdf().set(opt).from(element).save();
-        
+
         document.body.removeChild(tempContainer);
         toast({ title: 'Thành công', message: 'Đã xuất báo cáo PDF doanh thu thành công!', type: 'success', duration: 3000 });
     } catch (error) {
@@ -2081,7 +2081,7 @@ function showVoucherArr(arr) {
             let type = v.discountType == 0 ? "%" : "VND";
             let status = v.status == 1 ? `<span class="status-complete">Hoạt động</span>` : `<span class="status-no-complete">Tạm dừng</span>`;
             let expiry = formatDate(v.expiryDate);
-            
+
             html += `<tr>
                 <td><strong>${v.code}</strong></td>
                 <td>${v.discountValue}${v.discountType == 0 ? '' : ' đ'}</td>
@@ -2097,7 +2097,7 @@ function showVoucherArr(arr) {
         });
     }
     const target = document.getElementById("show-vouchers");
-    if(target) target.innerHTML = html;
+    if (target) target.innerHTML = html;
 }
 
 function openVoucherModal() {
@@ -2130,7 +2130,7 @@ async function saveVoucher() {
             maxDiscount: parseInt(max) || 0,
             expiryDate: expiry
         });
-        
+
         if (response.success) {
             toast({ title: 'Thành công', message: 'Đã tạo mã giảm giá mới!', type: 'success', duration: 3000 });
             closeVoucherModal();
@@ -2171,13 +2171,13 @@ async function showReviews() {
         console.log("Fetching reviews...");
         const reviews = await window.api.getAdminReviews();
         console.log("Reviews fetched:", reviews);
-        
+
         const searchInput = document.getElementById('form-search-review')?.value.toLowerCase() || "";
-        
+
         let filteredReviews = reviews;
         if (searchInput) {
-            filteredReviews = reviews.filter(r => 
-                r.productTitle.toLowerCase().includes(searchInput) || 
+            filteredReviews = reviews.filter(r =>
+                r.productTitle.toLowerCase().includes(searchInput) ||
                 r.customerName.toLowerCase().includes(searchInput) ||
                 r.comment.toLowerCase().includes(searchInput)
             );
@@ -2188,12 +2188,12 @@ async function showReviews() {
             html = '<tr><td colspan="7" style="text-align:center;">Không có đánh giá nào</td></tr>';
         } else {
             filteredReviews.forEach(r => {
-                const stars = Array(5).fill(0).map((_, i) => 
+                const stars = Array(5).fill(0).map((_, i) =>
                     i < r.rating ? '<i class="fa-solid fa-star" style="color: #ffc107;"></i>' : '<i class="fa-regular fa-star"></i>'
                 ).join('');
-                
+
                 const displayDate = r.reviewDate ? new Date(r.reviewDate.replace('Z', '')).toLocaleDateString('vi-VN') : '---';
-                
+
                 const commentText = r.comment || "";
                 html += `
                 <tr>
@@ -2265,7 +2265,7 @@ async function showStockHistory() {
 
 async function openStockInModal() {
     try {
-        const products = await window.api.getProducts("", true); 
+        const products = await window.api.getProducts("", true);
         let html = '<option value="">-- Chọn sản phẩm --</option>';
         products.forEach(p => {
             html += `<option value="${p.id}">${p.title} (Kho: ${p.stock})</option>`;
@@ -2394,7 +2394,7 @@ async function deleteCategory(id) {
 async function loadCategoriesToSelect() {
     try {
         const categories = await window.api.getCategories();
-        
+
         // 1. Add/Edit Product Modal Select
         const chonMonSelect = document.getElementById("chon-mon");
         if (chonMonSelect) {
@@ -2429,9 +2429,9 @@ async function showLogs() {
     try {
         const logs = await window.api.getLogs();
         if (!Array.isArray(logs)) return;
-        
-        const filteredLogs = logs.filter(log => 
-            log.action.toLowerCase().includes(searchVal) || 
+
+        const filteredLogs = logs.filter(log =>
+            log.action.toLowerCase().includes(searchVal) ||
             log.userPhone.toLowerCase().includes(searchVal) ||
             log.details.toLowerCase().includes(searchVal)
         );
@@ -2449,10 +2449,10 @@ function showLogsArr(arr) {
         arr.forEach((log, index) => {
             let actionLabel = log.action;
             let actionClass = "status-no-complete";
-            
+
             if (log.action.includes('ADD')) actionClass = "status-complete";
             if (log.action.includes('DELETE')) actionClass = "status-pending";
-            
+
             html += `
                 <tr>
                     <td>${index + 1}</td>
@@ -2481,7 +2481,7 @@ window.addEventListener('DOMContentLoaded', () => {
             console.log('[Socket] Active chats updated:', chats);
             activeAdminSessions = Object.values(chats);
             renderChatSessionsAdmin();
-            
+
             // If the currently viewed session is in the updated list, update its messages too
             if (currentActiveCustomerPhone) {
                 const currentSession = activeAdminSessions.find(s => s.phone === currentActiveCustomerPhone);
@@ -2501,7 +2501,7 @@ window.addEventListener('DOMContentLoaded', () => {
                 if (typeof playNotificationSound === 'function') {
                     playNotificationSound('https://assets.mixkit.co/active_storage/sfx/1110/1110-preview.mp3');
                 }
-                
+
                 // Show notification badge if not on the live chat tab
                 const liveChatTab = document.querySelectorAll('.sidebar-list-item.tab-content')[10];
                 if (liveChatTab && !liveChatTab.classList.contains('active')) {
@@ -2549,7 +2549,7 @@ function renderChatSessionsAdmin() {
         const isActive = currentActiveCustomerPhone === session.phone ? 'active' : '';
         const statusLabel = session.status === 'waiting' ? 'Đang chờ' : 'Đang chat';
         const lastMsg = (session.messages && session.messages.length > 0) ? session.messages[session.messages.length - 1].text : 'Yêu cầu live chat...';
-        
+
         return `
             <li class="chat-session-item ${isActive}" onclick="selectCustomerSessionAdmin('${session.phone}')">
                 <div class="session-info">
@@ -2569,20 +2569,20 @@ function selectCustomerSessionAdmin(phone) {
     if (!session) return;
 
     currentActiveCustomerPhone = phone;
-    
+
     // UI Updates
     document.getElementById('chat-window-placeholder').style.display = 'none';
     document.getElementById('chat-window-active').style.display = 'flex';
     document.getElementById('chat-customer-name').innerText = session.fullname || 'Khách hàng';
     document.getElementById('chat-customer-phone').innerText = `SĐT: ${session.phone}`;
-    
+
     renderChatSessionsAdmin(); // update active styling in list
-    
+
     // Join live chat session via socket
     const currentUser = JSON.parse(localStorage.getItem('currentuser'));
     const staffName = currentUser ? currentUser.fullname : 'Nhân viên';
     const staffPhone = currentUser ? currentUser.phone : '';
-    
+
     if (typeof socket !== 'undefined') {
         socket.emit('staff_join_chat', {
             customerPhone: phone,
@@ -2608,7 +2608,7 @@ function renderActiveChatMessages(messages) {
         const isCustomer = msg.sender === 'customer';
         const senderClass = isCustomer ? 'customer' : 'staff';
         const formattedTime = new Date(msg.timestamp).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
-        
+
         return `
             <div class="chat-msg-admin ${senderClass}">
                 <div class="chat-msg-text">${msg.text}</div>
@@ -2650,7 +2650,7 @@ function handleAdminChatKeypress(event) {
 // End Live Chat Session (Admin closes it)
 function endLiveChatSessionAdmin() {
     if (!currentActiveCustomerPhone) return;
-    
+
     if (confirm('Bạn có chắc chắn muốn đóng phiên hỗ trợ trực tuyến này? Khách hàng sẽ được trả lại cho AI Bot.')) {
         if (typeof socket !== 'undefined') {
             socket.emit('end_live_chat', {
@@ -2681,15 +2681,15 @@ async function showContacts() {
             }
         });
         const contacts = await response.json();
-        
+
         const searchQuery = document.getElementById('form-search-contact')?.value.toLowerCase() || "";
-        
-        const filtered = contacts.filter(c => 
+
+        const filtered = contacts.filter(c =>
             (c.name && c.name.toLowerCase().includes(searchQuery)) ||
             (c.email && c.email.toLowerCase().includes(searchQuery)) ||
             (c.subject && c.subject.toLowerCase().includes(searchQuery))
         );
-        
+
         let html = "";
         if (filtered.length === 0) {
             html = `<tr><td colspan="6" style="text-align: center;">Không có liên hệ nào</td></tr>`;
@@ -2703,7 +2703,7 @@ async function showContacts() {
                 } else {
                     statusBadge = `<span style="background: #dcfce3; color: #22c55e; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: 600;">Đã phản hồi</span>`;
                 }
-                    
+
                 html += `
                 <tr style="${c.status == 0 ? 'background-color: #f8fafc;' : ''}">
                     <td style="${c.status == 0 ? 'font-weight: bold;' : ''}">${c.name}</td>
@@ -2718,10 +2718,10 @@ async function showContacts() {
                 </tr>`;
             });
         }
-        
+
         const tbody = document.getElementById('show-contacts');
         if (tbody) tbody.innerHTML = html;
-        
+
     } catch (error) {
         console.error("Error fetching contacts:", error);
     }
@@ -2749,9 +2749,9 @@ function viewContact(contact) {
             </div>
         `;
     }
-    
+
     document.querySelector('.view-contact-modal').classList.add('open');
-    
+
     // Mark as read if unread
     if (contact.status == 0) {
         fetch(`/api/contacts/${contact.id}/status`, {
@@ -2832,6 +2832,146 @@ async function deleteContact(id) {
             }
         } catch (error) {
             console.error("Error deleting contact:", error);
+        }
+    }
+}
+
+// --- CHAT HISTORY (Phase 33) ---
+function openChatHistoryModal() {
+    document.querySelector('.chat-history-modal').classList.add('open');
+    loadChatHistory();
+}
+
+function closeChatHistoryModal() {
+    document.querySelector('.chat-history-modal').classList.remove('open');
+}
+
+async function loadChatHistory() {
+    const phone = document.getElementById('chat-history-phone').value;
+    const date = document.getElementById('chat-history-date').value;
+    
+    let url = '/api/chat/history?';
+    if (phone) url += `phone=${phone}&`;
+    if (date) url += `date=${date}`;
+
+    try {
+        const response = await fetch(url, {
+            headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+        });
+        const data = await response.json();
+        
+        const tbody = document.getElementById('chat-history-list');
+        tbody.innerHTML = '';
+        
+        if (data.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="6" style="text-align:center">Không tìm thấy lịch sử chat</td></tr>';
+            return;
+        }
+
+        data.forEach(session => {
+            const statusHtml = session.status === 'ended' 
+                ? '<span class="status-badge" style="background:#f1f5f9; color:#64748b; padding:4px 8px; border-radius:4px;">Đã kết thúc</span>'
+                : '<span class="status-badge" style="background:#dbeafe; color:#2563eb; padding:4px 8px; border-radius:4px;">Đang chat</span>';
+                
+            const staffName = session.staffName || '<i>Chưa có</i>';
+            const dateStr = new Date(session.createdAt).toLocaleString('vi-VN');
+
+            tbody.innerHTML += `
+                <tr>
+                    <td>#${session.id}</td>
+                    <td>${dateStr}</td>
+                    <td>${session.customerName} <br><small>${session.customerPhone}</small></td>
+                    <td>${staffName}</td>
+                    <td>${statusHtml}</td>
+                    <td>
+                        <div style="display: flex; gap: 8px; justify-content: center;">
+                            <button class="btn-control" style="background:#3b82f6; color:white; border:none; padding:6px 12px; border-radius:4px; cursor:pointer;" onclick="viewChatMessages(${session.id})"><i class="fa-light fa-eye"></i> Xem</button>
+                            <button class="btn-control" style="background:#ef4444; color:white; border:none; padding:6px 12px; border-radius:4px; cursor:pointer;" onclick="deleteChatSession(${session.id})"><i class="fa-light fa-trash"></i> Xóa</button>
+                        </div>
+                    </td>
+                </tr>
+            `;
+        });
+    } catch (err) {
+        console.error(err);
+        alert('Lỗi khi tải lịch sử chat');
+    }
+}
+
+function closeChatMessagesModal() {
+    document.querySelector('.chat-messages-modal').classList.remove('open');
+}
+
+async function viewChatMessages(sessionId) {
+    try {
+        const response = await fetch(`/api/chat/history/${sessionId}`, {
+            headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+        });
+        const messages = await response.json();
+        
+        const container = document.getElementById('chat-history-messages-content');
+        container.innerHTML = '';
+        
+        if (messages.length === 0) {
+            container.innerHTML = '<div style="text-align:center; padding:20px; color:#64748b;">Không có tin nhắn nào trong phiên này.</div>';
+        } else {
+            messages.forEach(msg => {
+                const isCustomer = msg.sender === 'customer';
+                const msgClass = isCustomer ? 'message-customer' : 'message-staff';
+                const name = isCustomer ? 'Khách hàng' : 'Nhân viên';
+                const time = new Date(msg.timestamp).toLocaleTimeString('vi-VN');
+                
+                container.innerHTML += `
+                    <div class="chat-message ${msgClass}">
+                        <div class="message-info">
+                            <span class="message-sender">${name}</span>
+                            <span class="message-time">${time}</span>
+                        </div>
+                        <div class="message-text">${msg.text}</div>
+                    </div>
+                `;
+            });
+        }
+        
+        document.querySelector('.chat-messages-modal').classList.add('open');
+        setTimeout(() => {
+            container.scrollTop = container.scrollHeight;
+        }, 100);
+        
+    } catch (err) {
+        console.error(err);
+        alert('Lỗi khi tải tin nhắn');
+    }
+}
+
+async function deleteChatSession(sessionId) {
+    if (confirm('Bạn có chắc chắn muốn xóa phiên chat này không? Mọi tin nhắn bên trong cũng sẽ bị xóa vĩnh viễn.')) {
+        try {
+            const response = await fetch(`/api/chat/history/${sessionId}`, {
+                method: 'DELETE',
+                headers: {
+                    'Authorization': 'Bearer ' + localStorage.getItem('token')
+                }
+            });
+            
+            const result = await response.json();
+            if (response.ok && result.success) {
+                if (typeof toast === 'function') {
+                    toast({ title: 'Thành công', message: 'Đã xóa phiên chat!', type: 'success', duration: 3000 });
+                } else {
+                    alert('Đã xóa phiên chat!');
+                }
+                loadChatHistory(); // Tải lại danh sách
+            } else {
+                throw new Error(result.error || 'Lỗi khi xóa');
+            }
+        } catch (error) {
+            console.error('Error deleting chat session:', error);
+            if (typeof toast === 'function') {
+                toast({ title: 'Lỗi', message: 'Không thể xóa phiên chat!', type: 'error', duration: 3000 });
+            } else {
+                alert('Không thể xóa phiên chat!');
+            }
         }
     }
 }
