@@ -76,9 +76,13 @@ function closeNewsModal() {
 
 function uploadNewsImage(input) {
     if (input.files && input.files[0]) {
-        // In a real app, you would upload to server. Here we fake it by setting the filename path
+        let reader = new FileReader();
+        reader.onload = function(e) {
+            document.getElementById("news-img-preview").src = e.target.result;
+        };
+        reader.readAsDataURL(input.files[0]);
+        // Giữ nguyên logic path cũ để lưu tên file vào database (giả lập)
         let path = "./assets/img/news/" + input.value.split("\\").pop();
-        document.getElementById("news-img-preview").src = path;
         document.getElementById("news-img-url").value = path;
     }
 }
