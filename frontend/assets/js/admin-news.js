@@ -79,11 +79,10 @@ function uploadNewsImage(input) {
         let reader = new FileReader();
         reader.onload = function(e) {
             document.getElementById("news-img-preview").src = e.target.result;
+            // Lưu trực tiếp chuỗi Base64 vào database để không bị lỗi 404
+            document.getElementById("news-img-url").value = e.target.result;
         };
         reader.readAsDataURL(input.files[0]);
-        // Giữ nguyên logic path cũ để lưu tên file vào database (giả lập)
-        let path = "./assets/img/news/" + input.value.split("\\").pop();
-        document.getElementById("news-img-url").value = path;
     }
 }
 
