@@ -34,6 +34,7 @@
     <link rel="stylesheet" href="./assets/font/font-awesome-pro-v6-6.2.0/css/all.min.css" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
     <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <script async defer crossorigin="anonymous" src="https://connect.facebook.net/vi_VN/sdk.js"></script>
 </head>
 
 <body>
@@ -410,7 +411,13 @@
                             <span style="padding: 0 10px; font-size: 14px;">Hoặc tiếp tục với</span>
                             <div style="flex: 1; border-bottom: 1px solid #ddd;"></div>
                         </div>
-                        <div id="google-signup-btn-container" style="display: flex; justify-content: center;"></div>
+                        <div style="display: flex; justify-content: center; gap: 10px;">
+                            <div id="google-signup-btn-container" style="flex: 1;"></div>
+                            <button type="button" onclick="loginWithFacebook()" style="flex: 1; display: flex; align-items: center; justify-content: center; gap: 8px; background: #fff; border: 1px solid #dadce0; border-radius: 4px; height: 40px; cursor: pointer; font-family: 'Roboto', arial, sans-serif; font-size: 14px; font-weight: 500; color: #3c4043; transition: background 0.2s;">
+                                <img src="https://upload.wikimedia.org/wikipedia/commons/5/51/Facebook_f_logo_%282019%29.svg" alt="Facebook" style="width: 18px; height: 18px;">
+                                Đăng ký với Facebook
+                            </button>
+                        </div>
                     </form>
                     <p class="change-login">Bạn đã có tài khoản ? <a href="javascript:;" class="login-link">Đăng nhập
                             ngay</a></p>
@@ -441,7 +448,13 @@
                             <span style="padding: 0 10px; font-size: 14px;">Hoặc tiếp tục với</span>
                             <div style="flex: 1; border-bottom: 1px solid #ddd;"></div>
                         </div>
-                        <div id="google-login-btn-container" style="display: flex; justify-content: center;"></div>
+                        <div style="display: flex; justify-content: center; gap: 10px;">
+                            <div id="google-login-btn-container" style="flex: 1;"></div>
+                            <button type="button" onclick="loginWithFacebook()" style="flex: 1; display: flex; align-items: center; justify-content: center; gap: 8px; background: #fff; border: 1px solid #dadce0; border-radius: 4px; height: 40px; cursor: pointer; font-family: 'Roboto', arial, sans-serif; font-size: 14px; font-weight: 500; color: #3c4043; transition: background 0.2s;">
+                                <img src="https://upload.wikimedia.org/wikipedia/commons/5/51/Facebook_f_logo_%282019%29.svg" alt="Facebook" style="width: 18px; height: 18px;">
+                                Tiếp tục với Facebook
+                            </button>
+                        </div>
                     </form>
                     <p class="change-login">Bạn chưa có tài khoản ? <a href="javascript:;" class="signup-link">Đăng kí
                             ngay</a></p>
@@ -508,6 +521,27 @@
                         <button class="form-submit" id="google-complete-button">Xác nhận & Đăng nhập</button>
                     </form>
                     <p class="change-login"><a href="javascript:;" class="back-to-login" onclick="document.querySelector('.google-complete').style.display='none'; document.querySelector('.login').style.display='block';">Hủy bỏ</a></p>
+                </div>
+                
+                <!-- Facebook Registration Complete Form -->
+                <div class="form-content facebook-complete" style="display: none;">
+                    <h3 class="form-title">Hoàn tất đăng ký</h3>
+                    <p class="form-description">Vui lòng cung cấp số điện thoại để hoàn tất việc đăng nhập bằng Facebook</p>
+                    <form action="" class="form" id="facebook-complete-form">
+                        <div class="form-group" style="text-align: center; margin-bottom: 20px;">
+                            <img id="fb-user-avatar" src="" alt="Avatar" style="width: 60px; height: 60px; border-radius: 50%; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
+                            <p id="fb-user-name" style="font-weight: 600; margin-top: 10px; color: #333;"></p>
+                            <p id="fb-user-email" style="font-size: 13px; color: #777;"></p>
+                        </div>
+                        <div class="form-group">
+                            <label for="fb-phone" class="form-label">Số điện thoại</label>
+                            <input id="fb-phone" name="phone" type="text" autocomplete="tel" placeholder="Nhập số điện thoại của bạn"
+                                class="form-control">
+                            <span class="form-message fb-phone-error"></span>
+                        </div>
+                        <button class="form-submit" id="fb-complete-button">Xác nhận & Đăng nhập</button>
+                    </form>
+                    <p class="change-login"><a href="javascript:;" class="back-to-login" onclick="document.querySelector('.facebook-complete').style.display='none'; document.querySelector('.login').style.display='block';">Hủy bỏ</a></p>
                 </div>
             </div>
         </div>

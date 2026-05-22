@@ -19,6 +19,7 @@ const payos = (process.env.PAYOS_CLIENT_ID && process.env.PAYOS_API_KEY && proce
     : null;
 
 const { OAuth2Client } = require('google-auth-library');
+const axios = require('axios');
 const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 // OTP Storage (Phone -> {otp, expiry})
@@ -435,6 +436,103 @@ app.post('/api/auth/google/complete-registration', registerLimiter, async (req, 
         });
     } catch (err) {
         console.error("Google Registration Error:", err);
+        res.status(500).json({ success: false, message: 'Registration failed' });
+    }
+});
+
+// Facebook Login
+app.post('/api/auth/facebook', loginLimiter, async (req, res) => {
+    try {
+        const { accessToken } = req.body;
+        if (!accessToken) return res.status(400).json({ success: false, message: 'Missing Facebook token' });
+
+        // Verify token with Facebook Graph API
+        const response = await axios.get(`https://graph.facebook.com/me?fields=id,name,email,picture&access_token=${accessToken}`);
+        const { email, name, picture } = response.data;
+        const fbEmail = email || `${response.data.id}@facebook.com`; // Fallback if email is missing
+        const avatarUrl = picture?.data?.url || '';
+
+        // Check if user exists by email
+        const result = await pool.request()
+            .input('email', sql.NVarChar, fbEmail)
+            .query('SELECT * FROM Users WHERE email=@email');
+
+        if (result.recordset.length > 0) {
+            // User exists, log them in
+            const user = result.recordset[0];
+            const token = jwt.sign(
+                { phone: user.phone, userType: user.userType },
+                SECRET_KEY,
+                { expiresIn: '24h' }
+            );
+            const { password: _, ...safeUser } = user;
+            safeUser.join = user.joinDate;
+            safeUser.cart = [];
+            res.json({ success: true, user: safeUser, token });
+        } else {
+            // User does not exist, ask for phone number to complete registration
+            res.json({ 
+                success: false, 
+                status: 'require_phone', 
+                message: 'Vui lòng cung cấp số điện thoại để hoàn tất đăng ký',
+                facebookInfo: { email: fbEmail, name, picture: avatarUrl }
+            });
+        }
+    } catch (err) {
+        console.error("Facebook Login Error:", err.response?.data || err.message);
+        res.status(401).json({ success: false, message: 'Facebook authentication failed' });
+    }
+});
+
+// Complete Facebook Registration
+app.post('/api/auth/facebook/complete-registration', registerLimiter, async (req, res) => {
+    try {
+        const { accessToken, phone } = req.body;
+        if (!accessToken || !phone) return res.status(400).json({ success: false, message: 'Missing required fields' });
+
+        // Verify token with Facebook Graph API
+        const response = await axios.get(`https://graph.facebook.com/me?fields=id,name,email&access_token=${accessToken}`);
+        const { email, name } = response.data;
+        const fbEmail = email || `${response.data.id}@facebook.com`;
+
+        // Check if phone already exists
+        const checkPhone = await pool.request()
+            .input('phone', sql.NVarChar, phone)
+            .query('SELECT * FROM Users WHERE phone=@phone');
+        
+        if (checkPhone.recordset.length > 0) {
+            return res.status(400).json({ success: false, message: 'Số điện thoại này đã được đăng ký cho một tài khoản khác' });
+        }
+
+        // Generate a random strong password for Facebook users
+        const randomPassword = Math.random().toString(36).slice(-10) + 'A1@';
+        const hashedPassword = await bcrypt.hash(randomPassword, 10);
+
+        await pool.request()
+            .input('fullname', sql.NVarChar, name)
+            .input('phone', sql.NVarChar, phone)
+            .input('password', sql.NVarChar, hashedPassword)
+            .input('address', sql.NVarChar, '')
+            .input('email', sql.NVarChar, fbEmail)
+            .input('status', sql.Int, 1)
+            .input('userType', sql.Int, 0)
+            .query('INSERT INTO Users (fullname, phone, password, address, email, status, userType) VALUES (@fullname, @phone, @password, @address, @email, @status, @userType)');
+
+        // Create JWT Token
+        const token = jwt.sign(
+            { phone: phone, userType: 0 },
+            SECRET_KEY,
+            { expiresIn: '24h' }
+        );
+
+        res.status(201).json({
+            success: true,
+            message: 'Đăng ký thành công bằng Facebook',
+            user: { fullname: name, phone, email: fbEmail, address: '', status: 1, userType: 0, cart: [] },
+            token
+        });
+    } catch (err) {
+        console.error("Facebook Registration Error:", err.response?.data || err.message);
         res.status(500).json({ success: false, message: 'Registration failed' });
     }
 });

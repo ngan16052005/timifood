@@ -2323,3 +2323,118 @@ if (googleCompleteBtn) {
     });
 }
 
+// Facebook OAuth2 Initialization
+let currentFacebookToken = null;
+
+window.fbAsyncInit = function() {
+    FB.init({
+        appId      : 'your_facebook_app_id', // Replace with dynamic env var later
+        cookie     : true,
+        xfbml      : true,
+        version    : 'v19.0'
+    });
+};
+
+function loginWithFacebook() {
+    if (typeof FB === 'undefined') {
+        toast({ title: 'Lỗi', message: 'Không thể tải Facebook SDK', type: 'error', duration: 3000 });
+        return;
+    }
+
+    FB.login(function(response) {
+        if (response.authResponse) {
+            handleFacebookCredentialResponse(response.authResponse.accessToken);
+        } else {
+            console.log('User cancelled login or did not fully authorize.');
+        }
+    }, {scope: 'public_profile,email'});
+}
+
+async function handleFacebookCredentialResponse(accessToken) {
+    try {
+        const res = await fetch('/api/auth/facebook', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ accessToken })
+        });
+
+        const data = await res.json();
+        if (data.success) {
+            // User exists, log them in
+            localStorage.setItem('currentuser', JSON.stringify(data.user));
+            localStorage.setItem('token', data.token);
+            toast({ title: 'Thành công', message: 'Đăng nhập thành công bằng Facebook!', type: 'success', duration: 3000 });
+            closeModal();
+            kiemtradangnhap();
+            checkAdmin();
+            updateAmount();
+            updateCartTotal();
+            if (typeof startUserNotifications === 'function') startUserNotifications();
+        } else if (data.status === 'require_phone') {
+            // New user, show phone number input form
+            currentFacebookToken = accessToken;
+            document.querySelector('.login').style.display = 'none';
+            document.querySelector('.sign-up').style.display = 'none';
+            document.querySelector('.facebook-complete').style.display = 'block';
+
+            if (data.facebookInfo) {
+                if (data.facebookInfo.picture) document.getElementById('fb-user-avatar').src = data.facebookInfo.picture;
+                if (data.facebookInfo.name) document.getElementById('fb-user-name').innerText = data.facebookInfo.name;
+                if (data.facebookInfo.email) document.getElementById('fb-user-email').innerText = data.facebookInfo.email;
+            }
+        } else {
+            toast({ title: 'Lỗi', message: data.message || 'Đăng nhập thất bại', type: 'error', duration: 3000 });
+        }
+    } catch (err) {
+        toast({ title: 'Lỗi', message: 'Lỗi kết nối máy chủ', type: 'error', duration: 3000 });
+    }
+}
+
+// Handle complete registration Facebook
+const fbCompleteBtn = document.getElementById('fb-complete-button');
+if (fbCompleteBtn) {
+    fbCompleteBtn.addEventListener('click', async (e) => {
+        e.preventDefault();
+        const phone = document.getElementById('fb-phone').value;
+        const phoneError = document.querySelector('.fb-phone-error');
+
+        if (!phone) {
+            phoneError.innerText = 'Vui lòng nhập số điện thoại';
+            return;
+        } else if (phone.length !== 10) {
+            phoneError.innerText = 'Số điện thoại phải có 10 chữ số';
+            return;
+        } else {
+            phoneError.innerText = '';
+        }
+
+        fbCompleteBtn.innerText = 'Đang xử lý...';
+        fbCompleteBtn.disabled = true;
+
+        try {
+            const res = await fetch('/api/auth/facebook/complete-registration', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ accessToken: currentFacebookToken, phone })
+            });
+
+            const data = await res.json();
+            if (data.success) {
+                localStorage.setItem('currentuser', JSON.stringify(data.user));
+                localStorage.setItem('token', data.token);
+                toast({ title: 'Thành công', message: 'Tạo tài khoản thành công bằng Facebook!', type: 'success', duration: 3000 });
+                closeModal();
+                kiemtradangnhap();
+                updateAmount();
+                if (typeof startUserNotifications === 'function') startUserNotifications();
+            } else {
+                toast({ title: 'Lỗi', message: data.message || 'Đăng ký thất bại', type: 'error', duration: 3000 });
+            }
+        } catch (err) {
+            toast({ title: 'Lỗi', message: 'Lỗi kết nối máy chủ', type: 'error', duration: 3000 });
+        } finally {
+            fbCompleteBtn.innerText = 'Xác nhận & Đăng nhập';
+            fbCompleteBtn.disabled = false;
+        }
+    });
+}

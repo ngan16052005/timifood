@@ -323,5 +323,14 @@ Dưới đây là danh sách đầy đủ các hạng mục đã hoàn thiện t
   - Nếu Email Google **chưa từng tồn tại** -> Hiển thị Modal phụ: "Hoàn tất đăng ký". Ở bước này, do Google không cấp Số điện thoại, hệ thống yêu cầu khách hàng nhập Số điện thoại lần đầu để định danh cho mọi đơn hàng sau này. Hệ thống hiển thị luôn cả Avatar, Tên và Email lấy từ Google để xác nhận.
 - [x] **Bảo mật biến môi trường:** Bổ sung trường `GOOGLE_CLIENT_ID` vào `.env` và `.env.example` để người dùng có thể linh hoạt gắn key Google Cloud Console thật.
 
+## ✅ Giai đoạn 36: Tích hợp Đăng nhập bằng Facebook (Facebook Login)
+>
+> **Độ khó:** ⭐⭐⭐ | **Thời gian ước tính:** 2 giờ
+
+- [x] **Tích hợp SDK Facebook:** Thêm SDK JS của Facebook vào giao diện người dùng.
+- [x] **Nút Đăng nhập/Đăng ký:** Bổ sung nút Facebook kế bên nút Google.
+- [x] **Xác thực Backend (Axios):** Sử dụng Axios để gọi API Graph Facebook nhằm xác thực token an toàn.
+- [x] **Luồng hoàn tất Đăng ký:** Tạo form phụ nhập Số điện thoại đối với tài khoản Facebook mới lần đầu đăng nhập.
+
 ---
 *Cập nhật lần cuối: 22/05/2026 bởi thaingan & AI Assistant.*
