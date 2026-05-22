@@ -351,6 +351,21 @@
             <div id="wishlist-products" class="home-products" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 20px; padding: 20px 0;">
             </div>
         </div>
+        <div class="container" id="news-section" style="display: none;">
+            <div class="home-title-block" id="news-title">
+                <h2 class="home-title">Tin tức & Bài viết</h2>
+            </div>
+            <div id="news-list" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 30px; padding: 20px 0;">
+                <!-- News cards injected here -->
+            </div>
+        </div>
+
+        <div class="container" id="news-detail-section" style="display: none; padding: 40px 0;">
+            <button onclick="showNewsSection()" class="btn-control-large" style="margin-bottom: 20px;"><i class="fa-light fa-arrow-left"></i> Quay lại</button>
+            <div id="news-detail-content" style="background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05);">
+                <!-- Full News article injected here -->
+            </div>
+        </div>
     </main>
     <div class="modal product-detail">
         <button class="modal-close close-popup"><i class="fa-thin fa-xmark"></i></button>
@@ -716,7 +731,7 @@
                                 </a>
                             </li>
                             <li class="widget-contact-item">
-                                <a href="">
+                                <a href="javascript:;" onclick="showNewsSection()">
                                     <i class="fa-regular fa-arrow-right"></i>
                                     <span>Tin tức</span>
                                 </a>

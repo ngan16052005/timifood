@@ -317,7 +317,7 @@ Dưới đây là danh sách đầy đủ các hạng mục đã hoàn thiện t
 
 - [x] **Cài đặt thư viện:** Bổ sung gói `google-auth-library` để backend có khả năng giải mã và xác thực an toàn chuỗi JWT từ Google gửi sang.
 - [x] **Giao diện chuẩn Google:** Tích hợp `accounts.google.com/gsi/client` để render nút "Đăng nhập với Google" / "Đăng ký với Google" tự động dưới form đăng nhập/đăng ký, kèm hiệu ứng hover và nhận diện thương hiệu chuẩn xác từ Google.
-- [x] **Luồng xử lý linh hoạt (Social Login Flow):** 
+- [x] **Luồng xử lý linh hoạt (Social Login Flow):**
   - Khi khách hàng nhấn vào Google Login, Backend sẽ xác thực JWT token.
   - Nếu Email Google **đã tồn tại** trong hệ thống -> Tạo Token nội bộ (TiMiFood Token) và tự động đăng nhập mượt mà.
   - Nếu Email Google **chưa từng tồn tại** -> Hiển thị Modal phụ: "Hoàn tất đăng ký". Ở bước này, do Google không cấp Số điện thoại, hệ thống yêu cầu khách hàng nhập Số điện thoại lần đầu để định danh cho mọi đơn hàng sau này. Hệ thống hiển thị luôn cả Avatar, Tên và Email lấy từ Google để xác nhận.

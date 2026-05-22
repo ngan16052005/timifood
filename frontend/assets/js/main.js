@@ -1,4 +1,4 @@
-// Image Lazy Loading Fade-in
+﻿// Image Lazy Loading Fade-in
 document.addEventListener('load', (e) => {
     if (e.target.tagName === 'IMG') {
         e.target.classList.add('loaded');
@@ -1770,8 +1770,15 @@ function paginationChange(page, productAll, currentPage) {
 async function showCategory(category) {
     currentPage = 1; // Reset page
     document.getElementById('trangchu').classList.remove('hide');
+    document.getElementById('trangchu').style.display = 'block';
     document.getElementById('account-user').classList.remove('open');
     document.getElementById('order-history').classList.remove('open');
+    const ns = document.getElementById('news-section');
+    if(ns) ns.style.display = 'none';
+    const nds = document.getElementById('news-detail-section');
+    if(nds) nds.style.display = 'none';
+    const ws = document.getElementById('wishlist-section');
+    if(ws) ws.style.display = 'none';
 
     try {
         if (productAll.length == 0) {
@@ -2439,4 +2446,74 @@ if (fbCompleteBtn) {
     });
 }
 
+
+
+// ===================== NEWS SECTION LOGIC =====================
+let globalNewsList = [];
+
+async function showNewsSection() {
+    // Hide home sections
+    document.getElementById('trangchu').style.display = 'none';
+    const wishlistSection = document.getElementById('wishlist-section');
+    if (wishlistSection) wishlistSection.style.display = 'none';
+    
+    // Hide news detail if open
+    document.getElementById('news-detail-section').style.display = 'none';
+
+    // Show news section
+    document.getElementById('news-section').style.display = 'block';
+
+    const res = await window.api.getNews();
+    if (res.success) {
+        globalNewsList = res.data;
+        const newsListContainer = document.getElementById('news-list');
+        
+        if (globalNewsList.length === 0) {
+            newsListContainer.innerHTML = '<div class="no-result" style="grid-column: 1 / -1; margin-top: 40px;"><div class="no-result-i" style="font-size: 80px; color: #cbd5e1; margin-bottom: 20px;"><i class="fa-light fa-newspaper"></i></div><div class="no-result-h" style="font-size: 1.2rem; color: #64748b;">Chưa có bài viết / tin tức nào</div></div>';
+            return;
+        }
+
+        let html = '';
+        globalNewsList.forEach(item => {
+            const dateStr = new Date(item.createdAt).toLocaleDateString('vi-VN');
+            html += `
+                <div class="news-card" style="background: #fff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.05); cursor: pointer; transition: transform 0.3s ease, box-shadow 0.3s ease;" onclick="readNews(${item.id})" onmouseover="this.style.transform='translateY(-5px)'; this.style.boxShadow='0 10px 25px rgba(0,0,0,0.1)';" onmouseout="this.style.transform='none'; this.style.boxShadow='0 4px 15px rgba(0,0,0,0.05)';">
+                    <img src="" alt="" style="width: 100%; height: 200px; object-fit: cover;" onerror="this.src='./assets/img/blank-image.png'">
+                    <div class="news-card-body" style="padding: 20px;">
+                        <h3 style="font-size: 1.1rem; color: #1e293b; margin-bottom: 10px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; text-overflow: ellipsis; line-height: 1.4;"></h3>
+                        <div style="display: flex; justify-content: space-between; color: #64748b; font-size: 0.85rem; margin-top: 15px;">
+                            <span><i class="fa-light fa-user-pen"></i> </span>
+                            <span><i class="fa-light fa-calendar"></i> </span>
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
+        newsListContainer.innerHTML = html;
+    }
+}
+
+function readNews(id) {
+    const item = globalNewsList.find(n => n.id === id);
+    if (!item) return;
+
+    document.getElementById('news-section').style.display = 'none';
+    document.getElementById('news-detail-section').style.display = 'block';
+
+    const dateStr = new Date(item.createdAt).toLocaleDateString('vi-VN');
+    const html = `
+        <h1 style="font-size: 2rem; color: #1e293b; margin-bottom: 15px; line-height: 1.3;"></h1>
+        <div style="display: flex; gap: 20px; color: #64748b; font-size: 0.95rem; margin-bottom: 30px; padding-bottom: 15px; border-bottom: 1px solid #e2e8f0;">
+            <span><i class="fa-light fa-user-pen"></i> T�c gi?: <strong></strong></span>
+            <span><i class="fa-light fa-calendar"></i> Xu?t b?n: </span>
+        </div>
+        <div class="news-content-body" style="font-size: 1.05rem; line-height: 1.8; color: #334155;">
+            <img src="" style="max-width: 100%; height: auto; max-height: 400px; object-fit: cover; border-radius: 8px; margin-bottom: 25px; display: block;" onerror="this.style.display='none'">
+            
+        </div>
+    `;
+    
+    document.getElementById('news-detail-content').innerHTML = html;
+    window.scrollTo(0, 0);
+}
 

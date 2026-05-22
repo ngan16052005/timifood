@@ -779,5 +779,92 @@ window.api = {
         } finally {
             hideLoader();
         }
+    },
+
+    // --- NEWS APIs ---
+    getNews: async () => {
+        try {
+            const response = await fetch(`${BASE_URL}/news`);
+            if (!response.ok) throw new Error('Failed to fetch news');
+            return await response.json();
+        } catch (error) {
+            console.error("Get news error:", error);
+            return { success: false, data: [] };
+        }
+    },
+
+    getAdminNews: async () => {
+        try {
+            const response = await fetch(`${BASE_URL}/admin/news`, {
+                headers: getHeaders()
+            });
+            if (!response.ok) throw new Error('Failed to fetch news');
+            return await response.json();
+        } catch (error) {
+            console.error("Get admin news error:", error);
+            throw error;
+        }
+    },
+    
+    addNews: async (newsData) => {
+        showLoader();
+        try {
+            const response = await fetch(`${BASE_URL}/admin/news`, {
+                method: 'POST',
+                headers: getHeaders(),
+                body: JSON.stringify(newsData)
+            });
+            if (!response.ok) {
+                const err = await response.json();
+                throw new Error(err.message || 'Lỗi khi thêm bài viết');
+            }
+            return await response.json();
+        } catch (error) {
+            console.error("Add news error:", error);
+            throw error;
+        } finally {
+            hideLoader();
+        }
+    },
+
+    updateNews: async (id, newsData) => {
+        showLoader();
+        try {
+            const response = await fetch(`${BASE_URL}/admin/news/${id}`, {
+                method: 'PUT',
+                headers: getHeaders(),
+                body: JSON.stringify(newsData)
+            });
+            if (!response.ok) {
+                const err = await response.json();
+                throw new Error(err.message || 'Lỗi khi cập nhật bài viết');
+            }
+            return await response.json();
+        } catch (error) {
+            console.error("Update news error:", error);
+            throw error;
+        } finally {
+            hideLoader();
+        }
+    },
+
+    deleteNews: async (id) => {
+        showLoader();
+        try {
+            const response = await fetch(`${BASE_URL}/admin/news/${id}`, {
+                method: 'DELETE',
+                headers: getHeaders()
+            });
+            if (!response.ok) {
+                const err = await response.json();
+                throw new Error(err.message || 'Lỗi khi xóa bài viết');
+            }
+            return await response.json();
+        } catch (error) {
+            console.error("Delete news error:", error);
+            throw error;
+        } finally {
+            hideLoader();
+        }
     }
 };

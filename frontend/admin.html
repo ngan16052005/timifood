@@ -169,6 +169,12 @@
                             <div class="hidden-sidebar">Liên hệ</div>
                         </a>
                     </li>
+                    <li class="sidebar-list-item tab-content">
+                        <a href="#" class="sidebar-link">
+                            <div class="sidebar-icon"><i class="fa-light fa-newspaper"></i></div>
+                            <div class="hidden-sidebar">Tin tức</div>
+                        </a>
+                    </li>
                 </ul>
             </div>
         </aside>
@@ -701,6 +707,46 @@
                 </div>
             </div>
 
+            <!-- News Section -->
+            <div class="section">
+                <div class="admin-control">
+                    <div class="admin-control-left">
+                        <h3 class="title-section">Quản lý tin tức / bài viết</h3>
+                    </div>
+                    <div class="admin-control-center">
+                        <form action="" class="form-search">
+                            <span class="search-btn"><i class="fa-light fa-magnifying-glass"></i></span>
+                            <input id="form-search-news" type="text" class="form-search-input"
+                                placeholder="Tìm kiếm tiêu đề, tác giả..." oninput="showNews()">
+                        </form>
+                    </div>
+                    <div class="admin-control-right">
+                        <button class="btn-reset-order" onclick="showNews()"><i
+                                class="fa-light fa-arrow-rotate-right"></i></button>
+                        <button class="btn-control-large" onclick="openAddNewsModal()">
+                            <i class="fa-light fa-plus"></i> <span>Viết bài mới</span>
+                        </button>
+                    </div>
+                </div>
+                <div class="table">
+                    <table width="100%">
+                        <thead>
+                            <tr>
+                                <td>ID</td>
+                                <td>Hình ảnh</td>
+                                <td>Tiêu đề</td>
+                                <td>Tác giả</td>
+                                <td>Ngày tạo</td>
+                                <td>Trạng thái</td>
+                                <td>Thao tác</td>
+                            </tr>
+                        </thead>
+                        <tbody id="show-news">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
         </main>
     </div>
     <div class="modal add-product">
@@ -906,6 +952,7 @@
     <script src="./assets/js/api.js"></script>
     <script src="./assets/js/admin-noti.js"></script>
     <script src="./assets/js/admin.js"></script>
+    <script src="./assets/js/admin-news.js"></script>
     <script src="./assets/js/toast-message.js"></script>
 
     <div class="modal stock-in">
@@ -1013,6 +1060,60 @@
                 <div class="chat-window-messages" id="chat-history-messages-content" style="height: 500px; border: 1px solid #eee; border-radius: 8px; overflow-y: auto;">
                     <!-- Messages flow dynamically -->
                 </div>
+            </div>
+        </div>
+    </div>
+    <!-- News Add/Edit Modal -->
+    <div class="modal add-news-modal">
+        <div class="modal-container" style="max-width: 800px;">
+            <h3 class="modal-container-title add-news-e">THÊM TIN TỨC MỚI</h3>
+            <h3 class="modal-container-title edit-news-e" style="display: none;">CHỈNH SỬA TIN TỨC</h3>
+            <button class="modal-close" onclick="closeNewsModal()"><i class="fa-regular fa-xmark"></i></button>
+            <div class="modal-content">
+                <form action="" class="add-news-form" id="news-form" onsubmit="submitNews(event)">
+                    <div class="modal-content-left" style="width: 35%;">
+                        <img src="./assets/img/blank-image.png" alt="" class="upload-image-preview" id="news-img-preview">
+                        <div class="form-group file">
+                            <label for="up-news-img" class="form-label-file"><i
+                                    class="fa-regular fa-cloud-arrow-up"></i>Chọn hình ảnh thu nhỏ</label>
+                            <input accept="image/jpeg, image/png, image/jpg" id="up-news-img" name="up-news-img"
+                                type="file" class="form-control" onchange="uploadNewsImage(this)">
+                        </div>
+                    </div>
+                    <div class="modal-content-right" style="width: 65%;">
+                        <input type="hidden" id="news-id">
+                        <input type="hidden" id="news-img-url">
+                        <div class="form-group">
+                            <label for="news-title" class="form-label">Tiêu đề bài viết</label>
+                            <input id="news-title" name="news-title" type="text" placeholder="Nhập tiêu đề..."
+                                class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="news-author" class="form-label">Tác giả</label>
+                            <input id="news-author" name="news-author" type="text" placeholder="Tên tác giả..."
+                                class="form-control" value="Admin" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="news-status" class="form-label">Trạng thái</label>
+                            <select id="news-status" name="news-status" class="form-control">
+                                <option value="1">Hiển thị (Active)</option>
+                                <option value="0">Ẩn (Hidden)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="news-content" class="form-label">Nội dung</label>
+                            <textarea id="news-content" class="product-desc" style="height: 150px;" placeholder="Nhập nội dung bài viết... (hỗ trợ HTML cơ bản)" required></textarea>
+                        </div>
+                        <button type="submit" class="form-submit add-news-e">
+                            <i class="fa-regular fa-plus"></i>
+                            <span>THÊM BÀI VIẾT</span>
+                        </button>
+                        <button type="button" class="form-submit edit-news-e" style="display: none;" onclick="updateNews()">
+                            <i class="fa-light fa-pencil"></i>
+                            <span>LƯU THAY ĐỔI</span>
+                        </button>
+                    </div>
+                </form>
             </div>
         </div>
     </div>

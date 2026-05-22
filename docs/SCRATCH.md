@@ -116,5 +116,12 @@ File này dùng để lưu trữ các ý tưởng, đoạn code nháp, hoặc c�
 - Trang Liên hệ tích hợp Form gửi tin nhắn và nhúng **Google Maps** hiển thị vị trí chi nhánh Hải Phòng.
 - **Lưu ý Navigation:** Tuân thủ yêu cầu người dùng, KHÔNG thêm liên kết vào thanh menu chính trên Header (để không phá vỡ cấu trúc trang chủ), CHỈ cập nhật liên kết trong mục "Liên kết" của thẻ Footer (`about.html` cho Về chúng tôi, và `contact.html` cho Liên hệ).
 
+## 📌 Giai đoạn 37: Quản lý Tin tức & Empty State
+
+- Đã xây dựng hoàn chỉnh tab **Tin tức** trong trang quản trị (Dashboard) với giao diện table và Modal (Thêm/Sửa) đồng bộ với hệ thống cũ.
+- Đã cấu hình Backend API CRUD Tin tức (pi.js).
+- Giao diện Client (SPA): Thêm section Tin tức tải động, render danh sách dưới dạng Grid layout, chi tiết dạng bài báo.
+- Giao diện **Empty State** (khi trống) được chuẩn hóa cho toàn dự án với biểu tượng đẹp mắt (sử dụng .no-result).
+
 ---
 *Cập nhật lần cuối: 22/05/2026 bởi thaingan & AI Assistant.*
