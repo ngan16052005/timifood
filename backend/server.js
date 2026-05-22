@@ -18,6 +18,9 @@ const payos = (process.env.PAYOS_CLIENT_ID && process.env.PAYOS_API_KEY && proce
     ? new PayOS(process.env.PAYOS_CLIENT_ID, process.env.PAYOS_API_KEY, process.env.PAYOS_CHECKSUM_KEY)
     : null;
 
+const { OAuth2Client } = require('google-auth-library');
+const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+
 // OTP Storage (Phone -> {otp, expiry})
 const otpStore = new Map();
 
@@ -333,6 +336,106 @@ app.post('/api/login', loginLimiter, async (req, res) => {
     } catch (err) {
         console.error("Login error:", err);
         res.status(500).json({ success: false, message: 'Database error' });
+    }
+});
+
+// Google Login
+app.post('/api/auth/google', loginLimiter, async (req, res) => {
+    try {
+        const { credential } = req.body;
+        if (!credential) return res.status(400).json({ success: false, message: 'Missing Google credential' });
+
+        const ticket = await googleClient.verifyIdToken({
+            idToken: credential,
+            audience: process.env.GOOGLE_CLIENT_ID,
+        });
+        const payload = ticket.getPayload();
+        const { email, name, picture } = payload;
+
+        // Check if user exists by email
+        const result = await pool.request()
+            .input('email', sql.NVarChar, email)
+            .query('SELECT * FROM Users WHERE email=@email');
+
+        if (result.recordset.length > 0) {
+            // User exists, log them in
+            const user = result.recordset[0];
+            const token = jwt.sign(
+                { phone: user.phone, userType: user.userType },
+                SECRET_KEY,
+                { expiresIn: '24h' }
+            );
+            const { password: _, ...safeUser } = user;
+            safeUser.join = user.joinDate;
+            safeUser.cart = [];
+            res.json({ success: true, user: safeUser, token });
+        } else {
+            // User does not exist, ask for phone number to complete registration
+            res.json({ 
+                success: false, 
+                status: 'require_phone', 
+                message: 'Vui lòng cung cấp số điện thoại để hoàn tất đăng ký',
+                googleInfo: { email, name, picture }
+            });
+        }
+    } catch (err) {
+        console.error("Google Login Error:", err);
+        res.status(401).json({ success: false, message: 'Google authentication failed' });
+    }
+});
+
+// Complete Google Registration
+app.post('/api/auth/google/complete-registration', registerLimiter, async (req, res) => {
+    try {
+        const { credential, phone } = req.body;
+        if (!credential || !phone) return res.status(400).json({ success: false, message: 'Missing required fields' });
+
+        const ticket = await googleClient.verifyIdToken({
+            idToken: credential,
+            audience: process.env.GOOGLE_CLIENT_ID,
+        });
+        const payload = ticket.getPayload();
+        const { email, name } = payload;
+
+        // Check if phone already exists
+        const checkPhone = await pool.request()
+            .input('phone', sql.NVarChar, phone)
+            .query('SELECT * FROM Users WHERE phone=@phone');
+        
+        if (checkPhone.recordset.length > 0) {
+            return res.status(400).json({ success: false, message: 'Số điện thoại này đã được đăng ký cho một tài khoản khác' });
+        }
+
+        // Generate a random strong password for Google users since they login via Google
+        const randomPassword = Math.random().toString(36).slice(-10) + 'A1@';
+        const hashedPassword = await bcrypt.hash(randomPassword, 10);
+
+        await pool.request()
+            .input('fullname', sql.NVarChar, name)
+            .input('phone', sql.NVarChar, phone)
+            .input('password', sql.NVarChar, hashedPassword)
+            .input('address', sql.NVarChar, '')
+            .input('email', sql.NVarChar, email)
+            .input('status', sql.Int, 1)
+            .input('userType', sql.Int, 0)
+            .query('INSERT INTO Users (fullname, phone, password, address, email, status, userType) VALUES (@fullname, @phone, @password, @address, @email, @status, @userType)');
+
+        // Create JWT Token
+        const token = jwt.sign(
+            { phone: phone, userType: 0 },
+            SECRET_KEY,
+            { expiresIn: '24h' }
+        );
+
+        res.status(201).json({
+            success: true,
+            message: 'Đăng ký thành công bằng Google',
+            user: { fullname: name, phone, email, address: '', status: 1, userType: 0, cart: [] },
+            token
+        });
+    } catch (err) {
+        console.error("Google Registration Error:", err);
+        res.status(500).json({ success: false, message: 'Registration failed' });
     }
 });
 

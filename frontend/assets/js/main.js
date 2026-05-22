@@ -2199,4 +2199,127 @@ async function renderFavorites() {
 }
 
 
+// Google OAuth2 Initialization
+let currentGoogleCredential = null;
+
+window.addEventListener('load', function () {
+    if (typeof google !== 'undefined' && google.accounts && google.accounts.id) {
+        google.accounts.id.initialize({
+            client_id: 'your_google_client_id.apps.googleusercontent.com', // Replace with dynamic env var later
+            callback: handleGoogleCredentialResponse,
+            context: 'use',
+            ux_mode: 'popup',
+            cancel_on_tap_outside: false
+        });
+        
+        // Render Google Login Button
+        const loginContainer = document.getElementById('google-login-btn-container');
+        if (loginContainer) {
+            google.accounts.id.renderButton(
+                loginContainer,
+                { theme: 'outline', size: 'large', width: '100%', text: 'continue_with', locale: 'vi' }
+            );
+        }
+        
+        // Render Google Signup Button
+        const signupContainer = document.getElementById('google-signup-btn-container');
+        if (signupContainer) {
+            google.accounts.id.renderButton(
+                signupContainer,
+                { theme: 'outline', size: 'large', width: '100%', text: 'signup_with', locale: 'vi' }
+            );
+        }
+    }
+};
+
+async function handleGoogleCredentialResponse(response) {
+    if (!response.credential) return;
+    
+    try {
+        const res = await fetch('/api/auth/google', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ credential: response.credential })
+        });
+        
+        const data = await res.json();
+        if (data.success) {
+            // User exists, log them in
+            localStorage.setItem('currentuser', JSON.stringify(data.user));
+            localStorage.setItem('token', data.token);
+            toast({ title: 'Thành công', message: 'Đăng nhập thành công bằng Google!', type: 'success', duration: 3000 });
+            closeModal();
+            kiemtradangnhap();
+            checkAdmin();
+            updateAmount();
+            updateCartTotal();
+            if (typeof startUserNotifications === 'function') startUserNotifications();
+        } else if (data.status === 'require_phone') {
+            // New user, show phone number input form
+            currentGoogleCredential = response.credential;
+            document.querySelector('.login').style.display = 'none';
+            document.querySelector('.sign-up').style.display = 'none';
+            document.querySelector('.google-complete').style.display = 'block';
+            
+            if (data.googleInfo) {
+                if(data.googleInfo.picture) document.getElementById('google-user-avatar').src = data.googleInfo.picture;
+                if(data.googleInfo.name) document.getElementById('google-user-name').innerText = data.googleInfo.name;
+                if(data.googleInfo.email) document.getElementById('google-user-email').innerText = data.googleInfo.email;
+            }
+        } else {
+            toast({ title: 'Lỗi', message: data.message || 'Đăng nhập thất bại', type: 'error', duration: 3000 });
+        }
+    } catch (err) {
+        toast({ title: 'Lỗi', message: 'Lỗi kết nối máy chủ', type: 'error', duration: 3000 });
+    }
+}
+
+// Handle complete registration
+const googleCompleteBtn = document.getElementById('google-complete-button');
+if (googleCompleteBtn) {
+    googleCompleteBtn.addEventListener('click', async (e) => {
+        e.preventDefault();
+        const phone = document.getElementById('google-phone').value;
+        const phoneError = document.querySelector('.google-phone-error');
+        
+        if (!phone) {
+            phoneError.innerText = 'Vui lòng nhập số điện thoại';
+            return;
+        } else if (phone.length !== 10) {
+            phoneError.innerText = 'Số điện thoại phải có 10 chữ số';
+            return;
+        } else {
+            phoneError.innerText = '';
+        }
+        
+        googleCompleteBtn.innerText = 'Đang xử lý...';
+        googleCompleteBtn.disabled = true;
+        
+        try {
+            const res = await fetch('/api/auth/google/complete-registration', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ credential: currentGoogleCredential, phone })
+            });
+            
+            const data = await res.json();
+            if (data.success) {
+                localStorage.setItem('currentuser', JSON.stringify(data.user));
+                localStorage.setItem('token', data.token);
+                toast({ title: 'Thành công', message: 'Tạo tài khoản thành công bằng Google!', type: 'success', duration: 3000 });
+                closeModal();
+                kiemtradangnhap();
+                updateAmount();
+                if (typeof startUserNotifications === 'function') startUserNotifications();
+            } else {
+                toast({ title: 'Lỗi', message: data.message || 'Đăng ký thất bại', type: 'error', duration: 3000 });
+            }
+        } catch (err) {
+            toast({ title: 'Lỗi', message: 'Lỗi kết nối máy chủ', type: 'error', duration: 3000 });
+        } finally {
+            googleCompleteBtn.innerText = 'Xác nhận & Đăng nhập';
+            googleCompleteBtn.disabled = false;
+        }
+    });
+}
 

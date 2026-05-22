@@ -117,4 +117,4 @@ File này dùng để lưu trữ các ý tưởng, đoạn code nháp, hoặc c�
 - **Lưu ý Navigation:** Tuân thủ yêu cầu người dùng, KHÔNG thêm liên kết vào thanh menu chính trên Header (để không phá vỡ cấu trúc trang chủ), CHỈ cập nhật liên kết trong mục "Liên kết" của thẻ Footer (`about.html` cho Về chúng tôi, và `contact.html` cho Liên hệ).
 
 ---
-*Cập nhật lần cuối: 21/05/2026 bởi thaingan & AI Assistant.*
+*Cập nhật lần cuối: 22/05/2026 bởi thaingan & AI Assistant.*
