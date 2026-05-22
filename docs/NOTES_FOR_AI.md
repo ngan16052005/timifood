@@ -5,16 +5,19 @@ File này chứa các quy tắc, phong cách lập trình và những lưu ý qu
 ---
 
 ## 🚀 Quy tắc chung
+
 - **Giao diện (UI/UX):** Luôn ưu tiên sự hiện đại, tinh tế (Premium). Sử dụng các hiệu ứng mượt mà (micro-animations), màu sắc hài hòa và bố cục cân đối. Không làm các giao diện đơn giản quá mức.
 - **Bảo mật:** Không bao giờ lưu mật khẩu (kể cả hash) ở client-side. Mọi thao tác nhạy cảm phải qua xác thực server-side.
 - **Cấu trúc mã:** Giữ mã nguồn sạch sẽ, có comment giải thích các logic phức tạp. Đảm bảo tính đồng bộ giữa các file (ví dụ: Sidebar index phải khớp với HTML section index).
 
 ## 🛠️ Công nghệ & Kỹ thuật
+
 - **Backend:** Node.js, Express, SQL Server (mssql).
 - **Frontend:** Vanilla JS, HTML5, CSS3.
 - **Dữ liệu:** Luôn ưu tiên lấy dữ liệu động từ Database thay vì hardcode.
 
 ## 📝 Ghi chú riêng từ người dùng
+
 **Đặc biệt lưu ý: Hãy đọc lại README.md, SCRATCH.md, TASKS.md, NOTES_FOR_AI.md sau mỗi lần cập nhật và khi bắt đầu phiên làm việc để hiểu rõ hơn về dự án.**
 **Luôn giao tiếp với người dùng bằng Tiếng Việt.**
 **Không được xoá code khi chưa kiểm tra kỹ lưỡng.Không được tự ý thay đổi cấu trúc HTML, CSS, JS khi chưa có sự cho phép của người dùng, luôn thông báo cho người dùng khi thực hiện thay đổi lớn, luôn hỏi lại khi không chắc chắn.**
@@ -24,7 +27,10 @@ File này chứa các quy tắc, phong cách lập trình và những lưu ý qu
 **Luôn giữ nguyên style và giao diện của các component, không thay đổi style và giao diện của các component khi chưa có sự cho phép của người dùng.**
 **Luôn cập nhật dự án lên github sau mỗi lần hoàn thành và có thông báo cho người dùng.**
 **Luôn kiểm tra lại code sau khi hoàn thành và đảm bảo không có lỗi.**
-## Tài khoản:
+**Dọn dẹp code, comment các hàm không sử dụng (không được làm hỏng logic của dự án).**
+
+## Tài khoản
+
 **Tài khoản Admin: số điện thoại: admin, mật khẩu: 123456**
 **Tài khoản Nhân viên: số điện thoại: 0345975990, mật khẩu: 123456**
 **Tài khoản Khách hàng: số điện thoại: 0345975998, mật khẩu: Ngan12345@**
