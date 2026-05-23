@@ -70,15 +70,15 @@ async function showUser() {
 
         if (timeStart != "" && timeEnd == "") {
             result = result.filter((item) => {
-                return new Date(item.join.replace('Z', '')) >= new Date(timeStart).setHours(0, 0, 0);
+                return new Date(item.join) >= new Date(timeStart).setHours(0, 0, 0);
             });
         } else if (timeStart == "" && timeEnd != "") {
             result = result.filter((item) => {
-                return new Date(item.join.replace('Z', '')) <= new Date(timeEnd).setHours(23, 59, 59);
+                return new Date(item.join) <= new Date(timeEnd).setHours(23, 59, 59);
             });
         } else if (timeStart != "" && timeEnd != "") {
             result = result.filter((item) => {
-                return (new Date(item.join.replace('Z', '')) >= new Date(timeStart).setHours(0, 0, 0) && new Date(item.join.replace('Z', '')) <= new Date(timeEnd).setHours(23, 59, 59)
+                return (new Date(item.join) >= new Date(timeStart).setHours(0, 0, 0) && new Date(item.join) <= new Date(timeEnd).setHours(23, 59, 59)
                 );
             });
         }

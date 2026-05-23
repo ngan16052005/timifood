@@ -1528,7 +1528,7 @@ function closeOrderEditModal() {
 
 // Format Date
 function formatDate(date) {
-    let fm = new Date(date.toString().replace('Z', ''));
+    let fm = new Date(date.toString());
     let yyyy = fm.getFullYear();
     let mm = fm.getMonth() + 1;
     let dd = fm.getDate();
@@ -1947,7 +1947,7 @@ async function syncNotificationsFromServer() {
                 id: n.id,
                 title: n.title,
                 message: n.message,
-                time: new Date(n.createdAt.replace('Z', '')).toLocaleString('vi-VN'),
+                time: new Date(n.createdAt).toLocaleString('vi-VN'),
                 unread: !n.isRead
             }));
             updateNotificationUI();

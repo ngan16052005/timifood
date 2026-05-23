@@ -1,0 +1,281 @@
+    <div class="modal product-detail">
+        <button class="modal-close close-popup"><i class="fa-thin fa-xmark"></i></button>
+        <div class="modal-container mdl-cnt" id="product-detail-content">
+        </div>
+    </div>
+    <div class="modal signup-login">
+        <div class="modal-container">
+            <button class="form-close" onclick="closeModal()"><i class="fa-regular fa-xmark"></i></button>
+            <div class="forms mdl-cnt">
+                <div class="form-content sign-up">
+                    <h3 class="form-title">
+                        Đăng ký tài khoản
+                    </h3>
+                    <p class="form-description">Đăng ký thành viên để mua hàng và nhận những ưu đãi đặc biệt từ chúng
+                        tôi </p>
+                    <form action="" class="signup-form">
+                        <div class="form-group">
+                            <label for="fullname" class="form-label">Tên đầy đủ</label>
+                            <input id="fullname" name="fullname" type="text" autocomplete="name" placeholder="VD: Nguyễn Văn A"
+                                class="form-control">
+                            <span class="form-message-name form-message"></span>
+                        </div>
+                        <div class="form-group">
+                            <label for="phone" class="form-label">Số điện thoại</label>
+                            <input id="phone" name="phone" type="text" autocomplete="tel" placeholder="Nhập số điện thoại"
+                                class="form-control">
+                            <span class="form-message-phone form-message"></span>
+                        </div>
+                        <div class="form-group">
+                            <label for="email-signup" class="form-label">Email</label>
+                            <input id="email-signup" name="email" type="email" autocomplete="email" placeholder="Nhập email"
+                                class="form-control">
+                            <span class="form-message-email form-message"></span>
+                        </div>
+                        <div class="form-group">
+                            <label for="password" class="form-label">Mật khẩu</label>
+                            <input id="password" name="password" type="password" autocomplete="new-password" placeholder="Nhập mật khẩu"
+                                class="form-control">
+                            <small class="form-text text-muted" style="font-size: 0.8rem; color: #666;">Tối thiểu 8 ký tự, gồm chữ hoa, chữ thường và số</small>
+                            <span class="form-message-password form-message"></span>
+                        </div>
+                        <div class="form-group">
+                            <label for="password_confirmation" class="form-label">Nhập lại mật khẩu</label>
+                            <input id="password_confirmation" name="password_confirmation" autocomplete="new-password"
+                                placeholder="Nhập lại mật khẩu" type="password" class="form-control">
+                            <span class="form-message-password-confi form-message"></span>
+                        </div>
+                        <div class="form-group">
+                            <input class="checkbox" name="checkbox" required="" type="checkbox" id="checkbox-signup">
+                            <label for="checkbox-signup" class="form-checkbox">Tôi đồng ý với <a href="javascript:;" onclick="openPolicyModal(event)"
+                                    title="chính sách trang web">chính sách trang web</a></label>
+                            <p class="form-message-checkbox form-message"></p>
+                        </div>
+                        <button class="form-submit" id="signup-button">Đăng ký</button>
+                        <div class="form-divider" style="display: flex; align-items: center; text-align: center; margin: 20px 0; color: #888;">
+                            <div style="flex: 1; border-bottom: 1px solid #ddd;"></div>
+                            <span style="padding: 0 10px; font-size: 14px;">Hoặc tiếp tục với</span>
+                            <div style="flex: 1; border-bottom: 1px solid #ddd;"></div>
+                        </div>
+                        <div style="display: flex; gap: 10px; align-items: center; justify-content: space-between;">
+                            <div id="google-signup-btn-container" style="flex: 1;"></div>
+                            <button type="button" class="btn-facebook" onclick="loginWithFacebook()">
+                                <img src="https://upload.wikimedia.org/wikipedia/commons/5/51/Facebook_f_logo_%282019%29.svg" alt="Facebook" style="width: 18px; height: 18px;">
+                                Facebook
+                            </button>
+                        </div>
+                    </form>
+                    <p class="change-login">Bạn đã có tài khoản ? <a href="javascript:;" class="login-link">Đăng nhập
+                            ngay</a></p>
+                </div>
+                <div class="form-content login">
+                    <h3 class="form-title">Đăng nhập tài khoản</h3>
+                    <p class="form-description">Đăng nhập thành viên để mua hàng và nhận những ưu đãi đặc biệt từ chúng
+                        tôi</p>
+                    <form action="" class="login-form">
+                        <div class="form-group">
+                            <label for="phone-login" class="form-label">Số điện thoại</label>
+                            <input id="phone-login" name="phone" type="text" autocomplete="tel" placeholder="Nhập số điện thoại"
+                                class="form-control">
+                            <span class="form-message phonelog"></span>
+                        </div>
+                        <div class="form-group">
+                            <label for="password-login" class="form-label">Mật khẩu</label>
+                            <input id="password-login" name="password" type="password" autocomplete="current-password" placeholder="Nhập mật khẩu"
+                                class="form-control">
+                            <span class="form-message-check-login form-message"></span>
+                        </div>
+                        <div style="text-align: right; margin-bottom: 15px;">
+                            <a href="javascript:;" class="forgot-password-link" style="color: var(--red); font-size: 13px;">Quên mật khẩu?</a>
+                        </div>
+                        <button class="form-submit" id="login-button">Đăng nhập</button>
+                        <div class="form-divider" style="display: flex; align-items: center; text-align: center; margin: 20px 0; color: #888;">
+                            <div style="flex: 1; border-bottom: 1px solid #ddd;"></div>
+                            <span style="padding: 0 10px; font-size: 14px;">Hoặc tiếp tục với</span>
+                            <div style="flex: 1; border-bottom: 1px solid #ddd;"></div>
+                        </div>
+                        <div style="display: flex; gap: 10px; align-items: center; justify-content: space-between;">
+                            <div id="google-login-btn-container" style="flex: 1;"></div>
+                            <button type="button" class="btn-facebook" onclick="loginWithFacebook()">
+                                <img src="https://upload.wikimedia.org/wikipedia/commons/5/51/Facebook_f_logo_%282019%29.svg" alt="Facebook" style="width: 18px; height: 18px;">
+                                Facebook
+                            </button>
+                        </div>
+                    </form>
+                    <p class="change-login">Bạn chưa có tài khoản ? <a href="javascript:;" class="signup-link">Đăng kí
+                            ngay</a></p>
+                </div>
+                <!-- Forgot Password Form -->
+                <div class="form-content forgot-password" style="display: none;">
+                    <h3 class="form-title">Khôi phục mật khẩu</h3>
+                    <p class="form-description">Vui lòng nhập email để đặt lại mật khẩu của bạn</p>
+                    <form action="" class="form" id="forgot-password-form">
+                        <div id="otp-step">
+                            <div class="form-group">
+                                <label for="email-forgot" class="form-label">Email tài khoản</label>
+                                <div style="display: flex; gap: 10px;">
+                                    <input id="email-forgot" name="email" type="text" autocomplete="email" placeholder="Nhập email để nhận mã"
+                                        class="form-control" style="flex: 1;">
+                                    <button type="button" id="send-otp-btn" class="form-submit" 
+                                        style="width: auto; margin-top: 0; padding: 0 15px; font-size: 14px; white-space: nowrap;">Gửi mã</button>
+                                </div>
+                                <span class="form-message emailforgot-error"></span>
+                            </div>
+                            <div class="form-group">
+                                <label for="otp-forgot" class="form-label">Mã xác thực (OTP)</label>
+                                <input id="otp-forgot" name="otp" type="text" autocomplete="one-time-code" placeholder="Nhập mã 6 chữ số từ Email"
+                                    class="form-control">
+                                <span class="form-message otpforgot-error"></span>
+                            </div>
+                        </div>
+                        <div id="password-reset-step" style="display: none;">
+                            <div class="form-group">
+                                <label for="new-password-forgot" class="form-label">Mật khẩu mới</label>
+                                <input id="new-password-forgot" name="new-password" type="password" autocomplete="new-password" placeholder="Nhập mật khẩu mới"
+                                    class="form-control">
+                                <small class="form-text text-muted" style="font-size: 0.8rem; color: #666;">Tối thiểu 8 ký tự, gồm chữ hoa, chữ thường và số</small>
+                                <span class="form-message new-password-error"></span>
+                            </div>
+                            <div class="form-group">
+                                <label for="confirm-password-forgot" class="form-label">Xác nhận mật khẩu</label>
+                                <input id="confirm-password-forgot" name="confirm-password" type="password" autocomplete="new-password" placeholder="Nhập lại mật khẩu mới"
+                                    class="form-control">
+                                <span class="form-message confirm-password-error"></span>
+                            </div>
+                        </div>
+                        <button class="form-submit" id="forgot-password-button">Tiếp theo</button>
+                    </form>
+                    <p class="change-login"><a href="javascript:;" class="back-to-login">Quay lại đăng nhập</a></p>
+                </div>
+                
+                <!-- Google Registration Complete Form -->
+                <div class="form-content google-complete" style="display: none;">
+                    <h3 class="form-title">Hoàn tất đăng ký</h3>
+                    <p class="form-description">Vui lòng cung cấp số điện thoại để hoàn tất việc đăng nhập bằng Google</p>
+                    <form action="" class="form" id="google-complete-form">
+                        <div class="form-group" style="text-align: center; margin-bottom: 20px;">
+                            <img id="google-user-avatar" src="" alt="Avatar" style="width: 60px; height: 60px; border-radius: 50%; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
+                            <p id="google-user-name" style="font-weight: 600; margin-top: 10px; color: #333;"></p>
+                            <p id="google-user-email" style="font-size: 13px; color: #777;"></p>
+                        </div>
+                        <div class="form-group">
+                            <label for="google-phone" class="form-label">Số điện thoại</label>
+                            <input id="google-phone" name="phone" type="text" autocomplete="tel" placeholder="Nhập số điện thoại của bạn"
+                                class="form-control">
+                            <span class="form-message google-phone-error"></span>
+                        </div>
+                        <button class="form-submit" id="google-complete-button">Xác nhận & Đăng nhập</button>
+                    </form>
+                    <p class="change-login"><a href="javascript:;" class="back-to-login" onclick="document.querySelector('.google-complete').style.display='none'; document.querySelector('.login').style.display='';">Hủy bỏ</a></p>
+                </div>
+                
+                <!-- Facebook Registration Complete Form -->
+                <div class="form-content facebook-complete" style="display: none;">
+                    <h3 class="form-title">Hoàn tất đăng ký</h3>
+                    <p class="form-description">Vui lòng cung cấp số điện thoại để hoàn tất việc đăng nhập bằng Facebook</p>
+                    <form action="" class="form" id="facebook-complete-form">
+                        <div class="form-group" style="text-align: center; margin-bottom: 20px;">
+                            <img id="fb-user-avatar" src="" alt="Avatar" style="width: 60px; height: 60px; border-radius: 50%; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
+                            <p id="fb-user-name" style="font-weight: 600; margin-top: 10px; color: #333;"></p>
+                            <p id="fb-user-email" style="font-size: 13px; color: #777;"></p>
+                        </div>
+                        <div class="form-group">
+                            <label for="fb-phone" class="form-label">Số điện thoại</label>
+                            <input id="fb-phone" name="phone" type="text" autocomplete="tel" placeholder="Nhập số điện thoại của bạn"
+                                class="form-control">
+                            <span class="form-message fb-phone-error"></span>
+                        </div>
+                        <button class="form-submit" id="fb-complete-button">Xác nhận & Đăng nhập</button>
+                    </form>
+                    <p class="change-login"><a href="javascript:;" class="back-to-login" onclick="document.querySelector('.facebook-complete').style.display='none'; document.querySelector('.login').style.display='';">Hủy bỏ</a></p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal policy-modal">
+        <div class="modal-container mdl-cnt">
+            <div class="policy-header">
+                <h3>
+                    <i class="fa-solid fa-shield-heart"></i>
+                    Điều Khoản & Chính Sách TiMi Food
+                </h3>
+                <button class="form-close" onclick="closePolicyModal()"><i class="fa-regular fa-xmark"></i></button>
+            </div>
+            <div class="policy-body">
+                
+                <!-- Section 1 -->
+                <div class="policy-section">
+                    <h4>1. Chính Sách Bảo Mật Thông Tin</h4>
+                    <p>TiMi Food cam kết bảo vệ tuyệt đối dữ liệu cá nhân của quý khách:</p>
+                    <ul>
+                        <li><strong>Dữ liệu thu thập:</strong> Họ tên, số điện thoại, email và địa chỉ giao hàng chỉ được sử dụng cho mục đích xác nhận và thực hiện đơn hàng.</li>
+                        <li><strong>Bảo mật mật khẩu:</strong> Mật khẩu của bạn được mã hóa an toàn bằng công nghệ băm Bcrypt phía máy chủ, đảm bảo không thể bị rò rỉ hay truy cập trái phép.</li>
+                        <li><strong>Cam kết:</strong> Không chia sẻ, bán hoặc cung cấp thông tin cá nhân của quý khách cho bên thứ ba vì bất cứ mục đích thương mại nào.</li>
+                    </ul>
+                </div>
+
+                <!-- Section 2 -->
+                <div class="policy-section">
+                    <h4>2. Điều Khoản Dịch Vụ & Đặt Hàng</h4>
+                    <ul>
+                        <li><strong>Tài khoản mua hàng:</strong> Mỗi khách hàng chỉ đăng ký một tài khoản duy nhất tương ứng với một số điện thoại chính chủ để tránh tranh chấp hoặc đặt nhầm.</li>
+                        <li><strong>Thời gian phục vụ:</strong> Cửa hàng tiếp nhận đơn và giao hàng từ 08:00 đến 22:00 hàng ngày (bao gồm cả thứ Bảy, Chủ nhật và các ngày lễ Tết).</li>
+                        <li><strong>Quy định hủy đơn:</strong> Quý khách chỉ có thể hủy đơn hàng khi trạng thái đơn còn là "Đang chờ xử lý". Một khi cửa hàng đã bắt đầu chế biến món ăn ("Đang chuẩn bị"), đơn hàng không thể hủy.</li>
+                    </ul>
+                </div>
+
+                <!-- Section 3 -->
+                <div class="policy-section">
+                    <h4>3. Chính Sách Giao Nhận & Thanh Toán</h4>
+                    <ul>
+                        <li><strong>Hình thức giao nhận:</strong> Hỗ trợ giao tận nơi (Shipper giao tận nơi trong vòng 15-45 phút tùy khoảng cách) hoặc tự đến lấy trực tiếp tại chi nhánh đã chọn.</li>
+                        <li><strong>Hình thức thanh toán:</strong> Hỗ trợ trả tiền mặt khi nhận hàng (COD), ví điện tử MoMo, hoặc thanh toán qua cổng VNPAY quét mã QR nhanh chóng.</li>
+                        <li><strong>Chính sách đổi trả:</strong> Cam kết hoàn tiền 100% hoặc đổi mới món ăn miễn phí nếu giao sai món, thiếu món, hoặc phát sinh lỗi do nhà sản xuất (món ăn không đạt chuẩn vệ sinh, bị nguội hoặc dập nát do vận chuyển).</li>
+                    </ul>
+                </div>
+
+                <!-- Section 4 -->
+                <div class="policy-section">
+                    <h4>4. Chính Sách Khuyến Mãi & Voucher</h4>
+                    <p>Mỗi đơn hàng chỉ được áp dụng tối đa một mã giảm giá (Voucher). Các điều kiện ràng buộc như giá trị đơn tối thiểu, mức giảm tối đa và hạn sử dụng sẽ được áp dụng tự động bởi hệ thống.</p>
+                </div>
+            </div>
+            <div class="policy-footer">
+                <button onclick="closePolicyModal(event, true)">Đồng ý & Đóng</button>
+            </div>
+        </div>
+    </div>
+    <div class="modal-cart">
+        <div class="cart-container">
+            <div class="cart-header">
+                <h3 class="cart-header-title"><i class="fa-regular fa-basket-shopping-simple"></i> Giỏ hàng</h3>
+                <button class="cart-close" onclick="closeCart()"><i class="fa-sharp fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="cart-body">
+                <div class="gio-hang-trong">
+                    <i class="fa-thin fa-cart-xmark"></i>
+                    <p>Không có sản phẩm nào trong giỏ hàng của bạn</p>
+                </div>
+                <ul class="cart-list">
+                </ul>
+            </div>
+            <div class="cart-footer">
+                <div class="cart-total-price">
+                    <p class="text-tt">Tổng tiền:</p>
+                    <p class="text-price">0đ</p>
+                </div>
+                <div class="cart-footer-payment">
+                    <button class="them-mon"><i class="fa-regular fa-plus"></i> Thêm món</button>
+                    <button class="thanh-toan disabled">Thanh toán</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal detail-order">
+        <div class="modal-container mdl-cnt">
+            <h3 class="modal-container-title">Thông tin đơn hàng</h3>
+            <button class="form-close" onclick="closeModal()"><i class="fa-regular fa-xmark"></i></button>
+            <div class="detail-order-content">
+            </div>
+        </div>
+    </div>

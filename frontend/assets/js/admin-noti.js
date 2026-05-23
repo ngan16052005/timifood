@@ -84,7 +84,7 @@ socket.on('newNotification', (latest) => {
         id: latest.id,
         title: latest.title,
         message: latest.message,
-        time: new Date(latest.createdAt.replace('Z', '')).toLocaleString('vi-VN'),
+        time: new Date(latest.createdAt).toLocaleString('vi-VN'),
         type: latest.type,
         read: latest.isRead
     });
@@ -106,7 +106,7 @@ async function syncAdminNotifications() {
                 id: n.id,
                 title: n.title,
                 message: n.message,
-                time: new Date(n.createdAt.replace('Z', '')).toLocaleString('vi-VN'),
+                time: new Date(n.createdAt).toLocaleString('vi-VN'),
                 type: n.type,
                 read: n.isRead
             }));

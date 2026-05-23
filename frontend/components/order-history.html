@@ -1,0 +1,35 @@
+        <div class="container" id="order-history">
+            <div class="main-account">
+                <div class="main-account-header">
+                    <h3>Quản lý đơn hàng của bạn</h3>
+                    <p>Xem chi tiết, trạng thái của những đơn hàng đã đặt.</p>
+                </div>
+                <div class="main-account-body">
+                    <div class="order-history-controls" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 15px;">
+                        <div class="order-history-stats" style="background: rgba(255, 94, 58, 0.1); padding: 10px 20px; border-radius: 8px; color: var(--red); font-weight: 600; display: flex; align-items: center; gap: 8px;">
+                            <i class="fa-light fa-sack-dollar"></i> Tổng chi tiêu: <span id="total-spent-amount">0đ</span>
+                        </div>
+                        <div class="order-history-search" style="position: relative; max-width: 300px; width: 100%;">
+                            <input type="text" id="order-search-input" placeholder="Tìm mã đơn hàng (VD: DH001)..." style="width: 100%; padding: 10px 15px 10px 40px; border: 1px solid #ddd; border-radius: 8px; outline: none; transition: border-color 0.3s;" oninput="filterOrders(null)">
+                            <i class="fa-light fa-magnifying-glass" style="position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: #888;"></i>
+                        </div>
+                    </div>
+                    <div class="order-history-tabs" style="display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 1px solid #eee; overflow-x: auto; padding-bottom: 10px;">
+                        <button class="order-tab-btn active" data-status="all" onclick="filterOrders('all', this)">Tất cả</button>
+                        <button class="order-tab-btn" data-status="0" onclick="filterOrders(0, this)">Chờ xử lý</button>
+                        <button class="order-tab-btn" data-status="1" onclick="filterOrders(1, this)">Đang giao</button>
+                        <button class="order-tab-btn" data-status="2" onclick="filterOrders(2, this)">Hoàn thành</button>
+                        <button class="order-tab-btn" data-status="3" onclick="filterOrders(3, this)">Đã hủy</button>
+                    </div>
+                    <style>
+                        .order-tab-btn {
+                            background: transparent; border: none; padding: 8px 16px; border-radius: 20px; cursor: pointer; color: #666; font-weight: 500; white-space: nowrap; transition: all 0.3s;
+                        }
+                        .order-tab-btn:hover { background: #f1f5f9; color: var(--red); }
+                        .order-tab-btn.active { background: var(--red); color: white; }
+                    </style>
+                    <div class="order-history-section">
+                    </div>
+                </div>
+            </div>
+        </div>

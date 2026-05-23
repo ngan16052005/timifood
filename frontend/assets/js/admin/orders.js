@@ -60,7 +60,7 @@ async function deleteOrderAdmin(id) {
 // Format Date
 function formatDate(date) {
     if (!date) return "Chưa rõ";
-    let fm = new Date(date.toString().replace('Z', ''));
+    let fm = new Date(date.toString());
     if (isNaN(fm.getTime())) return "Chưa rõ";
     let yyyy = fm.getFullYear();
     let mm = fm.getMonth() + 1;
@@ -405,15 +405,15 @@ async function findOrder() {
 
         if (timeStart != "" && timeEnd == "") {
             result = result.filter((item) => {
-                return new Date(item.thoigiandat.replace('Z', '')) >= new Date(timeStart).setHours(0, 0, 0);
+                return new Date(item.thoigiandat) >= new Date(timeStart).setHours(0, 0, 0);
             });
         } else if (timeStart == "" && timeEnd != "") {
             result = result.filter((item) => {
-                return new Date(item.thoigiandat.replace('Z', '')) <= new Date(timeEnd).setHours(23, 59, 59);
+                return new Date(item.thoigiandat) <= new Date(timeEnd).setHours(23, 59, 59);
             });
         } else if (timeStart != "" && timeEnd != "") {
             result = result.filter((item) => {
-                return (new Date(item.thoigiandat.replace('Z', '')) >= new Date(timeStart).setHours(0, 0, 0) && new Date(item.thoigiandat.replace('Z', '')) <= new Date(timeEnd).setHours(23, 59, 59)
+                return (new Date(item.thoigiandat) >= new Date(timeStart).setHours(0, 0, 0) && new Date(item.thoigiandat) <= new Date(timeEnd).setHours(23, 59, 59)
                 );
             });
         }

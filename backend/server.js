@@ -2396,6 +2396,31 @@ app.delete('/api/admin/news/:id', authenticateToken, isAdmin, async (req, res) =
 
 // Serve static files
 const fs = require('fs');
+
+const serveIndex = (req, res) => {
+    try {
+        const layoutPath = path.join(__dirname, '../frontend/index-layout.html');
+        if (!fs.existsSync(layoutPath)) {
+            return res.sendFile(path.join(__dirname, '../frontend/index.html'));
+        }
+        let html = fs.readFileSync(layoutPath, 'utf8');
+        html = html.replace(/<!--\s*INCLUDE:\s*(.*?)\s*-->/g, (match, filename) => {
+            try {
+                return fs.readFileSync(path.join(__dirname, '../frontend/components', filename), 'utf8');
+            } catch (e) {
+                console.error('Include error:', e.message);
+                return `<!-- Error including ${filename} -->`;
+            }
+        });
+        res.send(html);
+    } catch (e) {
+        res.status(500).send('Server Error');
+    }
+};
+
+app.get('/', serveIndex);
+app.get('/index.html', serveIndex);
+
 app.get('/admin.html', (req, res) => {
     try {
         const layoutPath = path.join(__dirname, '../frontend/admin-layout.html');

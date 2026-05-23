@@ -24,7 +24,7 @@ async function showReviews() {
                     i < r.rating ? '<i class="fa-solid fa-star" style="color: #ffc107;"></i>' : '<i class="fa-regular fa-star"></i>'
                 ).join('');
 
-                const displayDate = r.reviewDate ? new Date(r.reviewDate.replace('Z', '')).toLocaleDateString('vi-VN') : '---';
+                const displayDate = r.reviewDate ? new Date(r.reviewDate).toLocaleDateString('vi-VN') : '---';
 
                 const commentText = r.comment || "";
                 html += `
@@ -84,7 +84,7 @@ async function showStockHistory() {
                     <td>#${item.id}</td>
                     <td>${item.productTitle}</td>
                     <td style="color: #00b894; font-weight: bold;">+${item.quantity}</td>
-                    <td>${new Date(item.importDate.replace('Z', '')).toLocaleString('vi-VN')}</td>
+                    <td>${new Date(item.importDate).toLocaleString('vi-VN')}</td>
                     <td>${item.note || '-'}</td>
                 </tr>`;
             });
