@@ -127,6 +127,31 @@ async function startServer() {
                         CONSTRAINT UQ_User_Product UNIQUE (userPhone, productId)
                     )
                 END
+
+                IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'ChatSessions')
+                BEGIN
+                    CREATE TABLE ChatSessions (
+                        id INT PRIMARY KEY IDENTITY(1,1),
+                        customerPhone NVARCHAR(20),
+                        customerName NVARCHAR(100),
+                        staffPhone NVARCHAR(20),
+                        staffName NVARCHAR(100),
+                        status NVARCHAR(20) DEFAULT 'waiting', -- waiting, chatting, ended
+                        createdAt DATETIME DEFAULT GETDATE(),
+                        endedAt DATETIME
+                    )
+                END
+
+                IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'ChatMessages')
+                BEGIN
+                    CREATE TABLE ChatMessages (
+                        id INT PRIMARY KEY IDENTITY(1,1),
+                        sessionId INT FOREIGN KEY REFERENCES ChatSessions(id) ON DELETE CASCADE,
+                        sender NVARCHAR(20), -- 'customer' or 'staff'
+                        text NVARCHAR(MAX),
+                        timestamp DATETIME DEFAULT GETDATE()
+                    )
+                END
             `);
             console.log('Database initialized successfully.');
 
@@ -2094,6 +2119,59 @@ app.delete('/api/favorites/:productId', authenticateToken, async (req, res) => {
         res.status(500).json({ success: false, message: 'Lỗi xóa yêu thích' });
     }
 });
+
+// ==================== CHAT HISTORY API ====================
+
+// Lấy danh sách phiên chat (Admin)
+app.get('/api/chat/history', authenticateToken, isAdmin, async (req, res) => {
+    try {
+        let query = 'SELECT * FROM ChatSessions WHERE 1=1';
+        const request = pool.request();
+
+        if (req.query.phone) {
+            query += ' AND customerPhone LIKE @phone';
+            request.input('phone', sql.NVarChar, `%${req.query.phone}%`);
+        }
+        if (req.query.date) {
+            query += ' AND CONVERT(DATE, createdAt) = @date';
+            request.input('date', sql.Date, req.query.date);
+        }
+
+        query += ' ORDER BY createdAt DESC';
+        const result = await request.query(query);
+        res.json(result.recordset);
+    } catch (error) {
+        console.error('Error fetching chat history:', error);
+        res.status(500).json({ success: false, message: 'Lỗi lấy lịch sử chat' });
+    }
+});
+
+// Lấy chi tiết tin nhắn của một phiên chat (Admin)
+app.get('/api/chat/history/:sessionId', authenticateToken, isAdmin, async (req, res) => {
+    try {
+        const result = await pool.request()
+            .input('sessionId', sql.Int, req.params.sessionId)
+            .query('SELECT * FROM ChatMessages WHERE sessionId = @sessionId ORDER BY timestamp ASC');
+        res.json(result.recordset);
+    } catch (error) {
+        console.error('Error fetching chat messages:', error);
+        res.status(500).json({ success: false, message: 'Lỗi lấy tin nhắn chat' });
+    }
+});
+
+// Xóa phiên chat (Admin)
+app.delete('/api/chat/history/:sessionId', authenticateToken, isAdmin, async (req, res) => {
+    try {
+        await pool.request()
+            .input('sessionId', sql.Int, req.params.sessionId)
+            .query('DELETE FROM ChatSessions WHERE id = @sessionId'); // Cascade will delete messages
+        res.json({ success: true, message: 'Đã xóa phiên chat' });
+    } catch (error) {
+        console.error('Error deleting chat session:', error);
+        res.status(500).json({ success: false, message: 'Lỗi xóa phiên chat' });
+    }
+});
+
 
 // ==================== NEWS API ====================
 
