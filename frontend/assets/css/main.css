@@ -4501,3 +4501,42 @@ button.thanh-toan:hover:not(.disabled) {
     border-color: var(--red);
     box-shadow: 0 4px 10px rgba(255, 94, 58, 0.2);
 }
+
+/* Google Translate Customization */
+#google_translate_element select {
+    background: rgba(255, 255, 255, 0.2);
+    color: var(--text-color);
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    border-radius: 5px;
+    padding: 3px 8px;
+    font-size: 13px;
+    outline: none;
+    cursor: pointer;
+    backdrop-filter: blur(5px);
+    transition: all 0.3s ease;
+}
+
+#google_translate_element select:hover {
+    background: rgba(255, 255, 255, 0.5);
+}
+
+.goog-te-gadget {
+    color: transparent !important;
+    font-size: 0px !important;
+}
+
+.goog-te-gadget .goog-te-combo {
+    margin: 0 !important;
+}
+
+.goog-logo-link {
+    display: none !important;
+}
+
+.goog-te-banner-frame.skiptranslate {
+    display: none !important;
+}
+
+body {
+    top: 0px !important;
+}

@@ -48,10 +48,11 @@
                     </ul>
                 </div>
                 <div class="header-top-right">
-                    <ul class="header-top-list">
+                    <ul class="header-top-list" style="align-items: center;">
                         <li><a href="">Giới thiệu</a></li>
                         <li><a href="">Cửa hàng</a></li>
                         <li><a href="javascript:;" onclick="openPolicyModal(event)">Chính sách</a></li>
+                        <li style="margin-left: 15px;"><div id="google_translate_element"></div></li>
                     </ul>
                 </div>
             </div>
@@ -1157,6 +1158,15 @@
     <script src="./assets/js/initialization.js"></script>
     <script src="./assets/js/toast-message.js"></script>
     <script src="./assets/js/chatbot.js"></script>
+    <script type="text/javascript">
+        function googleTranslateElementInit() {
+            new google.translate.TranslateElement({
+                pageLanguage: 'vi',
+                includedLanguages: 'en,vi,ko,ja,zh-CN', // Các ngôn ngữ được hỗ trợ
+                layout: google.translate.TranslateElement.InlineLayout.SIMPLE
+            }, 'google_translate_element');
+        }
+    </script>
+    <script type="text/javascript" src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
 </body>
-
 </html>
