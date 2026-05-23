@@ -5,6 +5,15 @@ document.addEventListener('load', (e) => {
     }
 }, true);
 
+// Fallback cho các hình ảnh đã được load sẵn từ Cache (tránh tình trạng trắng ảnh)
+document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('img[loading="lazy"]').forEach(img => {
+        if (img.complete) {
+            img.classList.add('loaded');
+        }
+    });
+});
+
 // Doi sang dinh dang tien VND
 function vnd(price) {
     if (price === null || price === undefined || isNaN(price)) return '0đ';
