@@ -1,0 +1,35 @@
+            <div class="section">
+                <div class="admin-control">
+                    <div class="admin-control-left">
+                        <h3 class="title-section">Quản lý đánh giá sản phẩm</h3>
+                    </div>
+                    <div class="admin-control-center">
+                        <form action="" class="form-search">
+                            <span class="search-btn"><i class="fa-light fa-magnifying-glass"></i></span>
+                            <input id="form-search-review" type="text" class="form-search-input"
+                                placeholder="Tìm kiếm tên món, khách hàng..." oninput="showReviews()">
+                        </form>
+                    </div>
+                    <div class="admin-control-right">
+                        <button class="btn-reset-order" onclick="showReviews()"><i
+                                class="fa-light fa-arrow-rotate-right"></i></button>
+                    </div>
+                </div>
+                <div class="table">
+                    <table width="100%">
+                        <thead>
+                            <tr>
+                                <td>ID</td>
+                                <td>Sản phẩm</td>
+                                <td>Khách hàng</td>
+                                <td>Đánh giá</td>
+                                <td>Nội dung</td>
+                                <td>Ngày</td>
+                                <td>Thao tác</td>
+                            </tr>
+                        </thead>
+                        <tbody id="show-reviews">
+                        </tbody>
+                    </table>
+                </div>
+            </div>

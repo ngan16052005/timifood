@@ -2843,6 +2843,81 @@ async function deleteContact(id) {
     }
 }
 
+// ==========================================
+// AI COPILOT LOGIC
+// ==========================================
+async function openAIAssistantModal() {
+    const modal = document.getElementById('ai-assistant-modal');
+    const loading = document.getElementById('ai-loading');
+    const resultContent = document.getElementById('ai-result-content');
+    
+    modal.classList.add('open');
+    loading.style.display = 'flex';
+    resultContent.style.display = 'none';
+    resultContent.innerHTML = '';
+
+    try {
+        // Collect statistics data from DOM
+        const quantityProductElement = document.getElementById("quantity-product");
+        const quantityOrderElement = document.getElementById("quantity-order");
+        const quantitySaleElement = document.getElementById("quantity-sale");
+        
+        let totalSales = quantitySaleElement ? quantitySaleElement.innerText : '0';
+        let totalOrders = quantityOrderElement ? quantityOrderElement.innerText : '0';
+        
+        // Extract top products from table
+        const topProducts = [];
+        const tableRows = document.querySelectorAll("#showTk tr");
+        tableRows.forEach(row => {
+            const cells = row.querySelectorAll('td');
+            if(cells.length >= 4) {
+                topProducts.push({
+                    title: cells[1].innerText,
+                    qty: cells[2].innerText,
+                    rev: cells[3].innerText
+                });
+            }
+        });
+
+        // Time range
+        const timeStart = document.getElementById("time-start-tk")?.value || '';
+        const timeEnd = document.getElementById("time-end-tk")?.value || '';
+        const dateRange = (timeStart && timeEnd) ? `${timeStart} đến ${timeEnd}` : 'Toàn thời gian';
+
+        // Call backend API
+        const response = await fetch('/api/admin/ai-insights', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + localStorage.getItem('token')
+            },
+            body: JSON.stringify({
+                dateRange,
+                totalSales,
+                totalOrders,
+                topProducts: topProducts.slice(0, 10) // Send top 10
+            })
+        });
+
+        const data = await response.json();
+        if (response.ok && data.success) {
+            let formattedHtml = marked ? marked.parse(data.insight) : data.insight.replace(/\n/g, '<br>');
+            resultContent.innerHTML = formattedHtml;
+        } else {
+            resultContent.innerHTML = `<div style="color: #e74c3c; text-align:center; padding: 20px;"><i class="fa-solid fa-triangle-exclamation" style="font-size:30px; margin-bottom:10px;"></i><br>${data.message || 'Có lỗi xảy ra khi phân tích dữ liệu'}</div>`;
+        }
+    } catch (error) {
+        console.error('AI Insight Error:', error);
+        resultContent.innerHTML = `<div style="color: #e74c3c; text-align:center; padding: 20px;">Lỗi kết nối tới AI. Vui lòng thử lại sau.</div>`;
+    } finally {
+        loading.style.display = 'none';
+        resultContent.style.display = 'block';
+    }
+}
+
+function closeAIAssistantModal() {
+    document.getElementById('ai-assistant-modal').classList.remove('open');
+}
 // --- CHAT HISTORY (Phase 33) ---
 function openChatHistoryModal() {
     document.querySelector('.chat-history-modal').classList.add('open');

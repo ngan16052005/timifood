@@ -1,0 +1,38 @@
+            <div class="section">
+                <div class="admin-control">
+                    <div class="admin-control-left">
+                        <h3 class="title-section">Quản lý tin tức / bài viết</h3>
+                    </div>
+                    <div class="admin-control-center">
+                        <form action="" class="form-search">
+                            <span class="search-btn"><i class="fa-light fa-magnifying-glass"></i></span>
+                            <input id="form-search-news" type="text" class="form-search-input"
+                                placeholder="Tìm kiếm tiêu đề, tác giả..." oninput="showNews()">
+                        </form>
+                    </div>
+                    <div class="admin-control-right">
+                        <button class="btn-reset-order" onclick="showNews()"><i
+                                class="fa-light fa-arrow-rotate-right"></i></button>
+                        <button class="btn-control-large" onclick="openAddNewsModal()">
+                            <i class="fa-light fa-plus"></i> <span>Viết bài mới</span>
+                        </button>
+                    </div>
+                </div>
+                <div class="table">
+                    <table width="100%">
+                        <thead>
+                            <tr>
+                                <td>ID</td>
+                                <td>Hình ảnh</td>
+                                <td>Tiêu đề</td>
+                                <td>Tác giả</td>
+                                <td>Ngày tạo</td>
+                                <td>Trạng thái</td>
+                                <td>Thao tác</td>
+                            </tr>
+                        </thead>
+                        <tbody id="show-news">
+                        </tbody>
+                    </table>
+                </div>
+            </div>

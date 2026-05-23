@@ -19,6 +19,7 @@
     <link rel="stylesheet" href="./assets/css/admin-responsive.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 </head>
 
 <body>
@@ -180,574 +181,56 @@
         </aside>
 
         <main class="content">
-            <div class="section active">
-                <h1 class="page-title">Trang tổng quát của cửa hàng TiMi Food</h1>
-                <div class="cards">
-                    <div class="card-single">
-                        <div class="box">
-                            <h2 id="amount-user">0</h2>
-                            <div class="on-box">
-                                <img src="assets/img/admin/s1.png" alt="" style=" width: 200px;">
-                                <h3>Tài khoản</h3>
-                                <p>Hệ thống quản lý thông tin người dùng, bao gồm thông tin cá nhân, quyền hạn và trạng thái hoạt động của từng thành viên trong hệ thống.</p>
-                            </div>
-
-                        </div>
-                    </div>
-                    <div class="card-single">
-                        <div class="box">
-                            <div class="on-box">
-                                <img src="assets/img/admin/s2.png" alt="" style=" width: 200px;">
-                                <h2 id="amount-product">0</h2>
-                                <h3>Sản phẩm</h3>
-                                <p>Khách hàng mục tiêu là một nhóm đối tượng khách hàng trong phân khúc thị trường mục
-                                    tiêu mà doanh nghiệp bạn đang hướng tới. </p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="card-single">
-                        <div class="box">
-                            <h2 id="doanh-thu">$5020</h2>
-                            <div class="on-box">
-                                <img src="assets/img/admin/s3.png" alt="" style=" width: 200px;">
-                                <h3>Doanh thu</h3>
-                                <p>Doanh thu của doanh nghiệp là toàn bộ số tiền sẽ thu được do tiêu thụ sản phẩm, cung
-                                    cấp dịch vụ với sản lượng.</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            <!-- INCLUDE: overview.html -->
             <!-- Product  -->
-            <div class="section product-all">
-                <div class="admin-control">
-                    <div class="admin-control-left">
-                        <select name="the-loai" id="the-loai" onchange="showProduct()">
-                            <option>Tất cả</option>
-                            <option>Món chay</option>
-                            <option>Món mặn</option>
-                            <option>Món lẩu</option>
-                            <option>Món ăn vặt</option>
-                            <option>Món tráng miệng</option>
-                            <option>Nước uống</option>
-                            <option>Đã ẩn</option>
-                        </select>
-                    </div>
-                    <div class="admin-control-center">
-                        <form action="" class="form-search">
-                            <span class="search-btn"><i class="fa-light fa-magnifying-glass"></i></span>
-                            <input id="form-search-product" type="text" class="form-search-input"
-                                placeholder="Tìm kiếm tên món..." oninput="showProduct()">
-                        </form>
-                    </div>
-                    <div class="admin-control-right">
-                        <button class="btn-control-large" id="btn-cancel-product" onclick="cancelSearchProduct()"><i
-                                class="fa-light fa-rotate-right"></i> Làm mới</button>
-                        <button class="btn-control-large" id="btn-add-product"><i class="fa-light fa-plus"></i> Thêm món
-                            mới</button>
-                    </div>
-                </div>
-                <div id="show-product"></div>
-                <div class="page-nav">
-                    <ul class="page-nav-list">
-                    </ul>
-                </div>
-            </div>
+            <!-- INCLUDE: products.html -->
             <!-- Categories -->
-            <div class="section">
-                <div class="admin-control">
-                    <div class="admin-control-left">
-                        <h3 class="title-section">Quản lý danh mục sản phẩm</h3>
-                    </div>
-                    <div class="admin-control-right">
-                        <button class="btn-control-large" onclick="openAddCategoryModal()">
-                            <i class="fa-light fa-plus"></i> <span>Thêm danh mục</span>
-                        </button>
-                    </div>
-                </div>
-                <div class="table">
-                    <table width="100%">
-                        <thead>
-                            <tr>
-                                <td style="width: 100px;">ID</td>
-                                <td>Tên danh mục</td>
-                                <td style="width: 200px;">Thao tác</td>
-                            </tr>
-                        </thead>
-                        <tbody id="show-categories">
-                        </tbody>
-                    </table>
-                </div>
-            </div>
+            <!-- INCLUDE: categories.html -->
             <!-- Account  -->
-            <div class="section">
-                <div class="admin-control">
-                    <div class="admin-control-left">
-                        <select name="tinh-trang-user" id="tinh-trang-user" onchange="showUser()">
-                            <option value="2">Tất cả</option>
-                            <option value="1">Hoạt động</option>
-                            <option value="0">Bị khóa</option>
-                        </select>
-                    </div>
-                    <div class="admin-control-center">
-                        <form action="" class="form-search">
-                            <span class="search-btn"><i class="fa-light fa-magnifying-glass"></i></span>
-                            <input id="form-search-user" type="text" class="form-search-input"
-                                placeholder="Tìm kiếm tài khoản..." oninput="showUser()">
-                        </form>
-                    </div>
-                    <div class="admin-control-right">
-                        <form action="" class="fillter-date">
-                            <div>
-                                <label for="time-start-user">Từ</label>
-                                <input type="date" class="form-control-date" id="time-start-user" onchange="showUser()">
-                            </div>
-                            <div>
-                                <label for="time-end-user">Đến</label>
-                                <input type="date" class="form-control-date" id="time-end-user" onchange="showUser()">
-                            </div>
-                        </form>
-                        <button class="btn-reset-order" onclick="cancelSearchUser()"><i
-                                class="fa-light fa-arrow-rotate-right"></i></button>
-                        <button id="btn-add-user" class="btn-control-large" onclick="openCreateAccount()"><i
-                                class="fa-light fa-plus"></i> <span>Thêm tài khoản</span></button>
-                    </div>
-                </div>
-                <div class="table">
-                    <table width="100%">
-                        <thead>
-                            <tr>
-                                <td>STT</td>
-                                <td>Họ và tên</td>
-                                <td>Liên hệ</td>
-                                <td>Email</td>
-                                <td>Ngày tham gia</td>
-                                <td>Quyền</td>
-                                <td>Tình trạng</td>
-                                <td></td>
-                            </tr>
-                        </thead>
-                        <tbody id="show-user">
-                        </tbody>
-                    </table>
-                </div>
-                <!-- </div> -->
+            <!-- INCLUDE: users.html -->
             </div>
             <!-- Order  -->
-            <div class="section">
-                <div class="admin-control">
-                    <div class="admin-control-left">
-                        <select name="tinh-trang" id="tinh-trang" onchange="findOrder()">
-                            <option value="3">Tất cả</option>
-                            <option value="0">Chưa xử lý</option>
-                            <option value="1">Đã xử lý</option>
-                            <option value="2">Đã thanh toán</option>
-                        </select>
-                    </div>
-                    <div class="admin-control-center">
-                        <form action="" class="form-search">
-                            <span class="search-btn"><i class="fa-light fa-magnifying-glass"></i></span>
-                            <input id="form-search-order" type="text" class="form-search-input"
-                                placeholder="Tìm kiếm mã đơn, khách hàng..." oninput="findOrder()">
-                        </form>
-                    </div>
-                    <div class="admin-control-right">
-                        <form action="" class="fillter-date">
-                            <div>
-                                <label for="time-start">Từ</label>
-                                <input type="date" class="form-control-date" id="time-start" onchange="findOrder()">
-                            </div>
-                            <div>
-                                <label for="time-end">Đến</label>
-                                <input type="date" class="form-control-date" id="time-end" onchange="findOrder()">
-                            </div>
-                        </form>
-                        <button class="btn-reset-order" onclick="cancelSearchOrder()"><i
-                                class="fa-light fa-arrow-rotate-right"></i></button>
-                        <button class="btn-control-large" onclick="exportOrdersToExcel()"><i
-                                class="fa-light fa-file-excel"></i> <span>Xuất Excel</span></button>
-                    </div>
-                </div>
-                <div class="table">
-                    <table width="100%">
-                        <thead>
-                            <tr>
-                                <td>Mã đơn</td>
-                                <td>Khách hàng</td>
-                                <td>Ngày đặt</td>
-                                <td>Tổng tiền</td>
-                                <td>Trạng thái</td>
-                                <td>Thao tác</td>
-                            </tr>
-                        </thead>
-                        <tbody id="showOrder">
-                        </tbody>
-                    </table>
-                </div>
-            </div>
+            <!-- INCLUDE: orders.html -->
             <!-- Stock Management -->
-            <div class="section">
-                <div class="admin-control">
-                    <div class="admin-control-left">
-                        <h3 class="title-section">Quản lý nhập kho</h3>
-                    </div>
-                    <div class="admin-control-right">
-                        <button class="btn-control-large" onclick="openStockInModal()">
-                            <i class="fa-light fa-plus"></i> <span>Nhập hàng mới</span>
-                        </button>
-                    </div>
-                </div>
-                <div class="table">
-                    <table width="100%">
-                        <thead>
-                            <tr>
-                                <td>Mã nhập</td>
-                                <td>Sản phẩm</td>
-                                <td>Số lượng</td>
-                                <td>Ngày nhập</td>
-                                <td>Ghi chú</td>
-                            </tr>
-                        </thead>
-                        <tbody id="show-stock-history">
-                            <!-- Stock history will be loaded here -->
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-            <div class="section">
-                <div class="admin-control">
-                    <div class="admin-control-left">
-                        <h3 class="title-section">Quản lý khuyến mãi</h3>
-                    </div>
-                    <div class="admin-control-right">
-                        <button class="btn-control-large" onclick="openVoucherModal()"><i class="fa-light fa-plus"></i>
-                            <span>Tạo mã mới</span></button>
-                    </div>
-                </div>
-                <div class="table">
-                    <table width="100%">
-                        <thead>
-                            <tr>
-                                <td>Mã</td>
-                                <td>Mức giảm</td>
-                                <td>Loại</td>
-                                <td>Đơn tối thiểu</td>
-                                <td>Hết hạn</td>
-                                <td>Trạng thái</td>
-                                <td>Thao tác</td>
-                            </tr>
-                        </thead>
-                        <tbody id="show-vouchers">
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-            <div class="section">
-                <div class="admin-control">
-                    <div class="admin-control-left">
-                        <select name="the-loai-tk" id="the-loai-tk" onchange="thongKe()">
-                            <option>Tất cả</option>
-                            <option>Món chay</option>
-                            <option>Món mặn</option>
-                            <option>Món lẩu</option>
-                            <option>Món ăn vặt</option>
-                            <option>Món tráng miệng</option>
-                            <option>Nước uống</option>
-                            <option>Món khác</option>
-                        </select>
-                    </div>
-                    <div class="admin-control-center">
-                        <form action="" class="form-search">
-                            <span class="search-btn"><i class="fa-light fa-magnifying-glass"></i></span>
-                            <input id="form-search-tk" type="text" class="form-search-input"
-                                placeholder="Tìm kiếm tên món..." oninput="thongKe()">
-                        </form>
-                    </div>
-                    <div class="admin-control-right">
-                        <form action="" class="fillter-date">
-                            <div>
-                                <label for="time-start-tk">Từ</label>
-                                <input type="date" class="form-control-date" id="time-start-tk" onchange="thongKe()">
-                            </div>
-                            <div>
-                                <label for="time-end-tk">Đến</label>
-                                <input type="date" class="form-control-date" id="time-end-tk" onchange="thongKe()">
-                            </div>
-                        </form>
-                        <button class="btn-reset-order" onclick="thongKe(1)"><i
-                                class="fa-regular fa-arrow-up-short-wide"></i></i></button>
-                        <button class="btn-reset-order" onclick="thongKe(2)"><i
-                                class="fa-regular fa-arrow-down-wide-short"></i></button>
-                        <button class="btn-reset-order" onclick="thongKe(0)"><i
-                                class="fa-light fa-arrow-rotate-right"></i></button>
-                        <button class="btn-control-large" onclick="exportStatisticsToExcel()"><i
-                                class="fa-light fa-file-excel"></i> <span>Xuất Excel</span></button>
-                        <button class="btn-control-large btn-pdf-export" onclick="exportStatisticsToPDF()" style="background-color: #e74c3c; border-color: #e74c3c;"><i
-                                class="fa-light fa-file-pdf"></i> <span>Xuất PDF</span></button>
-                    </div>
-                </div>
-                <div class="order-statistical" id="order-statistical">
-                    <div class="order-statistical-item">
-                        <div class="order-statistical-item-content">
-                            <p class="order-statistical-item-content-desc">Sản phẩm được bán ra</p>
-                            <h4 class="order-statistical-item-content-h" id="quantity-product"></h4>
-                        </div>
-                        <div class="order-statistical-item-icon">
-                            <i class="fa-light fa-salad"></i>
-                        </div>
-                    </div>
-                    <div class="order-statistical-item">
-                        <div class="order-statistical-item-content">
-                            <p class="order-statistical-item-content-desc">Số lượng bán ra</p>
-                            <h4 class="order-statistical-item-content-h" id="quantity-order"></h4>
-                        </div>
-                        <div class="order-statistical-item-icon">
-                            <i class="fa-light fa-file-lines"></i>
-                        </div>
-                    </div>
-                    <div class="order-statistical-item">
-                        <div class="order-statistical-item-content">
-                            <p class="order-statistical-item-content-desc">Doanh thu</p>
-                            <h4 class="order-statistical-item-content-h" id="quantity-sale"></h4>
-                        </div>
-                        <div class="order-statistical-item-icon">
-                            <i class="fa-light fa-dollar-sign"></i>
-                        </div>
-                    </div>
-                </div>
-                <div class="charts-grid">
-                    <div class="chart-container">
-                        <h3><i class="fa-light fa-chart-line"></i> Phân tích Hiệu suất Top 10 Sản phẩm</h3>
-                        <canvas id="statisticsChart" style="max-height: 400px;"></canvas>
-                    </div>
-                    <div class="chart-container">
-                        <h3><i class="fa-light fa-chart-pie"></i> Cơ cấu Doanh thu</h3>
-                        <canvas id="categoryChart" style="max-height: 400px;"></canvas>
-                    </div>
-                </div>
-                <div class="chart-container">
-                    <h3><i class="fa-light fa-chart-mixed"></i> Xu hướng Doanh thu theo Thời gian</h3>
-                    <canvas id="trendChart" style="max-height: 300px;"></canvas>
-                </div>
-                <div class="table">
-                    <table width="100%">
-                        <thead>
-                            <tr>
-                                <td>STT</td>
-                                <td>Tên món</td>
-                                <td>Số lượng bán</td>
-                                <td>Doanh thu</td>
-                                <td></td>
-                            </tr>
-                        </thead>
-                        <tbody id="showTk">
-                        </tbody>
-                    </table>
-                </div>
-            </div>
+            <!-- INCLUDE: stock.html -->
+            <!-- INCLUDE: vouchers.html -->
+            <!-- INCLUDE: stats.html -->
             <!-- Reviews -->
-            <div class="section">
-                <div class="admin-control">
-                    <div class="admin-control-left">
-                        <h3 class="title-section">Quản lý đánh giá sản phẩm</h3>
-                    </div>
-                    <div class="admin-control-center">
-                        <form action="" class="form-search">
-                            <span class="search-btn"><i class="fa-light fa-magnifying-glass"></i></span>
-                            <input id="form-search-review" type="text" class="form-search-input"
-                                placeholder="Tìm kiếm tên món, khách hàng..." oninput="showReviews()">
-                        </form>
-                    </div>
-                    <div class="admin-control-right">
-                        <button class="btn-reset-order" onclick="showReviews()"><i
-                                class="fa-light fa-arrow-rotate-right"></i></button>
-                    </div>
-                </div>
-                <div class="table">
-                    <table width="100%">
-                        <thead>
-                            <tr>
-                                <td>ID</td>
-                                <td>Sản phẩm</td>
-                                <td>Khách hàng</td>
-                                <td>Đánh giá</td>
-                                <td>Nội dung</td>
-                                <td>Ngày</td>
-                                <td>Thao tác</td>
-                            </tr>
-                        </thead>
-                        <tbody id="show-reviews">
-                        </tbody>
-                    </table>
-                </div>
-            </div>
+            <!-- INCLUDE: reviews.html -->
             <!-- System Logs -->
-            <div class="section">
-                <div class="admin-control">
-                    <div class="admin-control-left">
-                        <h3 class="title-section">Nhật ký hoạt động hệ thống</h3>
-                    </div>
-                    <div class="admin-control-center">
-                        <form action="" class="form-search">
-                            <span class="search-btn"><i class="fa-light fa-magnifying-glass"></i></span>
-                            <input id="form-search-log" type="text" class="form-search-input"
-                                placeholder="Tìm kiếm hành động, số điện thoại..." oninput="showLogs()">
-                        </form>
-                    </div>
-                    <div class="admin-control-right">
-                        <button class="btn-reset-order" onclick="showLogs()"><i
-                                class="fa-light fa-arrow-rotate-right"></i></button>
-                    </div>
-                </div>
-                <div class="table">
-                    <table width="100%">
-                        <thead>
-                            <tr>
-                                <td>STT</td>
-                                <td>Người thực hiện</td>
-                                <td>Hành động</td>
-                                <td>Chi tiết</td>
-                                <td>Thời gian</td>
-                            </tr>
-                        </thead>
-                        <tbody id="show-logs">
-                        </tbody>
-                    </table>
-                </div>
-            </div>
+            <!-- INCLUDE: logs.html -->
 
             <!-- Live Chat Support Section -->
-            <div class="section">
-                <div class="admin-control" style="margin-bottom: 20px;">
-                    <div class="admin-control-left">
-                        <h3 class="title-section"><i class="fa-light fa-headset" style="margin-right: 8px;"></i>Trung tâm Hỗ trợ trực tuyến</h3>
-                    </div>
-                    <div class="admin-control-right">
-                        <button class="btn-control-large" onclick="openChatHistoryModal()"><i class="fa-light fa-clock-rotate-left"></i> Lịch sử chat</button>
-                    </div>
-                </div>
-                
-                <div class="chat-support-layout">
-                    <!-- Left Column: Active Chat Sessions list -->
-                    <div class="chat-sessions-sidebar">
-                        <div class="chat-sessions-header">
-                            <h4>Yêu cầu đang chờ</h4>
-                        </div>
-                        <ul class="chat-sessions-list" id="chat-sessions-list">
-                            <li class="no-session">Không có phiên hỗ trợ nào hoạt động</li>
-                        </ul>
-                    </div>
-                    
-                    <!-- Right Column: Conversations box -->
-                    <div class="chat-window-container" id="chat-window-container">
-                        <div class="chat-window-placeholder" id="chat-window-placeholder">
-                            <i class="fa-light fa-comments-question" style="font-size: 50px; color: #cbd5e1; margin-bottom: 12px;"></i>
-                            <p style="color: #64748b; font-size: 14px;">Chọn một khách hàng ở danh sách bên trái để bắt đầu chat trực tuyến.</p>
-                        </div>
-                        
-                        <div class="chat-window-active" id="chat-window-active" style="display: none;">
-                            <div class="chat-window-header">
-                                <div class="chat-customer-details">
-                                    <h4 id="chat-customer-name" style="margin: 0; font-size: 15px; color: #1e293b;">Khách hàng</h4>
-                                    <span id="chat-customer-phone" style="font-size: 12px; color: #64748b;">SĐT: --</span>
-                                </div>
-                                <div class="chat-window-actions">
-                                    <button class="btn-control-large btn-danger" onclick="endLiveChatSessionAdmin()" style="background-color: var(--red); border-color: var(--red); color: white; padding: 6px 12px; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer;">
-                                        <i class="fa-light fa-circle-xmark" style="margin-right: 4px;"></i> Đóng phiên
-                                    </button>
-                                </div>
-                            </div>
-                            
-                            <div class="chat-window-messages" id="chat-window-messages">
-                                <!-- Messages flow dynamically -->
-                            </div>
-                            
-                            <div class="chat-window-input-area">
-                                <input type="text" id="chat-admin-input" placeholder="Nhập câu trả lời..." onkeypress="handleAdminChatKeypress(event)" style="flex: 1; border: 1px solid #cbd5e1; border-radius: 6px; padding: 10px; font-size: 13.5px; outline: none;">
-                                <button id="chat-admin-send-btn" onclick="sendAdminChatMessage()" style="background-color: #3b82f6; color: white; border: none; border-radius: 6px; padding: 10px 16px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px;"><i class="fa-light fa-paper-plane"></i> Gửi</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            <!-- INCLUDE: chat.html -->
 
             <!-- Contacts Section -->
-            <div class="section">
-                <div class="admin-control">
-                    <div class="admin-control-left">
-                        <h3 class="title-section">Quản lý hộp thư liên hệ</h3>
-                    </div>
-                    <div class="admin-control-center">
-                        <form action="" class="form-search">
-                            <span class="search-btn"><i class="fa-light fa-magnifying-glass"></i></span>
-                            <input id="form-search-contact" type="text" class="form-search-input"
-                                placeholder="Tìm kiếm tên, email, tiêu đề..." oninput="showContacts()">
-                        </form>
-                    </div>
-                    <div class="admin-control-right">
-                        <button class="btn-reset-order" onclick="showContacts()"><i
-                                class="fa-light fa-arrow-rotate-right"></i></button>
-                    </div>
-                </div>
-                <div class="table">
-                    <table width="100%">
-                        <thead>
-                            <tr>
-                                <td>Tên</td>
-                                <td>Email</td>
-                                <td>Tiêu đề</td>
-                                <td>Thời gian</td>
-                                <td>Trạng thái</td>
-                                <td>Thao tác</td>
-                            </tr>
-                        </thead>
-                        <tbody id="show-contacts">
-                        </tbody>
-                    </table>
-                </div>
-            </div>
+            <!-- INCLUDE: contacts.html -->
 
             <!-- News Section -->
-            <div class="section">
-                <div class="admin-control">
-                    <div class="admin-control-left">
-                        <h3 class="title-section">Quản lý tin tức / bài viết</h3>
-                    </div>
-                    <div class="admin-control-center">
-                        <form action="" class="form-search">
-                            <span class="search-btn"><i class="fa-light fa-magnifying-glass"></i></span>
-                            <input id="form-search-news" type="text" class="form-search-input"
-                                placeholder="Tìm kiếm tiêu đề, tác giả..." oninput="showNews()">
-                        </form>
-                    </div>
-                    <div class="admin-control-right">
-                        <button class="btn-reset-order" onclick="showNews()"><i
-                                class="fa-light fa-arrow-rotate-right"></i></button>
-                        <button class="btn-control-large" onclick="openAddNewsModal()">
-                            <i class="fa-light fa-plus"></i> <span>Viết bài mới</span>
-                        </button>
-                    </div>
-                </div>
-                <div class="table">
-                    <table width="100%">
-                        <thead>
-                            <tr>
-                                <td>ID</td>
-                                <td>Hình ảnh</td>
-                                <td>Tiêu đề</td>
-                                <td>Tác giả</td>
-                                <td>Ngày tạo</td>
-                                <td>Trạng thái</td>
-                                <td>Thao tác</td>
-                            </tr>
-                        </thead>
-                        <tbody id="show-news">
-                        </tbody>
-                    </table>
-                </div>
-            </div>
+            <!-- INCLUDE: news.html -->
 
         </main>
+    </div>
+
+    <!-- AI Copilot Modal -->
+    <div class="modal ai-assistant-modal" id="ai-assistant-modal">
+        <div class="modal-container" style="max-width: 700px; width: 90%;">
+            <h3 class="modal-container-title"><i class="fa-light fa-sparkles" style="color: #8e44ad; margin-right: 8px;"></i> TI-MI AI COPILOT</h3>
+            <button class="modal-close" onclick="closeAIAssistantModal()"><i class="fa-regular fa-xmark"></i></button>
+            <div class="modal-content" style="display: flex; flex-direction: column; gap: 15px; padding: 20px;">
+                <div id="ai-loading" style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px 0;">
+                    <span class="loader" style="width: 48px; height: 48px; border: 5px solid #cbd5e1; border-bottom-color: #8e44ad; border-radius: 50%; display: inline-block; box-sizing: border-box; animation: rotation 1s linear infinite;"></span>
+                    <p style="margin-top: 15px; color: #64748b; font-weight: 500;">TiMi AI đang phân tích dữ liệu kinh doanh...</p>
+                    <style>@keyframes rotation { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }</style>
+                </div>
+                <div id="ai-result-content" style="display: none; line-height: 1.6; color: #334155; max-height: 60vh; overflow-y: auto; padding-right: 10px;">
+                    <!-- AI Content will be injected here -->
+                </div>
+                <div class="modal-content-bottom" style="display: flex; justify-content: flex-end; margin-top: 15px;">
+                    <button class="btn-control-large" style="background-color: #cbd5e1; color: #334155;" onclick="closeAIAssistantModal()">Đóng</button>
+                </div>
+            </div>
+        </div>
     </div>
     <div class="modal add-product">
         <div class="modal-container">
@@ -951,7 +434,17 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script src="./assets/js/api.js"></script>
     <script src="./assets/js/admin-noti.js"></script>
-    <script src="./assets/js/admin.js"></script>
+    <script src="./assets/js/admin/core.js"></script>
+    <script src="./assets/js/admin/products.js"></script>
+    <script src="./assets/js/admin/orders.js"></script>
+    <script src="./assets/js/admin/stats.js"></script>
+    <script src="./assets/js/admin/users.js"></script>
+    <script src="./assets/js/admin/exports.js"></script>
+    <script src="./assets/js/admin/vouchers.js"></script>
+    <script src="./assets/js/admin/misc.js"></script>
+    <script src="./assets/js/admin/chat.js"></script>
+    <script src="./assets/js/admin/contacts.js"></script>
+    <script src="./assets/js/admin/ai.js"></script>
     <script src="./assets/js/admin-news.js"></script>
     <script src="./assets/js/toast-message.js"></script>
 
@@ -1119,3 +612,4 @@
     </div>
 </body>
 </html>
+

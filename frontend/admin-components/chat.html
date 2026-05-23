@@ -1,0 +1,53 @@
+            <div class="section">
+                <div class="admin-control" style="margin-bottom: 20px;">
+                    <div class="admin-control-left">
+                        <h3 class="title-section"><i class="fa-light fa-headset" style="margin-right: 8px;"></i>Trung tâm Hỗ trợ trực tuyến</h3>
+                    </div>
+                    <div class="admin-control-right">
+                        <button class="btn-control-large" onclick="openChatHistoryModal()"><i class="fa-light fa-clock-rotate-left"></i> Lịch sử chat</button>
+                    </div>
+                </div>
+                
+                <div class="chat-support-layout">
+                    <!-- Left Column: Active Chat Sessions list -->
+                    <div class="chat-sessions-sidebar">
+                        <div class="chat-sessions-header">
+                            <h4>Yêu cầu đang chờ</h4>
+                        </div>
+                        <ul class="chat-sessions-list" id="chat-sessions-list">
+                            <li class="no-session">Không có phiên hỗ trợ nào hoạt động</li>
+                        </ul>
+                    </div>
+                    
+                    <!-- Right Column: Conversations box -->
+                    <div class="chat-window-container" id="chat-window-container">
+                        <div class="chat-window-placeholder" id="chat-window-placeholder">
+                            <i class="fa-light fa-comments-question" style="font-size: 50px; color: #cbd5e1; margin-bottom: 12px;"></i>
+                            <p style="color: #64748b; font-size: 14px;">Chọn một khách hàng ở danh sách bên trái để bắt đầu chat trực tuyến.</p>
+                        </div>
+                        
+                        <div class="chat-window-active" id="chat-window-active" style="display: none;">
+                            <div class="chat-window-header">
+                                <div class="chat-customer-details">
+                                    <h4 id="chat-customer-name" style="margin: 0; font-size: 15px; color: #1e293b;">Khách hàng</h4>
+                                    <span id="chat-customer-phone" style="font-size: 12px; color: #64748b;">SĐT: --</span>
+                                </div>
+                                <div class="chat-window-actions">
+                                    <button class="btn-control-large btn-danger" onclick="endLiveChatSessionAdmin()" style="background-color: var(--red); border-color: var(--red); color: white; padding: 6px 12px; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer;">
+                                        <i class="fa-light fa-circle-xmark" style="margin-right: 4px;"></i> Đóng phiên
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <div class="chat-window-messages" id="chat-window-messages">
+                                <!-- Messages flow dynamically -->
+                            </div>
+                            
+                            <div class="chat-window-input-area">
+                                <input type="text" id="chat-admin-input" placeholder="Nhập câu trả lời..." onkeypress="handleAdminChatKeypress(event)" style="flex: 1; border: 1px solid #cbd5e1; border-radius: 6px; padding: 10px; font-size: 13.5px; outline: none;">
+                                <button id="chat-admin-send-btn" onclick="sendAdminChatMessage()" style="background-color: #3b82f6; color: white; border: none; border-radius: 6px; padding: 10px 16px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px;"><i class="fa-light fa-paper-plane"></i> Gửi</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>

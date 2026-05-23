@@ -2175,6 +2175,51 @@ app.delete('/api/chat/history/:sessionId', authenticateToken, isAdmin, async (re
     }
 });
 
+// ==========================================
+// AI COPILOT: Admin Business Insights
+// ==========================================
+app.post('/api/admin/ai-insights', async (req, res) => {
+    try {
+        if (!ai) {
+            return res.status(503).json({ success: false, message: 'Tính năng AI chưa được cấu hình. Vui lòng thêm GEMINI_API_KEY vào file .env' });
+        }
+        
+        const { dateRange, totalSales, totalOrders, topProducts } = req.body;
+        
+        const systemPrompt = `Bạn là Trợ lý phân tích kinh doanh (Data Analyst) cấp cao của nhà hàng TiMiFood.
+Nhiệm vụ của bạn là đọc các số liệu bán hàng (doanh thu, số lượng đơn, các món bán chạy) mà hệ thống cung cấp, sau đó đưa ra một báo cáo phân tích ngắn gọn, chuyên nghiệp và sắc bén.
+Báo cáo nên có cấu trúc:
+1. Nhận xét tổng quan về tình hình kinh doanh (khen ngợi hoặc cảnh báo).
+2. Phân tích nhóm món bán chạy (Tại sao lại bán chạy? Có xu hướng gì không?).
+3. Gợi ý chiến lược: (Nên tạo combo nào? Nên chạy khuyến mãi mã gì? Nên loại bỏ hoặc cải thiện món nào?).
+Vui lòng sử dụng Markdown để format đẹp mắt (dùng emoji vừa đủ, bôi đậm, gạch đầu dòng). Gọi người dùng là "Quản lý".`;
+
+        let dataContext = `DỮ LIỆU KINH DOANH TIỆM TIMIFOOD:
+- Thời gian phân tích: ${dateRange || 'Toàn thời gian'}
+- Tổng doanh thu: ${totalSales}
+- Số lượng sản phẩm đã bán: ${totalOrders}
+- Danh sách món bán chạy nhất (Top list):
+${(topProducts || []).map((p, i) => `${i+1}. ${p.title} (Bán: ${p.qty} - Thu: ${p.rev})`).join('\n')}`;
+
+        const response = await ai.models.generateContent({
+            model: 'gemini-2.5-flash',
+            contents: [
+                { role: 'user', parts: [{ text: dataContext }] }
+            ],
+            config: {
+                systemInstruction: systemPrompt,
+                temperature: 0.7
+            }
+        });
+
+        console.log("Gemini full response:", JSON.stringify(response, null, 2));
+        res.json({ success: true, insight: response.text });
+    } catch (error) {
+        console.error('Error generating AI Insights:', error);
+        res.status(500).json({ success: false, message: 'Lỗi phân tích AI' });
+    }
+});
+
 // Gửi tin nhắn cho AI
 app.post('/api/chat/ai', async (req, res) => {
     try {
@@ -2350,6 +2395,29 @@ app.delete('/api/admin/news/:id', authenticateToken, isAdmin, async (req, res) =
 });
 
 // Serve static files
+const fs = require('fs');
+app.get('/admin.html', (req, res) => {
+    try {
+        const layoutPath = path.join(__dirname, '../frontend/admin-layout.html');
+        if (!fs.existsSync(layoutPath)) {
+            // Fallback if layout hasn't been created yet
+            return res.sendFile(path.join(__dirname, '../frontend/admin.html'));
+        }
+        let html = fs.readFileSync(layoutPath, 'utf8');
+        html = html.replace(/<!--\s*INCLUDE:\s*(.*?)\s*-->/g, (match, filename) => {
+            try {
+                return fs.readFileSync(path.join(__dirname, '../frontend/admin-components', filename), 'utf8');
+            } catch (e) {
+                console.error('Include error:', e.message);
+                return `<!-- Error including ${filename} -->`;
+            }
+        });
+        res.send(html);
+    } catch (e) {
+        res.status(500).send('Server Error');
+    }
+});
+
 app.use(express.static(path.join(__dirname, '../frontend')));
 
 if (process.env.NODE_ENV !== 'production') {

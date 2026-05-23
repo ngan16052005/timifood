@@ -1,0 +1,34 @@
+            <div class="section">
+                <div class="admin-control">
+                    <div class="admin-control-left">
+                        <h3 class="title-section">Quản lý hộp thư liên hệ</h3>
+                    </div>
+                    <div class="admin-control-center">
+                        <form action="" class="form-search">
+                            <span class="search-btn"><i class="fa-light fa-magnifying-glass"></i></span>
+                            <input id="form-search-contact" type="text" class="form-search-input"
+                                placeholder="Tìm kiếm tên, email, tiêu đề..." oninput="showContacts()">
+                        </form>
+                    </div>
+                    <div class="admin-control-right">
+                        <button class="btn-reset-order" onclick="showContacts()"><i
+                                class="fa-light fa-arrow-rotate-right"></i></button>
+                    </div>
+                </div>
+                <div class="table">
+                    <table width="100%">
+                        <thead>
+                            <tr>
+                                <td>Tên</td>
+                                <td>Email</td>
+                                <td>Tiêu đề</td>
+                                <td>Thời gian</td>
+                                <td>Trạng thái</td>
+                                <td>Thao tác</td>
+                            </tr>
+                        </thead>
+                        <tbody id="show-contacts">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
