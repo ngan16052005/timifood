@@ -2608,8 +2608,8 @@ label a {
 }
 
 .modal.chat-history-modal .form-search-input:focus {
-    border-color: #3b82f6;
-    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    border-color: var(--red);
+    box-shadow: 0 0 0 3px rgba(255, 94, 58, 0.1);
     outline: none;
 }
 
@@ -2617,15 +2617,16 @@ label a {
     height: 44px;
     border-radius: 8px;
     font-weight: 600;
-    background: #3b82f6;
-    border-color: #3b82f6;
+    background: var(--red);
+    border-color: var(--red);
+    color: white;
 }
 
 .modal.chat-history-modal .btn-control-large:hover {
-    background: #2563eb;
-    border-color: #2563eb;
+    background: #e63946;
+    border-color: #e63946;
     transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
+    box-shadow: 0 4px 12px rgba(255, 94, 58, 0.2);
 }
 
 .modal.chat-history-modal .table table thead tr td {
