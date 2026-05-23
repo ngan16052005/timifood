@@ -2510,3 +2510,15 @@ function readNews(id) {
     document.getElementById('news-detail-content').innerHTML = html;
     window.scrollTo(0, 0);
 }
+
+// Listen for view parameters to open specific sections like News from other pages
+document.addEventListener('DOMContentLoaded', () => {
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('view') === 'news') {
+        setTimeout(() => {
+            if (typeof showNewsSection === 'function') {
+                showNewsSection();
+            }
+        }, 100);
+    }
+});
