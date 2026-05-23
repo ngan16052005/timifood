@@ -800,7 +800,7 @@ forgotPasswordBtn.addEventListener('click', async (e) => {
 
 let signupbtn = document.getElementById('signup');
 let loginbtn = document.getElementById('login');
-let authContainer = document.querySelector('.header-middle-right-item.dropdown');
+let authContainer = document.getElementById('account-dropdown') || document.querySelector('.header-middle-right-item.dropdown');
 let formsg = document.querySelector('.modal.signup-login')
 
 signupbtn.addEventListener('click', (e) => {
