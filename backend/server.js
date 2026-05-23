@@ -116,6 +116,17 @@ async function startServer() {
                         updatedAt DATETIME DEFAULT GETDATE()
                     )
                 END
+
+                IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'Favorites')
+                BEGIN
+                    CREATE TABLE Favorites (
+                        id INT PRIMARY KEY IDENTITY(1,1),
+                        userPhone NVARCHAR(20) NOT NULL,
+                        productId NVARCHAR(50) NOT NULL,
+                        createdAt DATETIME DEFAULT GETDATE(),
+                        CONSTRAINT UQ_User_Product UNIQUE (userPhone, productId)
+                    )
+                END
             `);
             console.log('Database initialized successfully.');
 
@@ -2021,6 +2032,66 @@ app.delete('/api/contacts/:id', authenticateToken, isAdmin, async (req, res) => 
         res.json({ success: true });
     } catch (error) {
         res.status(500).json({ success: false, message: 'Lỗi xóa liên hệ' });
+    }
+});
+
+// ==================== FAVORITES API ====================
+
+// Lấy danh sách yêu thích
+app.get('/api/favorites', authenticateToken, async (req, res) => {
+    try {
+        const userPhone = req.user.phone;
+        const result = await pool.request()
+            .input('userPhone', sql.NVarChar, userPhone)
+            .query('SELECT productId FROM Favorites WHERE userPhone = @userPhone');
+        
+        const favorites = result.recordset.map(row => row.productId);
+        res.json(favorites);
+    } catch (error) {
+        console.error('Error fetching favorites:', error);
+        res.status(500).json({ success: false, message: 'Lỗi lấy danh sách yêu thích' });
+    }
+});
+
+// Thêm vào yêu thích
+app.post('/api/favorites', authenticateToken, async (req, res) => {
+    try {
+        const userPhone = req.user.phone;
+        const { productId } = req.body;
+        if (!productId) return res.status(400).json({ success: false, message: 'Thiếu productId' });
+
+        await pool.request()
+            .input('userPhone', sql.NVarChar, userPhone)
+            .input('productId', sql.NVarChar, productId.toString())
+            .query(`
+                IF NOT EXISTS (SELECT 1 FROM Favorites WHERE userPhone = @userPhone AND productId = @productId)
+                BEGIN
+                    INSERT INTO Favorites (userPhone, productId) VALUES (@userPhone, @productId)
+                END
+            `);
+        
+        res.json({ success: true, message: 'Đã thêm vào yêu thích' });
+    } catch (error) {
+        console.error('Error adding favorite:', error);
+        res.status(500).json({ success: false, message: 'Lỗi thêm yêu thích' });
+    }
+});
+
+// Xóa khỏi yêu thích
+app.delete('/api/favorites/:productId', authenticateToken, async (req, res) => {
+    try {
+        const userPhone = req.user.phone;
+        const { productId } = req.params;
+
+        await pool.request()
+            .input('userPhone', sql.NVarChar, userPhone)
+            .input('productId', sql.NVarChar, productId.toString())
+            .query('DELETE FROM Favorites WHERE userPhone = @userPhone AND productId = @productId');
+            
+        res.json({ success: true, message: 'Đã xóa khỏi yêu thích' });
+    } catch (error) {
+        console.error('Error removing favorite:', error);
+        res.status(500).json({ success: false, message: 'Lỗi xóa yêu thích' });
     }
 });
 
