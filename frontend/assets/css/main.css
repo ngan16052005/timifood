@@ -4533,10 +4533,19 @@ button.thanh-toan:hover:not(.disabled) {
     display: none !important;
 }
 
-.goog-te-banner-frame.skiptranslate {
+.goog-te-banner-frame {
+    display: none !important;
+}
+
+.VIpgJd-ZVi9od-aZ2wEe-wOHMyf {
+    display: none !important;
+}
+
+iframe.skiptranslate {
     display: none !important;
 }
 
 body {
     top: 0px !important;
+    position: static !important;
 }
