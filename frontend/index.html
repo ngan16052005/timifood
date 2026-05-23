@@ -86,6 +86,9 @@
                                 <li><a href="javascript:;" onclick="changeLang('vi', 'Tiếng Việt')"><i class="fa-light fa-check"></i> Tiếng Việt</a></li>
                                 <li><a href="javascript:;" onclick="changeLang('en', 'English')"><i class="fa-light fa-earth-americas"></i> English</a></li>
                                 <li><a href="javascript:;" onclick="changeLang('zh-CN', 'Trung Quốc')"><i class="fa-light fa-earth-asia"></i> Trung (Giản thể)</a></li>
+                                <li><a href="javascript:;" onclick="changeLang('ko', '한국어')"><i class="fa-light fa-language"></i> 한국어 (Hàn)</a></li>
+                                <li><a href="javascript:;" onclick="changeLang('ja', '日本語')"><i class="fa-light fa-language"></i> 日本語 (Nhật)</a></li>
+                                <li><a href="javascript:;" onclick="changeLang('fr', 'Français')"><i class="fa-light fa-earth-europe"></i> Français (Pháp)</a></li>
                             </ul>
                             <div id="google_translate_element" style="display: none;"></div>
                         </li>
@@ -1176,7 +1179,7 @@
         function googleTranslateElementInit() {
             new google.translate.TranslateElement({
                 pageLanguage: 'vi',
-                includedLanguages: 'en,vi,ko,ja,zh-CN', // Các ngôn ngữ được hỗ trợ
+                includedLanguages: 'en,vi,ko,ja,zh-CN,fr', // Các ngôn ngữ được hỗ trợ
                 layout: google.translate.TranslateElement.InlineLayout.SIMPLE
             }, 'google_translate_element');
         }
