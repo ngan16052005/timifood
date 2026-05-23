@@ -1047,7 +1047,7 @@ function checkAdmin() {
     if (user && (user.userType == 1 || user.userType == 2)) {
         let node = document.createElement(`li`);
         node.innerHTML = `<a href="./admin.html"><i class="fa-light fa-gear"></i> Quản lý cửa hàng</a>`
-        document.querySelector('.header-middle-right-menu').prepend(node);
+        document.querySelector('#account-dropdown .header-middle-right-menu').prepend(node);
     }
 }
 
