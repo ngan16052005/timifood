@@ -4480,3 +4480,24 @@ button.thanh-toan:hover:not(.disabled) {
     background-color: #f4f8ff;
 }
 
+.btn-back-news {
+    background: transparent;
+    color: var(--text-color);
+    border: 1px solid #e2e8f0;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.3s ease;
+}
+
+.btn-back-news:hover {
+    background: var(--red);
+    color: white;
+    border-color: var(--red);
+    box-shadow: 0 4px 10px rgba(255, 94, 58, 0.2);
+}
