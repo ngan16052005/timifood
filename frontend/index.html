@@ -75,9 +75,19 @@
                 </div>
                 <div class="header-middle-right">
                     <ul class="header-middle-right-list">
-                        <!-- Google Translate Widget -->
-                        <li class="header-middle-right-item" style="padding-top: 2px;">
-                            <div id="google_translate_element"></div>
+                        <!-- Ngôn ngữ Dropdown -->
+                        <li class="header-middle-right-item dropdown open">
+                            <i class="fa-light fa-globe"></i>
+                            <div class="auth-container">
+                                <span class="text-dndk">Ngôn ngữ</span>
+                                <span class="text-tk current-lang-text">Tiếng Việt <i class="fa-sharp fa-solid fa-caret-down"></i></span>
+                            </div>
+                            <ul class="header-middle-right-menu">
+                                <li><a href="javascript:;" onclick="changeLang('vi', 'Tiếng Việt')"><i class="fa-light fa-check"></i> Tiếng Việt</a></li>
+                                <li><a href="javascript:;" onclick="changeLang('en', 'English')"><i class="fa-light fa-earth-americas"></i> English</a></li>
+                                <li><a href="javascript:;" onclick="changeLang('zh-CN', 'Trung Quốc')"><i class="fa-light fa-earth-asia"></i> Trung (Giản thể)</a></li>
+                            </ul>
+                            <div id="google_translate_element" style="display: none;"></div>
                         </li>
                         <li class="header-middle-right-item dnone open" onclick="openSearchMb()">
                             <div class="cart-icon-menu">
