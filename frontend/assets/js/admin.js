@@ -251,6 +251,13 @@ for (let i = 0; i < sidebars.length; i++) {
         if (i === 11) {
             await showContacts();
         }
+
+        // Nếu là tab Tin tức (Index 12)
+        if (i === 12) {
+            if (typeof showNews === 'function') {
+                await showNews();
+            }
+        }
     };
 }
 
