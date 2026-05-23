@@ -333,4 +333,26 @@ Dưới đây là danh sách đầy đủ các hạng mục đã hoàn thiện t
 - [x] **Luồng hoàn tất Đăng ký:** Tạo form phụ nhập Số điện thoại đối với tài khoản Facebook mới lần đầu đăng nhập.
 
 ---
-*Cập nhật lần cuối: 22/05/2026 bởi thaingan & AI Assistant.*
+
+## 🌍 Giai đoạn 37: Đa ngôn ngữ (i18n) với Google Translate API
+>
+> **Độ khó:** ⭐⭐ | **Thời gian ước tính:** 1 giờ
+
+- [x] **Tích hợp Google Translate API:** Khởi tạo bộ máy dịch tự động của Google vào hệ thống.
+- [x] **Giao diện Dropdown Tùy chỉnh:** Thiết kế lại hoàn toàn menu chọn ngôn ngữ sao cho đồng bộ với thiết kế Premium của TiMiFood.
+- [x] **Hỗ trợ 6 Ngôn ngữ:** Cấu hình chuyển đổi linh hoạt giữa Tiếng Việt, Tiếng Anh, Tiếng Trung, Tiếng Hàn, Tiếng Nhật và Tiếng Pháp.
+- [x] **Cookie Management:** Quản lý cookie `googtrans` để tự động kích hoạt ngôn ngữ dựa trên lựa chọn của người dùng.
+
+---
+
+## 🧪 Giai đoạn 38: Kiểm thử Tự động (Automated Testing Framework)
+>
+> **Độ khó:** ⭐⭐⭐ | **Thời gian ước tính:** 2 giờ
+
+- [x] **Cài đặt Môi trường:** Tích hợp `jest` và `supertest` làm devDependencies.
+- [x] **Cấu hình Package.json:** Tạo script `npm test` chuyên dụng để chạy kiểm thử.
+- [x] **API Integration Tests:** Xây dựng kịch bản kiểm thử (Test Suites) cho các API cốt lõi như Lấy danh sách sản phẩm, Lấy danh mục và Đăng nhập.
+- [x] **Xác thực tự động:** Đảm bảo hệ thống trả về đúng HTTP Status Code (200, 401) và cấu trúc dữ liệu theo thiết kế chuẩn.
+
+---
+*Cập nhật lần cuối: 23/05/2026 bởi thaingan & AI Assistant.*
