@@ -120,6 +120,8 @@ function initChatbot() {
         userPhone: null
     };
 
+    let aiChatHistory = []; // Lưu trữ lịch sử hội thoại AI
+
     // Danh sách câu fallback đồng cảm tự nhiên tránh trùng lặp nhàm chán
     const fallbacks = [
         "Ối, câu hỏi này hơi sâu sắc so với dữ liệu hiện tại của mình. Bạn có thể nói rõ hơn hoặc thử chọn nhanh một trong các gợi ý hữu ích dưới đây không? 🥺",
@@ -333,21 +335,9 @@ function initChatbot() {
             return;
         }
 
-        // B. PHÂN TÍCH Ý ĐỊNH BẰNG TRỌNG SỐ TỪ KHÓA (Keyword Router)
+        // B. CÁC Ý ĐỊNH ĐẶC BIỆT CẦN UI RIÊNG
         
-        // 1. Ý định chào hỏi
-        if (normQuery.includes("chao") || normQuery.includes("hello") || normQuery.includes("hi") || normQuery.includes("alo") || normQuery.includes("helo")) {
-            const hour = new Date().getHours();
-            let sess = "ngày mới";
-            if (hour >= 11 && hour < 14) sess = "buổi trưa";
-            else if (hour >= 14 && hour < 18) sess = "buổi chiều";
-            else if (hour >= 18) sess = "buổi tối";
-            
-            showBotResponse(`Chào bạn thân mến! Chúc bạn một ${sess} thật ngập tràn niềm vui. Hôm nay bạn muốn ăn gì nào? 🥞`);
-            return;
-        }
-
-        // 2. Ý định tra cứu đơn hàng (Chứa số điện thoại trực tiếp hoặc yêu cầu tra cứu)
+        // 1. Ý định tra cứu đơn hàng
         const phoneDirect = cleanQuery.match(/\b(03|05|07|08|09)\d{8}\b/);
         if (phoneDirect) {
             processResponse("track_phone", phoneDirect[0]);
@@ -359,91 +349,14 @@ function initChatbot() {
             return;
         }
 
-        // 3. Ý định lọc món ăn theo ngân sách / túi tiền (Smart Budget Parser)
-        if (normQuery.includes("re") || normQuery.includes("gia sinh vien") || normQuery.includes("ngan sach") || normQuery.includes("vi tien") || normQuery.includes("tien hang") || normQuery.includes("k") || normQuery.includes("dong") || /\b\d+\s*k\b/.test(normQuery)) {
-            // Thử phân tích số tiền trực tiếp trong query
-            const parsedBudget = extractBudgetNumber(normQuery);
-            if (parsedBudget) {
-                processResponse("budget_query", parsedBudget);
-            } else {
-                processResponse("budget_prompt");
-            }
-            return;
-        }
-
-        // 4. Ý định tìm kiếm món ăn chuyên sâu
-        if (normQuery.includes("tim mon") || normQuery.includes("tim kiem") || normQuery.includes("co mon") || normQuery.includes("muon an") || normQuery.startsWith("tim ") || normQuery.startsWith("search ")) {
-            let keyword = query
-                .replace(/tìm kiếm/gi, "")
-                .replace(/tìm món/gi, "")
-                .replace(/tìm/gi, "")
-                .replace(/có món/gi, "")
-                .replace(/muốn ăn/gi, "")
-                .trim();
-            
-            if (keyword !== "") {
-                processResponse("search_keyword", keyword);
-            } else {
-                processResponse("search");
-            }
-            return;
-        }
-
-        // 5. Ý định lấy gợi ý món ngon/HOT
-        if (normQuery.includes("hot") || normQuery.includes("ngon") || normQuery.includes("goi y") || normQuery.includes("khuyen dung") || normQuery.includes("an gi") || normQuery.includes("khuyen nghi")) {
-            processResponse("hot");
-            return;
-        }
-
-        // 6. Ý định lấy mã giảm giá / khuyến mãi
-        if (normQuery.includes("khuyen mai") || normQuery.includes("giam gia") || normQuery.includes("voucher") || normQuery.includes("code") || normQuery.includes("uu dai")) {
-            processResponse("voucher");
-            return;
-        }
-
-        // 7. Hỏi đáp thông tin địa chỉ cửa hàng
-        if (normQuery.includes("dia chi") || normQuery.includes("o dau") || normQuery.includes("cua hang") || normQuery.includes("chi nhanh") || normQuery.includes("location")) {
-            showBotResponse(
-                "TiMiFood hiện tại có 2 chi nhánh lớn cực kỳ sang xịn phục vụ bạn tại Hải Phòng:<br>" +
-                "📍 **Chi nhánh 1:** 165 Trần Quốc Chẩn, Chu Văn An, Hải Phòng<br>" +
-                "📍 **Chi nhánh 2:** 76 Nguyễn Thị Duệ, Chu Văn An, Hải Phòng<br><br>" +
-                "Bạn có thể đặt trực tiếp tại website này để được giao hàng tận nơi siêu tốc nhé! 🛵"
-            );
-            return;
-        }
-
-        // 8. Giờ mở cửa
-        if (normQuery.includes("gio") || normQuery.includes("mo cua") || normQuery.includes("dong cua") || normQuery.includes("may gio") || normQuery.includes("open")) {
-            showBotResponse("Cửa hàng mở cửa từ **7:00 - 22:00** tất cả các ngày trong tuần (kể cả Thứ 7, Chủ Nhật và các ngày Lễ) bạn nhé! Cần là có ngay! ⏰");
-            return;
-        }
-
-        // 9. Phí giao hàng
-        if (normQuery.includes("ship") || normQuery.includes("phi") || normQuery.includes("van chuyen") || normQuery.includes("giao hang")) {
-            showBotResponse(
-                "TiMiFood áp dụng chính sách ưu đãi **FREESHIP** cho mọi đơn hàng từ **150.000đ** trở lên trong bán kính 5km!<br>" +
-                "Dưới 150.000đ, phí ship cực kỳ mềm dẻo chỉ từ 15.000đ - 25.000đ tùy khoảng cách cụ thể."
-            );
-            return;
-        }
-
-        // 10. Hướng dẫn đặt mua hàng
-        if (normQuery.includes("huong dan") || normQuery.includes("mua hang") || normQuery.includes("dat mon") || normQuery.includes("cach dat")) {
-            processResponse("guide");
-            return;
-        }
-
-        // 11. Tin nhắn cảm ơn / khen ngợi
-        if (normQuery.includes("cam on") || normQuery.includes("thanks") || normQuery.includes("tot qua") || normQuery.includes("de thuong") || normQuery.includes("ngon lam")) {
-            showBotResponse("Rất vui vì đã hỗ trợ được cho bạn! Chúc bạn có một bữa ăn ngon miệng và trọn vẹn hạnh phúc bên người thân yêu cùng TiMiFood nha! ❤️");
-            return;
-        }
-
-        // 12. Gặp nhân viên hỗ trợ trực tuyến
+        // 2. Gặp nhân viên hỗ trợ trực tuyến
         if (normQuery.includes("nhan vien") || normQuery.includes("live chat") || normQuery.includes("livechat") || normQuery.includes("gap nguoi") || normQuery.includes("ho tro vien")) {
             processResponse("request_live_chat");
             return;
         }
+
+        // C. GIAO TIẾP VỚI AI
+        // Chuyển toàn bộ các truy vấn tự nhiên khác cho AI xử lý
 
         // C. FALLBACK THÔNG MINH (Smart Fallback Router)
         // Nếu không khớp từ khóa đặc biệt nào, bot sẽ tự động so khớp thử cụm từ đó như tên món ăn
@@ -556,38 +469,49 @@ function initChatbot() {
 
             case "search_keyword_silent":
                 try {
-                    const products = await window.api.getProducts();
-                    const matched = products.filter(p => 
-                        p.status == 1 && 
-                        (p.title.toLowerCase().includes(extraData.toLowerCase()) || 
-                         removeVietnameseTones(p.title).includes(removeVietnameseTones(extraData)))
-                    );
+                    const response = await fetch('/api/chat/ai', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ message: extraData, history: aiChatHistory.slice(-4) }) // Giữ 4 tin nhắn gần nhất làm context
+                    });
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        // Chỉ cập nhật lịch sử khi API thành công
+                        aiChatHistory.push({ role: 'customer', text: extraData });
+                        aiChatHistory.push({ role: 'bot', text: result.reply });
 
-                    if (matched.length > 0) {
-                        // Nếu có món trùng khớp thực tế, trả về kết quả
-                        const topResults = matched.slice(0, 3);
-                        let html = `Mình phát hiện có **${matched.length}** món ăn rất hợp với câu hỏi của bạn. Tham khảo ngay nhé! 👇
-                                    <div class="chat-products-wrapper">`;
-                        topResults.forEach(p => {
-                            html += `
-                                <div class="chat-product-card">
-                                    <img src="${p.img}" class="chat-product-img" onerror="this.src='./assets/img/blank-image.png'">
-                                    <div class="chat-product-info">
-                                        <p class="chat-product-title">${p.title}</p>
-                                        <p class="chat-product-price">${chatbotFormatVND(p.price)}</p>
-                                        <button class="chat-product-btn" onclick="chatbotAddCart(${p.id})"><i class="fa-solid fa-cart-plus"></i> Đặt món</button>
+                        let html = result.reply;
+                        if (result.suggestedProduct) {
+                            // Tìm product dựa trên ID (Xóa SP đi nếu có)
+                            const productId = result.suggestedProduct.replace('SP', '');
+                            const products = await window.api.getProducts();
+                            const p = products.find(prod => prod.id == productId);
+                            if (p) {
+                                html += `<div class="chat-products-wrapper" style="margin-top: 10px;">
+                                    <div class="chat-product-card">
+                                        <img src="${p.img}" class="chat-product-img" onerror="this.src='./assets/img/blank-image.png'">
+                                        <div class="chat-product-info">
+                                            <p class="chat-product-title">${p.title}</p>
+                                            <p class="chat-product-price">${chatbotFormatVND(p.price)}</p>
+                                            <button class="chat-product-btn" onclick="chatbotAddCart(${p.id})"><i class="fa-solid fa-cart-plus"></i> Đặt món</button>
+                                        </div>
                                     </div>
-                                </div>
-                            `;
-                        });
-                        html += `</div>`;
+                                </div>`;
+                            }
+                        }
+                        // Replace markdown bold with strong
+                        html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                                   .replace(/\*(.*?)\*/g, '<em>$1</em>')
+                                   .replace(/\n/g, '<br>');
                         showBotResponse(html, true);
                     } else {
-                        // Nếu hoàn toàn không khớp món nào, chọn ngẫu nhiên một câu fallback lịch sự
+                        // Nếu AI fail hoặc API lỗi, dùng fallback mặc định
                         const randomFallback = fallbacks[Math.floor(Math.random() * fallbacks.length)];
                         showBotResponse(randomFallback);
                     }
                 } catch (e) {
+                    console.error('AI Error:', e);
                     const randomFallback = fallbacks[Math.floor(Math.random() * fallbacks.length)];
                     showBotResponse(randomFallback);
                 }
