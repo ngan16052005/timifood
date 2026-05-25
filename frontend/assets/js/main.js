@@ -1934,7 +1934,7 @@ function startUserNotifications() {
     if (typeof io !== 'undefined') {
         if (!userSocket) {
             console.log('[Socket] Initializing Socket.io for user:', currentUser.phone);
-            userSocket = io();
+            userSocket = io({ transports: ['websocket'] });
 
             userSocket.on('connect', () => {
                 console.log('[Socket] Connected to server, joining room userRoom_' + currentUser.phone);

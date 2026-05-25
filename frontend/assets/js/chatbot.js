@@ -735,7 +735,7 @@ function initChatbot() {
         }
 
         if (typeof io !== 'undefined') {
-            clientSocket = io({ autoConnect: false });
+            clientSocket = io({ autoConnect: false, transports: ['websocket'] });
             
             clientSocket.on('connect', () => {
                 console.log('[Socket] Customer connected for live chat:', phone);

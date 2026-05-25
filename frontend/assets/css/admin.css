@@ -1408,6 +1408,29 @@ label a {
     color:#fff
 }
 
+.btn-reset-order {
+    height: 40px;
+    width: 40px;
+    background-color: #f8f9fa;
+    border: 1px solid #e5e5e5;
+    color: #333;
+    border-radius: 5px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: all 0.3s ease;
+}
+
+.btn-reset-order:hover {
+    background-color: var(--red) !important;
+    color: #fff !important;
+    border-color: var(--red) !important;
+}
+
+.btn-reset-order i {
+    margin-right: 0 !important;
+}
+
 .form-search {
     display: flex;
     justify-content: center;

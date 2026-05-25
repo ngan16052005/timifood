@@ -1544,11 +1544,11 @@ app.get('/api/admin/stats/report', authenticateToken, isAdmin, async (req, res) 
 
         // 2. Monthly Revenue (Current Year)
         const monthlyRevenue = await pool.request().query(`
-            SELECT MONTH(CAST(o.deliveryDate AS DATE)) as month, SUM(o.totalPrice) as revenue
+            SELECT MONTH(CAST(o.orderDate AS DATE)) as month, SUM(o.totalPrice) as revenue
             FROM Orders o
             WHERE o.status = 2 
-            AND YEAR(CAST(o.deliveryDate AS DATE)) = YEAR(GETDATE())
-            GROUP BY MONTH(CAST(o.deliveryDate AS DATE))
+            AND YEAR(CAST(o.orderDate AS DATE)) = YEAR(GETDATE())
+            GROUP BY MONTH(CAST(o.orderDate AS DATE))
             ORDER BY month ASC
         `);
 

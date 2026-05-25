@@ -951,9 +951,16 @@ window.confirmMapAddress = function () {
             if (shippingDisplay) shippingDisplay.innerText = vnd(PHIVANCHUYEN);
 
             if (currentCheckoutProduct) {
-                showProductBuyNow(currentCheckoutProduct);
+                // Buy Now mode
+                const itemTotal = currentCheckoutProduct.soluong * currentCheckoutProduct.price;
+                const shippingFee = (document.querySelector("#giaotannoi") && document.querySelector("#giaotannoi").classList.contains("active")) ? PHIVANCHUYEN : 0;
+                updateCheckoutTotal((itemTotal + shippingFee) - currentDiscount);
             } else {
-                showCheckoutCart();
+                // Cart mode
+                getCartTotal().then(cartTotal => {
+                    const shippingFee = (document.querySelector("#giaotannoi") && document.querySelector("#giaotannoi").classList.contains("active")) ? PHIVANCHUYEN : 0;
+                    updateCheckoutTotal((cartTotal + shippingFee) - currentDiscount);
+                });
             }
         }
 

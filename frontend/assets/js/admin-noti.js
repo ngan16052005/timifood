@@ -3,7 +3,9 @@ let adminNotifications = [];
 let lastAdminNotiId = null;
 
 // Socket.io for real-time notifications
-const socket = io();
+const socket = io({
+    transports: ['websocket'] // Force websocket to prevent PM2 cluster mode sticky session issues
+});
 
 socket.on('connect', () => {
     console.log('[Socket] Connected to server');
