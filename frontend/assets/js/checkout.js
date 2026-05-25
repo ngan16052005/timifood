@@ -1,4 +1,7 @@
-const PHIVANCHUYEN = 30000;
+let PHIVANCHUYEN = 30000;
+// TiMiFood Store location (Lat, Lng). Default is somewhere in HCMC.
+// You should change this to your actual store's coordinates.
+const STORE_LATLNG = [10.762622, 106.660172];
 let priceFinal = document.getElementById("checkout-cart-price-final");
 let currentVoucher = null;
 let currentDiscount = 0;
@@ -8,7 +11,7 @@ let currentTotalBill = 0;
 // Trang thanh toan
 async function thanhtoanpage(option, product) {
     currentCheckoutProduct = product; // Lưu lại để dùng khi bấm đặt hàng
-    
+
     // Kiểm tra xem có đang sửa đơn không
     const editingOrder = localStorage.getItem('editingOrder') ? JSON.parse(localStorage.getItem('editingOrder')) : null;
     const checkoutBtn = document.querySelector('.complete-checkout-btn');
@@ -113,10 +116,10 @@ async function thanhtoanpage(option, product) {
             item.style.display = "none";
         });
         tudenlayGroup.style.display = "block";
-        
+
         // Khi tự đến lấy, mặc định lấy địa chỉ của chi nhánh đầu tiên hoặc xóa trắng để khách chọn
-        document.getElementById('diachinhan').value = ""; 
-        
+        document.getElementById('diachinhan').value = "";
+
         switch (option) {
             case 1:
                 const cartTotal = await getCartTotal();
@@ -135,7 +138,7 @@ async function thanhtoanpage(option, product) {
             item.style.display = "flex";
         });
         tudenlayGroup.style.display = "none";
-        
+
         // Khôi phục lại địa chỉ của user nếu có
         const currentUser = JSON.parse(localStorage.getItem('currentuser'));
         if (currentUser && currentUser.address) {
@@ -156,7 +159,7 @@ async function thanhtoanpage(option, product) {
     // Lắng nghe sự kiện chọn chi nhánh
     let chinhanhRadios = document.querySelectorAll('input[name="chinhanh"]');
     chinhanhRadios.forEach(radio => {
-        radio.addEventListener('change', function() {
+        radio.addEventListener('change', function () {
             if (this.checked) {
                 let label = document.querySelector(`label[for="${this.id}"]`).innerText;
                 document.getElementById('diachinhan').value = "Lấy tại chi nhánh: " + label;
@@ -198,9 +201,9 @@ async function showProductCart() {
         let currentUser = JSON.parse(localStorage.getItem('currentuser'));
         if (currentUser && currentUser.cart) cart = currentUser.cart;
     }
-    
+
     if (cart.length === 0) return;
-    
+
     let products = await window.api.getProducts();
     let html = "";
     cart.forEach((item, index) => {
@@ -225,10 +228,10 @@ async function showProductCart() {
     document.getElementById('list-order-checkout').innerHTML = html;
 }
 
-window.changeQtyCheckout = async function(index, delta) {
+window.changeQtyCheckout = async function (index, delta) {
     let cart = JSON.parse(localStorage.getItem('cart')) || [];
     let currentUser = JSON.parse(localStorage.getItem('currentuser'));
-    
+
     if (cart.length === 0 && currentUser && currentUser.cart) {
         cart = currentUser.cart;
     }
@@ -260,7 +263,7 @@ window.changeQtyCheckout = async function(index, delta) {
     const cartTotal = await getCartTotal();
     const giaotannoi = document.querySelector("#giaotannoi");
     const shippingFee = (giaotannoi && giaotannoi.classList.contains("active")) ? PHIVANCHUYEN : 0;
-    
+
     // Update the price display
     document.getElementById('checkout-cart-total').innerText = vnd(cartTotal);
     updateCheckoutTotal((cartTotal + shippingFee) - currentDiscount);
@@ -284,9 +287,9 @@ function showProductBuyNow(product) {
     document.getElementById('list-order-checkout').innerHTML = html;
 }
 
-window.changeQtyBuyNow = function(delta) {
+window.changeQtyBuyNow = function (delta) {
     if (!currentCheckoutProduct) return;
-    
+
     currentCheckoutProduct.soluong += delta;
     if (currentCheckoutProduct.soluong < 1) {
         currentCheckoutProduct.soluong = 1;
@@ -294,15 +297,15 @@ window.changeQtyBuyNow = function(delta) {
 
     // Refresh UI
     showProductBuyNow(currentCheckoutProduct);
-    
+
     // Update Billing Summary
     const itemTotal = currentCheckoutProduct.soluong * currentCheckoutProduct.price;
     document.getElementById('checkout-cart-total').innerText = vnd(itemTotal);
     document.querySelector('.total-bill-order .count').innerText = `${currentCheckoutProduct.soluong} món`;
-    
+
     const giaotannoi = document.querySelector("#giaotannoi");
     const shippingFee = (giaotannoi && giaotannoi.classList.contains("active")) ? PHIVANCHUYEN : 0;
-    
+
     updateCheckoutTotal((itemTotal + shippingFee) - currentDiscount);
 }
 
@@ -318,7 +321,7 @@ function updateDynamicQRCodes(amount) {
     const currentUser = localStorage.getItem('currentuser') ? JSON.parse(localStorage.getItem('currentuser')) : null;
     const phoneInput = document.getElementById('sdtnhan');
     const phone = phoneInput && phoneInput.value.trim() ? phoneInput.value.trim() : (currentUser ? currentUser.phone : 'Guest');
-    
+
     // Loai bo dau tieng Viet, ky tu dac biet cho noi dung chuyen khoan
     const description = `TiMiFood ${phone}`.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-zA-Z0-9 ]/g, "");
 
@@ -339,7 +342,7 @@ function updateDynamicQRCodes(amount) {
 async function closecheckout() {
     document.querySelector(".checkout-page").classList.remove('active');
     body.style.overflow = "auto";
-    
+
     // Khôi phục giỏ hàng cũ nếu có backup
     const cartBackup = localStorage.getItem('cartBackup');
     if (cartBackup) {
@@ -365,13 +368,13 @@ async function closecheckout() {
 }
 
 // Add this function to fill info when editing
-window.fillEditOrderInfo = function(order) {
+window.fillEditOrderInfo = function (order) {
     setTimeout(() => {
         if (document.getElementById('tennguoinhan')) document.getElementById('tennguoinhan').value = order.tenguoinhan || "";
         if (document.getElementById('sdtnhan')) document.getElementById('sdtnhan').value = order.sdtnhan || "";
         if (document.getElementById('diachinhan')) document.getElementById('diachinhan').value = order.diachinhan || "";
         if (document.querySelector(".note-order")) document.querySelector(".note-order").value = order.ghichu || "";
-        
+
         // Handle delivery type
         if (order.hinhthucgiao === "Giao tận nơi") {
             const btn = document.querySelector('#giaotannoi');
@@ -389,7 +392,7 @@ async function applyVoucher() {
     const msgBox = document.getElementById('voucher-message');
     const discountRow = document.getElementById('discount-amount-row');
     const discountValEl = document.getElementById('checkout-voucher-discount');
-    
+
     if (!code) {
         msgBox.innerHTML = '<span style="color: #ef4444; font-size: 13px;">Vui lòng nhập mã giảm giá</span>';
         return;
@@ -402,7 +405,7 @@ async function applyVoucher() {
 
         if (result.success) {
             currentVoucher = result.voucher;
-            
+
             // Calculate base total
             let baseTotal = 0;
             if (currentCheckoutProduct) {
@@ -421,7 +424,7 @@ async function applyVoucher() {
             }
 
             // discountType: 0 = Percent, 1 = Fixed
-            if (currentVoucher.discountType == 0) { 
+            if (currentVoucher.discountType == 0) {
                 currentDiscount = (baseTotal * currentVoucher.discountValue) / 100;
                 // Limit to maxDiscount if set
                 if (currentVoucher.maxDiscount > 0 && currentDiscount > currentVoucher.maxDiscount) {
@@ -438,19 +441,19 @@ async function applyVoucher() {
             discountRow.style.display = "flex";
             discountValEl.innerText = "-" + vnd(currentDiscount);
             msgBox.innerHTML = `<span style="color: #00b894; font-size: 13px;">Đã áp dụng mã: ${currentVoucher.code}</span>`;
-            
+
             // Recalculate Final Total
             const giaotannoi = document.querySelector("#giaotannoi");
             const shippingFee = (giaotannoi && giaotannoi.classList.contains("active")) ? PHIVANCHUYEN : 0;
             updateCheckoutTotal((baseTotal + shippingFee) - currentDiscount);
-            
+
             toast({ title: 'Thành công', message: 'Áp dụng mã giảm giá thành công!', type: 'success', duration: 3000 });
         } else {
             currentVoucher = null;
             currentDiscount = 0;
             discountRow.style.display = "none";
             msgBox.innerHTML = `<span style="color: #ef4444; font-size: 13px;">${result.message || 'Mã không hợp lệ'}</span>`;
-            
+
             // Recalculate Final Total without discount
             let baseTotal = 0;
             if (currentCheckoutProduct) {
@@ -465,7 +468,7 @@ async function applyVoucher() {
     } catch (error) {
         console.error("Voucher application error:", error);
         msgBox.innerHTML = '<span style="color: #ef4444; font-size: 13px;">Lỗi hệ thống khi kiểm tra mã</span>';
-        
+
         // Reset state on error
         currentVoucher = null;
         currentDiscount = 0;
@@ -479,9 +482,9 @@ async function getCartTotal() {
         let currentUser = JSON.parse(localStorage.getItem('currentuser'));
         if (currentUser && currentUser.cart) cart = currentUser.cart;
     }
-    
+
     if (cart.length === 0) return 0;
-    
+
     let products = await window.api.getProducts();
     return cart.reduce((sum, item) => {
         let p = products.find(prod => prod.id == item.id);
@@ -517,7 +520,7 @@ async function openPaymentSim(method, amount, orderId) {
     try {
         const currentUser = localStorage.getItem('currentuser') ? JSON.parse(localStorage.getItem('currentuser')) : null;
         const description = `TiMiFood ${orderId}`;
-        
+
         const payosResult = await window.api.createPayOSPaymentLink(orderId, amount, description);
         if (payosResult && payosResult.success) {
             // Hiển thị QR của PayOS và nút thanh toán trực tiếp
@@ -531,10 +534,10 @@ async function openPaymentSim(method, amount, orderId) {
         }
     } catch (err) {
         console.warn("[Checkout] Không tạo được liên kết PayOS thật, chuyển sang chế độ mô phỏng:", err.message);
-        
+
         // Chuyển sang chế độ mô phỏng (Mock/Simulation)
         if (warningBanner) warningBanner.style.display = 'block';
-        
+
         const currentUser = localStorage.getItem('currentuser') ? JSON.parse(localStorage.getItem('currentuser')) : null;
         const phoneInput = document.getElementById('sdtnhan');
         const phone = phoneInput && phoneInput.value.trim() ? phoneInput.value.trim() : (currentUser ? currentUser.phone : 'Guest');
@@ -565,12 +568,12 @@ async function confirmPaymentSim() {
                 toast({ title: 'Thành công', message: 'Xác nhận thanh toán thành công (Mô phỏng)!', type: 'success', duration: 3000 });
                 closePaymentSim();
                 closecheckout();
-                
+
                 // Đồng bộ thông báo để admin thấy ngay
                 if (typeof syncNotificationsFromServer === 'function') {
                     syncNotificationsFromServer();
                 }
-                
+
                 if (typeof renderOrderProduct === 'function') await renderOrderProduct();
             } else {
                 toast({ title: 'Lỗi', message: result.message || 'Lỗi khi cập nhật đơn hàng!', type: 'error', duration: 3000 });
@@ -716,14 +719,14 @@ async function xulyDathang(product) {
             if (result.success) {
                 // Mở modal thanh toán (truyền thêm orderId mới tạo)
                 await openPaymentSim(paymentMethod, finalTotal, result.orderId);
-                
+
                 // Xoá giỏ hàng sau khi đặt thành công
                 if (product == undefined) {
                     let currentUserObj = JSON.parse(localStorage.getItem('currentuser'));
                     currentUserObj.cart = [];
                     localStorage.setItem('currentuser', JSON.stringify(currentUserObj));
                     if (typeof updateCartCount === 'function') updateCartCount();
-                    try { await window.api.updateCart(currentUserObj.phone, []); } catch(e) {}
+                    try { await window.api.updateCart(currentUserObj.phone, []); } catch (e) { }
                 }
             } else {
                 toast({ title: 'Lỗi', message: result.message || 'Lỗi khi tạo đơn hàng!', type: 'error', duration: 3000 });
@@ -748,11 +751,11 @@ async function xulyDathang(product) {
 
         if (result.success) {
             if (editingOrder) {
-                toast({ 
-                    title: 'Thành công', 
-                    message: 'Cập nhật đơn hàng thành công!', 
-                    type: 'success', 
-                    duration: 3000 
+                toast({
+                    title: 'Thành công',
+                    message: 'Cập nhật đơn hàng thành công!',
+                    type: 'success',
+                    duration: 3000
                 });
             } else {
                 // Đối với đặt hàng mới, hệ thống Notification sẽ tự động hiển thị Toast "Đơn hàng mới"
@@ -762,7 +765,7 @@ async function xulyDathang(product) {
                 }
             }
             closecheckout();
-            
+
             // Clear cart logic
             // Làm sạch giỏ hàng và trạng thái sửa
             localStorage.removeItem('cart');
@@ -774,12 +777,12 @@ async function xulyDathang(product) {
                 currentUser.cart = [];
                 localStorage.setItem('currentuser', JSON.stringify(currentUser));
                 // Đồng bộ giỏ hàng trống lên server
-                try { await window.api.updateCart(currentUser.phone, []); } catch(e) {}
+                try { await window.api.updateCart(currentUser.phone, []); } catch (e) { }
             }
-            
+
             // Cập nhật lại số lượng giỏ hàng trên icon
             if (typeof updateAmount === 'function') updateAmount();
-            
+
             // Quay lại danh sách đơn hàng để thấy thay đổi
             if (typeof renderOrderProduct === 'function') await renderOrderProduct();
 
@@ -819,7 +822,7 @@ async function reverseGeocode(lat, lng) {
         document.getElementById('selected-address-preview').innerText = "Đang xác định địa chỉ...";
         const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&accept-language=vi`);
         const data = await response.json();
-        
+
         if (data && data.address) {
             const addr = data.address;
             const components = [];
@@ -829,7 +832,7 @@ async function reverseGeocode(lat, lng) {
             if (addr.suburb || addr.neighborhood) components.push(addr.suburb || addr.neighborhood);
             if (addr.city_district || addr.district) components.push(addr.city_district || addr.district);
             if (addr.city || addr.province || addr.state) components.push(addr.city || addr.province || addr.state);
-            
+
             selectedAddress = components.join(', ');
             document.getElementById('selected-address-preview').innerText = selectedAddress;
         } else {
@@ -845,10 +848,10 @@ async function reverseGeocode(lat, lng) {
 
 async function onMapClick(e) {
     const { lat, lng } = e.latlng;
-    
+
     // Smooth pan to the clicked location
     map.flyTo(e.latlng, map.getZoom());
-    
+
     if (mapMarker) {
         mapMarker.setLatLng(e.latlng);
     } else {
@@ -858,17 +861,17 @@ async function onMapClick(e) {
     await reverseGeocode(lat, lng);
 }
 
-window.openMapModal = function() {
+window.openMapModal = function () {
     const modal = document.querySelector('.modal-map');
     modal.classList.add('open');
-    
+
     if (!map) {
         // Default center: Ho Chi Minh City
         map = L.map('map-container', {
             zoomControl: true,
             scrollWheelZoom: true
         }).setView([10.762622, 106.660172], 13);
-        
+
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '© OpenStreetMap contributors'
         }).addTo(map);
@@ -876,7 +879,7 @@ window.openMapModal = function() {
         map.on('click', onMapClick);
 
         // Location found handler
-        map.on('locationfound', function(e) {
+        map.on('locationfound', function (e) {
             map.flyTo(e.latlng, 16);
             if (mapMarker) mapMarker.setLatLng(e.latlng);
             else mapMarker = L.marker(e.latlng, { icon: redIcon }).addTo(map);
@@ -884,12 +887,18 @@ window.openMapModal = function() {
             toast({ title: 'Thành công', message: 'Đã tìm thấy vị trí của bạn!', type: 'success', duration: 2000 });
         });
 
+        // Location error handler
+        map.on('locationerror', function (e) {
+            console.error("Location error:", e.message);
+            toast({ title: 'Lỗi định vị', message: 'Không thể lấy vị trí. Vui lòng cấp quyền Vị trí trên trình duyệt hoặc bật Cài đặt vị trí của Windows!', type: 'error', duration: 4000 });
+        });
+
         // Add a manual locate button
         const locateControl = L.control({ position: 'topleft' });
-        locateControl.onAdd = function() {
+        locateControl.onAdd = function () {
             const div = L.DomUtil.create('div', 'leaflet-bar leaflet-control');
             div.innerHTML = '<a href="javascript:;" title="Vị trí của tôi" style="background-color: #fff; width: 30px; height: 30px; line-height: 30px; display: block; text-align: center; color: #333; border-radius: 4px;"><i class="fa-solid fa-crosshairs"></i></a>';
-            div.onclick = function(ev) {
+            div.onclick = function (ev) {
                 ev.stopPropagation();
                 map.locate({ setView: false, enableHighAccuracy: true });
             };
@@ -906,20 +915,55 @@ window.openMapModal = function() {
     }, 400);
 }
 
-window.closeMapModal = function() {
+window.closeMapModal = function () {
     document.querySelector('.modal-map').classList.remove('open');
 }
 
-window.confirmMapAddress = function() {
+window.confirmMapAddress = function () {
     if (selectedAddress) {
         document.getElementById('diachinhan').value = selectedAddress;
+
+        // Calculate distance and update shipping fee
+        if (mapMarker) {
+            const storePoint = L.latLng(STORE_LATLNG[0], STORE_LATLNG[1]);
+            const userPoint = mapMarker.getLatLng();
+            const distanceMeters = storePoint.distanceTo(userPoint);
+            const distanceKm = distanceMeters / 1000;
+
+            if (distanceKm <= 5) {
+                PHIVANCHUYEN = 0;
+            } else if (distanceKm <= 10) {
+                PHIVANCHUYEN = 15000;
+            } else {
+                PHIVANCHUYEN = 30000;
+            }
+
+            // Show toast about shipping fee update
+            toast({
+                title: 'Đã cập nhật phí vận chuyển',
+                message: `Khoảng cách: ${distanceKm.toFixed(1)}km - Phí ship mới: ${vnd(PHIVANCHUYEN)}`,
+                type: 'info',
+                duration: 4000
+            });
+
+            // Re-render checkout totals
+            const shippingDisplay = document.querySelector('.chk-free-ship span');
+            if (shippingDisplay) shippingDisplay.innerText = vnd(PHIVANCHUYEN);
+
+            if (currentCheckoutProduct) {
+                showProductBuyNow(currentCheckoutProduct);
+            } else {
+                showCheckoutCart();
+            }
+        }
+
         closeMapModal();
     } else {
         toast({ title: 'Thông báo', message: 'Vui lòng chọn một vị trí trên bản đồ!', type: 'warning', duration: 3000 });
     }
 }
 
-window.searchAddressOnMap = async function(e) {
+window.searchAddressOnMap = async function (e) {
     if (e) {
         e.preventDefault();
         e.stopPropagation();
@@ -935,9 +979,9 @@ window.searchAddressOnMap = async function(e) {
         if (data && data.length > 0) {
             const { lat, lon } = data[0];
             const newLatLng = new L.LatLng(lat, lon);
-            
+
             map.flyTo(newLatLng, 17); // Smooth fly to location
-            
+
             if (mapMarker) {
                 mapMarker.setLatLng(newLatLng);
             } else {

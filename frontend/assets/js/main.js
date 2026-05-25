@@ -2341,15 +2341,7 @@ if (googleCompleteBtn) {
 
 // Facebook OAuth2 Initialization
 let currentFacebookToken = null;
-
-window.fbAsyncInit = function() {
-    FB.init({
-        appId      : '1685926412545108',
-        cookie     : true,
-        xfbml      : true,
-        version    : 'v19.0'
-    });
-};
+// fbAsyncInit moved to head of HTML to prevent race condition
 
 function loginWithFacebook() {
     if (typeof FB === 'undefined') {

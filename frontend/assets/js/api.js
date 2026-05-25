@@ -420,10 +420,14 @@ window.api = {
             const response = await fetch(`${BASE_URL}/cart/${phone}`, {
                 headers: getHeaders()
             });
+            if (!response.ok) {
+                console.error("Failed to fetch cart, status:", response.status);
+                return [];
+            }
             return await response.json();
         } catch (error) {
             console.error("Get cart error:", error);
-            throw error;
+            return [];
         }
     },
 
