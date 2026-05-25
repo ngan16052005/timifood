@@ -3,6 +3,13 @@ const cors = require('cors');
 const bodyParser = require('body-parser');
 const compression = require('compression');
 const path = require('path');
+const twilio = require('twilio');
+
+// TWILIO CONFIGURATION (Will be updated by the user later)
+const accountSid = 'YOUR_ACCOUNT_SID';
+const authToken = 'YOUR_AUTH_TOKEN';
+const twilioPhone = 'YOUR_TWILIO_PHONE_NUMBER';
+// const twilioClient = new twilio(accountSid, authToken); // Uncomment when ready
 const { sql, connectDB } = require('./src/config/db');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
@@ -378,9 +385,9 @@ app.post('/api/login', loginLimiter, async (req, res) => {
                 );
 
                 // Remove sensitive info
-                const { password: _, ...safeUser } = user;
+                const { password: _, cartData: __, ...safeUser } = user;
                 safeUser.join = user.joinDate;
-                safeUser.cart = [];
+                safeUser.cart = user.cartData ? JSON.parse(user.cartData) : [];
                 res.json({ success: true, user: safeUser, token });
             } else {
                 res.status(401).json({ success: false, message: 'Số điện thoại hoặc mật khẩu không đúng' });
@@ -420,9 +427,9 @@ app.post('/api/auth/google', loginLimiter, async (req, res) => {
                 SECRET_KEY,
                 { expiresIn: '24h' }
             );
-            const { password: _, ...safeUser } = user;
+            const { password: _, cartData: __, ...safeUser } = user;
             safeUser.join = user.joinDate;
-            safeUser.cart = [];
+            safeUser.cart = user.cartData ? JSON.parse(user.cartData) : [];
             res.json({ success: true, user: safeUser, token });
         } else {
             // User does not exist, ask for phone number to complete registration
@@ -519,9 +526,9 @@ app.post('/api/auth/facebook', loginLimiter, async (req, res) => {
                 SECRET_KEY,
                 { expiresIn: '24h' }
             );
-            const { password: _, ...safeUser } = user;
+            const { password: _, cartData: __, ...safeUser } = user;
             safeUser.join = user.joinDate;
-            safeUser.cart = [];
+            safeUser.cart = user.cartData ? JSON.parse(user.cartData) : [];
             res.json({ success: true, user: safeUser, token });
         } else {
             // User does not exist, ask for phone number to complete registration
@@ -681,6 +688,95 @@ app.post('/api/reset-password', resetPasswordLimiter, async (req, res) => {
             .query('UPDATE Users SET password = @password WHERE phone = @phone');
         
         otpStore.delete(email); // Clear OTP after success
+        res.json({ success: true, message: 'Password updated successfully' });
+    } catch (err) {
+        console.error("Reset password error:", err);
+        res.status(500).json({ success: false, message: 'Database error' });
+    }
+});
+
+// Send OTP via SMS (Twilio)
+app.post('/api/send-otp-sms', async (req, res) => {
+    try {
+        const { phone } = req.body;
+        if (!phone) return res.status(400).json({ success: false, message: 'Thiếu số điện thoại' });
+
+        let formattedPhone = phone;
+        if (formattedPhone.startsWith('0')) {
+            formattedPhone = '+84' + formattedPhone.substring(1);
+        } else if (!formattedPhone.startsWith('+')) {
+            formattedPhone = '+84' + formattedPhone;
+        }
+
+        const otp = Math.floor(100000 + Math.random() * 900000).toString();
+        otpStore.set(phone, { otp, expiry: Date.now() + 60000 }); // 60s
+        
+        console.log(`[Twilio] OTP for ${formattedPhone}: ${otp}`);
+
+        if (accountSid !== 'YOUR_ACCOUNT_SID') {
+            const twilioClient = new twilio(accountSid, authToken);
+            await twilioClient.messages.create({
+                body: `TIMIFOOD: Ma OTP cua ban la ${otp}. Khong chia se ma nay cho bat ky ai.`,
+                from: twilioPhone,
+                to: formattedPhone
+            });
+        }
+
+        res.json({ success: true, message: 'Mã OTP đã được gửi!', debug: true });
+    } catch (err) {
+        console.error("Lỗi gửi SMS OTP:", err);
+        res.status(500).json({ success: false, message: 'Không thể gửi SMS. Hãy đảm bảo số đt đã được verify trên Twilio.' });
+    }
+});
+
+// Verify OTP SMS
+app.post('/api/verify-otp-sms', async (req, res) => {
+    try {
+        const { phone, otp } = req.body;
+        const stored = otpStore.get(phone);
+        
+        if (!stored || stored.otp !== otp || Date.now() > stored.expiry) {
+            return res.status(400).json({ success: false, message: 'Mã OTP không đúng hoặc đã hết hạn' });
+        }
+        
+        res.json({ success: true, message: 'Mã xác thực chính xác' });
+    } catch (error) {
+        res.status(500).json({ success: false, message: 'Server error' });
+    }
+});
+
+// Reset Password with OTP verified by Firebase
+app.post('/api/reset-password-by-phone', resetPasswordLimiter, async (req, res) => {
+    try {
+        let { phone, newPassword } = req.body;
+        
+        // Normalize phone (+8498 -> 098) to match database
+        if (phone.startsWith('+84')) {
+            phone = '0' + phone.substring(3);
+        }
+
+        // Backend strong password validation
+        const strongPasswordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/;
+        if (!strongPasswordRegex.test(newPassword)) {
+            return res.status(400).json({ success: false, message: 'Mật khẩu phải từ 8 ký tự, bao gồm chữ hoa, chữ thường và số' });
+        }
+
+        const checkUser = await pool.request()
+            .input('phone', sql.NVarChar, phone)
+            .query('SELECT * FROM Users WHERE phone=@phone');
+            
+        if (checkUser.recordset.length === 0) {
+            return res.status(400).json({ success: false, message: 'Số điện thoại chưa được đăng ký.' });
+        }
+
+        const hashedPassword = await bcrypt.hash(newPassword, 10);
+        
+        await pool.request()
+            .input('phone', sql.NVarChar, phone)
+            .input('password', sql.NVarChar, hashedPassword)
+            .query('UPDATE Users SET password = @password WHERE phone = @phone');
+        
+        otpStore.delete(phone); // Clear OTP after success
         res.json({ success: true, message: 'Password updated successfully' });
     } catch (err) {
         console.error("Reset password error:", err);

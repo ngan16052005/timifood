@@ -108,22 +108,68 @@
                 <!-- Forgot Password Form -->
                 <div class="form-content forgot-password" style="display: none;">
                     <h3 class="form-title">Khôi phục mật khẩu</h3>
-                    <p class="form-description">Vui lòng nhập email để đặt lại mật khẩu của bạn</p>
+                    <p class="form-description">Chọn phương thức để nhận mã OTP khôi phục mật khẩu</p>
                     <form action="" class="form" id="forgot-password-form">
                         <div id="otp-step">
-                            <div class="form-group">
-                                <label for="email-forgot" class="form-label">Email tài khoản</label>
+                            <div class="recovery-method-toggle">
+                                <label class="recovery-option">
+                                    <input type="radio" name="recovery-method" value="email" checked>
+                                    <span class="recovery-text"><i class="fa-light fa-envelope" style="margin-right: 5px;"></i> Qua Email</span>
+                                </label>
+                                <label class="recovery-option">
+                                    <input type="radio" name="recovery-method" value="sms">
+                                    <span class="recovery-text"><i class="fa-light fa-comment-sms" style="margin-right: 5px;"></i> Qua SMS</span>
+                                </label>
+                            </div>
+
+                            <style>
+                                .recovery-method-toggle {
+                                    display: flex;
+                                    background-color: #f1f3f5;
+                                    border-radius: 10px;
+                                    padding: 5px;
+                                    margin-bottom: 25px;
+                                    box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);
+                                }
+                                .recovery-option {
+                                    flex: 1;
+                                    text-align: center;
+                                    cursor: pointer;
+                                    margin: 0;
+                                }
+                                .recovery-option input {
+                                    display: none;
+                                }
+                                .recovery-text {
+                                    display: block;
+                                    padding: 10px 15px;
+                                    border-radius: 8px;
+                                    font-size: 15px;
+                                    font-weight: 600;
+                                    color: #6c757d;
+                                    transition: all 0.3s ease;
+                                }
+                                .recovery-option input:checked + .recovery-text {
+                                    background-color: var(--primary-color, #c82333);
+                                    color: white;
+                                    box-shadow: 0 4px 10px rgba(200, 35, 51, 0.3);
+                                }
+                            </style>
+
+                            <div class="form-group" id="recovery-input-group">
+                                <label for="recovery-input" class="form-label recovery-label">Email tài khoản</label>
                                 <div style="display: flex; gap: 10px;">
-                                    <input id="email-forgot" name="email" type="text" autocomplete="email" placeholder="Nhập email để nhận mã"
+                                    <input id="recovery-input" name="recovery-input" type="text" placeholder="Nhập email để nhận mã"
                                         class="form-control" style="flex: 1;">
                                     <button type="button" id="send-otp-btn" class="form-submit" 
                                         style="width: auto; margin-top: 0; padding: 0 15px; font-size: 14px; white-space: nowrap;">Gửi mã</button>
                                 </div>
-                                <span class="form-message emailforgot-error"></span>
+                                <div id="recaptcha-container" style="margin-top: 10px;"></div>
+                                <span class="form-message recovery-error"></span>
                             </div>
                             <div class="form-group">
                                 <label for="otp-forgot" class="form-label">Mã xác thực (OTP)</label>
-                                <input id="otp-forgot" name="otp" type="text" autocomplete="one-time-code" placeholder="Nhập mã 6 chữ số từ Email"
+                                <input id="otp-forgot" name="otp" type="text" autocomplete="one-time-code" placeholder="Nhập mã 6 chữ số"
                                     class="form-control">
                                 <span class="form-message otpforgot-error"></span>
                             </div>

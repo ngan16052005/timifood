@@ -21,7 +21,8 @@ async function initializeDB() {
                 email NVARCHAR(255),
                 status INT DEFAULT 1,
                 joinDate DATETIME DEFAULT GETDATE(),
-                userType INT DEFAULT 0
+                userType INT DEFAULT 0,
+                cartData NVARCHAR(MAX)
             )
         `);
 

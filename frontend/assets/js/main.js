@@ -652,15 +652,15 @@ forgotPasswordLink.addEventListener('click', () => {
     document.getElementById('password-reset-step').style.display = 'none';
     document.getElementById('forgot-password-button').innerText = 'Tiếp theo';
 
-    document.getElementById('email-forgot').value = '';
+    document.getElementById('recovery-input').value = '';
     document.getElementById('otp-forgot').value = '';
     document.getElementById('new-password-forgot').value = '';
     document.getElementById('confirm-password-forgot').value = '';
-    document.querySelector('.emailforgot-error').innerHTML = '';
+    document.querySelector('.recovery-error').innerHTML = '';
     document.querySelector('.otpforgot-error').innerHTML = '';
     document.querySelector('.new-password-error').innerHTML = '';
     document.querySelector('.confirm-password-error').innerHTML = '';
-    document.getElementById('email-forgot').readOnly = false;
+    document.getElementById('recovery-input').readOnly = false;
     document.getElementById('send-otp-btn').innerText = 'Gửi mã';
     document.getElementById('send-otp-btn').disabled = false;
 });
@@ -670,11 +670,38 @@ backToLogin.addEventListener('click', () => {
     loginForm.style.display = '';
 });
 
-// Gửi mã OTP
+// Logic đổi UI khi chọn phương thức khôi phục
+const recoveryRadios = document.querySelectorAll('input[name="recovery-method"]');
+const recoveryInput = document.getElementById('recovery-input');
+const recoveryLabel = document.querySelector('.recovery-label');
+const recoveryError = document.querySelector('.recovery-error');
+
+recoveryRadios.forEach(radio => {
+    radio.addEventListener('change', (e) => {
+        recoveryInput.value = '';
+        recoveryError.innerHTML = '';
+        if (e.target.value === 'email') {
+            recoveryLabel.innerText = 'Email tài khoản';
+            recoveryInput.placeholder = 'Nhập email để nhận mã';
+            recoveryInput.type = 'text';
+        } else {
+            recoveryLabel.innerText = 'Số điện thoại';
+            recoveryInput.placeholder = 'Nhập số điện thoại (vd: 098...)';
+            recoveryInput.type = 'tel';
+        }
+    });
+});
+
+// Gửi mã OTP (Hỗ trợ cả Email và SMS Twilio)
 document.getElementById('send-otp-btn').addEventListener('click', async () => {
-    let email = document.getElementById('email-forgot').value;
-    if (!emailIsValid(email)) {
-        document.querySelector('.emailforgot-error').innerHTML = 'Vui lòng nhập email hợp lệ';
+    const method = document.querySelector('input[name="recovery-method"]:checked').value;
+    const inputValue = recoveryInput.value.trim();
+    
+    if (method === 'email' && !emailIsValid(inputValue)) {
+        recoveryError.innerHTML = 'Vui lòng nhập email hợp lệ';
+        return;
+    } else if (method === 'sms' && inputValue.length < 9) {
+        recoveryError.innerHTML = 'Vui lòng nhập sđt hợp lệ';
         return;
     }
 
@@ -683,83 +710,121 @@ document.getElementById('send-otp-btn').addEventListener('click', async () => {
         sendBtn.innerText = 'Đang gửi...';
         sendBtn.disabled = true;
 
-        const response = await fetch('/api/send-otp', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email })
-        });
-        const data = await response.json();
+        if (method === 'email') {
+            const response = await fetch('/api/send-otp', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email: inputValue })
+            });
+            const data = await response.json();
 
-        if (data.success) {
-            document.querySelector('.emailforgot-error').innerHTML = '';
-            document.getElementById('email-forgot').readOnly = true;
-
-            let msg = data.message;
-            if (data.debug) {
-                msg = "OTP đã được tạo! Xem trong Server Terminal.";
+            if (data.success) {
+                recoveryError.innerHTML = '';
+                recoveryInput.readOnly = true;
+                toast({ title: 'Thành công', message: data.message || 'Mã OTP đã được gửi!', type: 'success', duration: 5000 });
+                startCountdown(sendBtn);
+            } else {
+                recoveryError.innerHTML = data.message || 'Lỗi gửi mã';
+                sendBtn.innerText = 'Gửi mã';
+                sendBtn.disabled = false;
             }
-            toast({ title: 'Thành công', message: msg, type: 'success', duration: 5000 });
-
-            let timeLeft = 60;
-            let timer = setInterval(() => {
-                if (timeLeft <= 0) {
-                    clearInterval(timer);
-                    sendBtn.innerText = 'Gửi lại mã';
-                    sendBtn.disabled = false;
-                } else {
-                    sendBtn.innerText = `${timeLeft}s`;
-                    timeLeft--;
-                }
-            }, 1000);
         } else {
-            document.querySelector('.emailforgot-error').innerHTML = data.message || 'Lỗi gửi mã';
-            sendBtn.innerText = 'Gửi mã';
-            sendBtn.disabled = false;
+            // SMS via Firebase
+            const result = await window.sendFirebaseOTP(inputValue);
+            if (result.success) {
+                recoveryError.innerHTML = '';
+                recoveryInput.readOnly = true;
+                toast({ title: 'Thành công', message: 'Mã OTP SMS đã được gửi!', type: 'success', duration: 5000 });
+                startCountdown(sendBtn);
+            } else {
+                recoveryError.innerHTML = 'Lỗi gửi mã SMS: ' + result.message;
+                sendBtn.innerText = 'Gửi mã';
+                sendBtn.disabled = false;
+            }
         }
+
     } catch (error) {
         document.getElementById('send-otp-btn').innerText = 'Gửi mã';
         document.getElementById('send-otp-btn').disabled = false;
-        toast({ title: 'Lỗi', message: 'Lỗi kết nối server', type: 'error', duration: 3000 });
+        toast({ title: 'Lỗi', message: 'Lỗi kết nối', type: 'error', duration: 3000 });
     }
 });
+
+function startCountdown(sendBtn) {
+    let timeLeft = 60;
+    let timer = setInterval(() => {
+        if (timeLeft <= 0) {
+            clearInterval(timer);
+            sendBtn.innerText = 'Gửi lại mã';
+            sendBtn.disabled = false;
+        } else {
+            sendBtn.innerText = `${timeLeft}s`;
+            timeLeft--;
+        }
+    }, 1000);
+}
 
 let forgotPasswordBtn = document.getElementById('forgot-password-button');
 let currentResetStep = 1; // 1: Verify OTP, 2: Reset Password
 
 forgotPasswordBtn.addEventListener('click', async (e) => {
     e.preventDefault();
-    let email = document.getElementById('email-forgot').value;
-    let otp = document.getElementById('otp-forgot').value;
+    const method = document.querySelector('input[name="recovery-method"]:checked').value;
+    let inputValue = recoveryInput.value.trim();
+    let otp = document.getElementById('otp-forgot').value.trim();
 
     if (currentResetStep === 1) {
-        if (!emailIsValid(email) || otp.length !== 6) {
-            if (!emailIsValid(email)) document.querySelector('.emailforgot-error').innerHTML = 'Nhập email';
+        if (!inputValue || otp.length !== 6) {
+            if (!inputValue) recoveryError.innerHTML = 'Vui lòng nhập thông tin';
             if (otp.length !== 6) document.querySelector('.otpforgot-error').innerHTML = 'Nhập mã OTP 6 số';
             return;
         }
 
         try {
             forgotPasswordBtn.innerText = 'Đang xác thực...';
-            const response = await fetch('/api/verify-otp', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email, otp })
-            });
-            const data = await response.json();
+            
+            if (method === 'email') {
+                const response = await fetch('/api/verify-otp', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email: inputValue, otp })
+                });
+                const data = await response.json();
 
-            if (data.success) {
-                currentResetStep = 2;
-                document.getElementById('otp-step').style.display = 'none';
-                document.getElementById('password-reset-step').style.display = 'block';
-                forgotPasswordBtn.innerText = 'Đặt lại mật khẩu';
-                document.querySelector('.otpforgot-error').innerHTML = '';
+                if (data.success) {
+                    currentResetStep = 2;
+                    document.getElementById('otp-step').style.display = 'none';
+                    document.getElementById('password-reset-step').style.display = 'block';
+                    forgotPasswordBtn.innerText = 'Đặt lại mật khẩu';
+                    document.querySelector('.otpforgot-error').innerHTML = '';
+                } else {
+                    document.querySelector('.otpforgot-error').innerHTML = data.message || 'Mã OTP không đúng';
+                    forgotPasswordBtn.innerText = 'Tiếp theo';
+                }
             } else {
-                document.querySelector('.otpforgot-error').innerHTML = data.message || 'Mã OTP không đúng';
-                forgotPasswordBtn.innerText = 'Tiếp theo';
+                // SMS Verification via Firebase
+                if (!window.confirmationResult) {
+                    document.querySelector('.otpforgot-error').innerHTML = 'Vui lòng nhấn nút Gửi mã trước.';
+                    forgotPasswordBtn.innerText = 'Tiếp theo';
+                    return;
+                }
+                
+                try {
+                    await window.confirmationResult.confirm(otp);
+                    currentResetStep = 2;
+                    document.getElementById('otp-step').style.display = 'none';
+                    document.getElementById('password-reset-step').style.display = 'block';
+                    forgotPasswordBtn.innerText = 'Đặt lại mật khẩu';
+                    document.querySelector('.otpforgot-error').innerHTML = '';
+                } catch (fbErr) {
+                    document.querySelector('.otpforgot-error').innerHTML = 'Mã OTP không đúng hoặc đã hết hạn';
+                    forgotPasswordBtn.innerText = 'Tiếp theo';
+                }
             }
         } catch (err) {
+            console.error('Lỗi xác thực:', err);
+            document.querySelector('.otpforgot-error').innerHTML = 'Lỗi kết nối server';
             forgotPasswordBtn.innerText = 'Tiếp theo';
-            toast({ title: 'Lỗi', message: 'Lỗi server', type: 'error', duration: 3000 });
         }
     } else if (currentResetStep === 2) {
         let newPassword = document.getElementById('new-password-forgot').value;
@@ -777,23 +842,27 @@ forgotPasswordBtn.addEventListener('click', async (e) => {
 
         try {
             forgotPasswordBtn.innerText = 'Đang xử lý...';
-            const response = await fetch('/api/reset-password', {
+            const endpoint = method === 'email' ? '/api/reset-password' : '/api/reset-password-by-phone';
+            // for firebase we don't need to send OTP to backend, the backend just trusts it because firebase validated it
+            const payload = method === 'email' ? { email: inputValue, otp, newPassword } : { phone: inputValue, newPassword };
+
+            const response = await fetch(endpoint, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email, otp, newPassword })
+                body: JSON.stringify(payload)
             });
             const data = await response.json();
 
             if (data.success) {
-                toast({ title: 'Thành công', message: 'Đã đổi mật khẩu!', type: 'success', duration: 3000 });
+                toast({ title: 'Thành công', message: 'Đã đổi mật khẩu thành công!', type: 'success', duration: 3000 });
                 backToLogin.click();
             } else {
-                toast({ title: 'Lỗi', message: data.message || 'Thất bại', type: 'error', duration: 3000 });
+                toast({ title: 'Lỗi', message: data.message || 'Cập nhật thất bại', type: 'error', duration: 3000 });
                 forgotPasswordBtn.innerText = 'Đặt lại mật khẩu';
             }
         } catch (err) {
             forgotPasswordBtn.innerText = 'Đặt lại mật khẩu';
-            toast({ title: 'Lỗi', message: 'Lỗi server', type: 'error', duration: 3000 });
+            toast({ title: 'Lỗi', message: 'Lỗi kết nối server', type: 'error', duration: 3000 });
         }
     }
 });
@@ -975,27 +1044,8 @@ loginButton.addEventListener('click', async () => {
                 if (result.user.status == 0) {
                     toast({ title: 'Cảnh báo', message: 'Tài khoản của bạn đã bị khóa!', type: 'warning', duration: 3000 });
                 } else {
-                    // Fetch cart from server after login
-                    let serverCart = await window.api.getCart(result.user.phone);
-                    let guestCart = localStorage.getItem('cart') ? JSON.parse(localStorage.getItem('cart')) : [];
-
-                    // Merge carts
-                    if (guestCart.length > 0) {
-                        guestCart.forEach(guestItem => {
-                            let vitri = serverCart.findIndex(serverItem => serverItem.id == guestItem.id);
-                            if (vitri == -1) {
-                                serverCart.push(guestItem);
-                            } else {
-                                serverCart[vitri].soluong += guestItem.soluong;
-                            }
-                        });
-                        // Update server with merged cart
-                        await window.api.updateCart(result.user.phone, serverCart);
-                        // Clear guest cart
-                        localStorage.removeItem('cart');
-                    }
-
-                    result.user.cart = serverCart;
+                    result.user = await syncCartOnLogin(result.user);
+                    
                     localStorage.setItem('currentuser', JSON.stringify(result.user));
                     toast({ title: 'Thành công', message: 'Đăng nhập thành công!', type: 'success', duration: 3000 });
                     closeModal();
@@ -2261,6 +2311,7 @@ async function handleGoogleCredentialResponse(response) {
         const data = await res.json();
         if (data.success) {
             // User exists, log them in
+            data.user = await syncCartOnLogin(data.user);
             localStorage.setItem('currentuser', JSON.stringify(data.user));
             localStorage.setItem('token', data.token);
             toast({ title: 'Thành công', message: 'Đăng nhập thành công bằng Google!', type: 'success', duration: 3000 });
@@ -2320,6 +2371,7 @@ if (googleCompleteBtn) {
 
             const data = await res.json();
             if (data.success) {
+                data.user = await syncCartOnLogin(data.user);
                 localStorage.setItem('currentuser', JSON.stringify(data.user));
                 localStorage.setItem('token', data.token);
                 toast({ title: 'Thành công', message: 'Tạo tài khoản thành công bằng Google!', type: 'success', duration: 3000 });
@@ -2369,6 +2421,7 @@ async function handleFacebookCredentialResponse(accessToken) {
         const data = await res.json();
         if (data.success) {
             // User exists, log them in
+            data.user = await syncCartOnLogin(data.user);
             localStorage.setItem('currentuser', JSON.stringify(data.user));
             localStorage.setItem('token', data.token);
             toast({ title: 'Thành công', message: 'Đăng nhập thành công bằng Facebook!', type: 'success', duration: 3000 });
@@ -2428,6 +2481,7 @@ if (fbCompleteBtn) {
 
             const data = await res.json();
             if (data.success) {
+                data.user = await syncCartOnLogin(data.user);
                 localStorage.setItem('currentuser', JSON.stringify(data.user));
                 localStorage.setItem('token', data.token);
                 toast({ title: 'Thành công', message: 'Tạo tài khoản thành công bằng Facebook!', type: 'success', duration: 3000 });
@@ -2523,3 +2577,30 @@ document.addEventListener('DOMContentLoaded', () => {
         }, 100);
     }
 });
+
+// Helper function to sync cart when user logs in via any method
+async function syncCartOnLogin(user) {
+    let serverCart = user.cart || [];
+    let guestCart = localStorage.getItem('cart') ? JSON.parse(localStorage.getItem('cart')) : [];
+    
+    if (guestCart.length > 0) {
+        guestCart.forEach(guestItem => {
+            let vitri = serverCart.findIndex(serverItem => serverItem.id == guestItem.id);
+            if (vitri == -1) {
+                serverCart.push(guestItem);
+            } else {
+                serverCart[vitri].soluong += guestItem.soluong;
+            }
+        });
+        // Update server with merged cart
+        try {
+            await window.api.updateCart(user.phone, serverCart);
+        } catch (e) {
+            console.error("Failed to sync cart to server:", e);
+        }
+        // Clear guest cart
+        localStorage.removeItem('cart');
+    }
+    user.cart = serverCart;
+    return user;
+}
