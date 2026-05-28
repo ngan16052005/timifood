@@ -16,6 +16,7 @@
   "dependencies": {
     "@google/genai": "^2.6.0",
     "@payos/node": "^2.0.5",
+    "@socket.io/pm2": "^6.0.8",
     "axios": "^1.16.1",
     "bcryptjs": "^3.0.3",
     "body-parser": "^2.2.2",

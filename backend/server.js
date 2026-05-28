@@ -58,6 +58,12 @@ const io = new Server(server, {
     }
 });
 
+// Configure Socket.io to use PM2 IPC adapter for Cluster Mode synchronization
+const { createAdapter } = require('@socket.io/cluster-adapter');
+const { setupWorker } = require('@socket.io/sticky');
+io.adapter(createAdapter());
+setupWorker(io);
+
 const PORT = process.env.PORT || 3500;
 
 app.use(cors({
@@ -1120,6 +1126,111 @@ app.post('/api/orders', authenticateToken, async (req, res) => {
         }
         console.error('Order Error:', err);
         res.status(500).json({ message: 'Error creating order', error: err.message });
+    }
+});
+
+// Get orders paginated (Protected)
+app.get('/api/orders/paginated', authenticateToken, async (req, res) => {
+    try {
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 10;
+        const status = parseInt(req.query.status);
+        const search = req.query.search || '';
+        const startDate = req.query.startDate || '';
+        const endDate = req.query.endDate || '';
+        
+        const offset = (page - 1) * limit;
+
+        let baseQuery = 'FROM Orders WHERE 1=1';
+        const request = pool.request();
+
+        // If not staff/admin, filter by user's phone
+        if (req.user.userType === 0) {
+            baseQuery += ' AND customerPhone = @phone';
+            request.input('phone', sql.NVarChar, req.user.phone);
+        }
+
+        // Apply filters
+        if (!isNaN(status) && status !== 3) {
+            baseQuery += ' AND status = @status';
+            request.input('status', sql.Int, status);
+        }
+
+        if (search) {
+            baseQuery += ' AND (customerPhone LIKE @search OR id LIKE @search)';
+            request.input('search', sql.NVarChar, `%${search}%`);
+        }
+
+        if (startDate) {
+            baseQuery += ' AND orderDate >= @startDate';
+            request.input('startDate', sql.DateTime, new Date(startDate));
+        }
+
+        if (endDate) {
+            let end = new Date(endDate);
+            end.setHours(23, 59, 59, 999);
+            baseQuery += ' AND orderDate <= @endDate';
+            request.input('endDate', sql.DateTime, end);
+        }
+
+        // Get total count
+        const countResult = await request.query(`SELECT COUNT(*) as total ${baseQuery}`);
+        const total = countResult.recordset[0].total;
+
+        // Get paginated data
+        const query = `
+            SELECT * ${baseQuery}
+            ORDER BY orderDate DESC
+            OFFSET @offset ROWS
+            FETCH NEXT @limit ROWS ONLY
+        `;
+        
+        request.input('offset', sql.Int, offset);
+        request.input('limit', sql.Int, limit);
+        
+        const result = await request.query(query);
+        const orders = result.recordset || [];
+
+        // Fetch details for each order
+        for (let order of orders) {
+            const detailsResult = await pool.request()
+                .input('orderId', sql.NVarChar, order.id)
+                .query('SELECT od.*, p.title, p.img FROM OrderDetails od JOIN Products p ON od.productId = p.id WHERE od.orderId = @orderId');
+            order.chitiet = JSON.stringify(detailsResult.recordset.map(d => ({
+                ...d,
+                soluong: d.quantity,
+                price: d.price
+            })));
+        }
+
+        res.json({
+            data: orders.map(o => ({
+                ...o,
+                thoigiandat: o.orderDate,
+                khachhang: o.customerPhone,
+                tongtien: o.totalPrice,
+                trangthai: o.status,
+                hinhthucgiao: o.deliveryType,
+                thoigiangiao: o.deliveryTime,
+                ngaygiaohang: o.deliveryDate,
+                tenguoinhan: o.receiverName,
+                sdtnhan: o.receiverPhone,
+                diachinhan: o.receiverAddress,
+                ghichu: o.note,
+                voucherCode: o.voucherCode,
+                discountAmount: o.discountAmount,
+                shippingFee: o.shippingFee,
+                chitiet: o.chitiet
+            })),
+            total,
+            page,
+            limit,
+            totalPages: Math.ceil(total / limit)
+        });
+
+    } catch (err) {
+        console.error("Fetch paginated orders error:", err);
+        res.status(500).json({ message: 'Error fetching orders' });
     }
 });
 

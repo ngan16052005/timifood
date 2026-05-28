@@ -109,6 +109,27 @@ window.api = {
             if (!silent) hideLoader();
         }
     },
+
+    getOrdersPaginated: async (page = 1, limit = 10, status = 3, search = '', startDate = '', endDate = '', silent = false) => {
+        if (!silent) showLoader();
+        try {
+            let queryUrl = `${BASE_URL}/orders/paginated?page=${page}&limit=${limit}&status=${status}`;
+            if (search) queryUrl += `&search=${encodeURIComponent(search)}`;
+            if (startDate) queryUrl += `&startDate=${encodeURIComponent(startDate)}`;
+            if (endDate) queryUrl += `&endDate=${encodeURIComponent(endDate)}`;
+
+            const response = await fetch(queryUrl, {
+                headers: getHeaders()
+            });
+            if (!response.ok) throw new Error('Failed to fetch paginated orders');
+            return await response.json();
+        } catch (error) {
+            console.error("Get paginated orders error:", error);
+            throw error;
+        } finally {
+            if (!silent) hideLoader();
+        }
+    },
     getOrderDetails: async (id) => {
         showLoader();
         try {

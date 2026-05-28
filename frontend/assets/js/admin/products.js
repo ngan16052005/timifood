@@ -86,7 +86,11 @@ async function initAdmin() {
         const products = await window.api.getProducts(null, true);
         const orders = await window.api.getOrders(true);
 
-        showOrder(orders);
+        if (typeof loadPaginatedOrders === 'function') {
+            await loadPaginatedOrders(1);
+        } else {
+            showOrder(orders);
+        }
 
         if (isAdmin) {
             const vouchers = await window.api.getVouchers(true);
@@ -147,7 +151,11 @@ function startOrderListPolling() {
 
                 if (currentOrderCount !== lastKnownCount) {
                     localStorage.setItem('admin_last_order_count', currentOrderCount);
-                    if (typeof showOrder === 'function') showOrder(orders);
+                    if (typeof loadPaginatedOrders === 'function') {
+                        await loadPaginatedOrders(typeof currentOrderPage !== 'undefined' ? currentOrderPage : 1);
+                    } else if (typeof showOrder === 'function') {
+                        showOrder(orders);
+                    }
 
                     // Update stats if we are on dashboard
                     const currentUser = JSON.parse(localStorage.getItem("currentuser"));

@@ -383,44 +383,54 @@ async function printOrderAdmin(id) {
     }
 }
 
-// Find Order
-async function findOrder() {
+let currentOrderPage = 1;
+const ordersPerPage = 15;
+
+async function loadPaginatedOrders(page = 1) {
+    currentOrderPage = page;
     let tinhTrang = parseInt(document.getElementById("tinh-trang").value);
     let ct = document.getElementById("form-search-order").value;
     let timeStart = document.getElementById("time-start").value;
     let timeEnd = document.getElementById("time-end").value;
 
+    try {
+        const response = await window.api.getOrdersPaginated(page, ordersPerPage, tinhTrang, ct, timeStart, timeEnd);
+        if (response && response.data) {
+            showOrder(response.data);
+            const totalPages = Math.ceil(response.total / ordersPerPage);
+            setupOrderPagination(response.total, totalPages, page);
+        } else {
+            showOrder(response.length ? response : []);
+            setupOrderPagination(0, 1, 1);
+        }
+    } catch (error) {
+        console.error("Failed to load paginated orders:", error);
+        showOrder([]);
+    }
+}
+
+function setupOrderPagination(total, totalPages, currentPage) {
+    let paginationHtml = '';
+    if (totalPages > 1) {
+        for (let i = 1; i <= totalPages; i++) {
+            paginationHtml += `<li class="page-nav-item ${i === currentPage ? 'active' : ''}"><a href="#" onclick="event.preventDefault(); loadPaginatedOrders(${i})">${i}</a></li>`;
+        }
+    }
+    const orderPaginationEl = document.getElementById('order-pagination');
+    if (orderPaginationEl) {
+        orderPaginationEl.innerHTML = paginationHtml;
+    }
+}
+
+async function findOrder() {
+    let timeStart = document.getElementById("time-start").value;
+    let timeEnd = document.getElementById("time-end").value;
+
     if (timeEnd < timeStart && timeEnd != "" && timeStart != "") {
-        alert("Lựa chọn thời gian sai !");
+        alert("Lựa chọn thời gian sai!");
         return;
     }
-    try {
-        const orders = await window.api.getOrders();
-        let result = tinhTrang == 3 ? orders : orders.filter((item) => {
-            return item.trangthai == tinhTrang;
-        });
-        result = ct == "" ? result : result.filter((item) => {
-            return (item.khachhang.toLowerCase().includes(ct.toLowerCase()) || item.id.toString().toLowerCase().includes(ct.toLowerCase()));
-        });
-
-        if (timeStart != "" && timeEnd == "") {
-            result = result.filter((item) => {
-                return new Date(item.thoigiandat) >= new Date(timeStart).setHours(0, 0, 0);
-            });
-        } else if (timeStart == "" && timeEnd != "") {
-            result = result.filter((item) => {
-                return new Date(item.thoigiandat) <= new Date(timeEnd).setHours(23, 59, 59);
-            });
-        } else if (timeStart != "" && timeEnd != "") {
-            result = result.filter((item) => {
-                return (new Date(item.thoigiandat) >= new Date(timeStart).setHours(0, 0, 0) && new Date(item.thoigiandat) <= new Date(timeEnd).setHours(23, 59, 59)
-                );
-            });
-        }
-        showOrder(result);
-    } catch (error) {
-        console.error("Error searching orders:", error);
-    }
+    await loadPaginatedOrders(1);
 }
 
 async function cancelSearchOrder() {
