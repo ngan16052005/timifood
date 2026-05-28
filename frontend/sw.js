@@ -1,7 +1,7 @@
-const CACHE_NAME = 'timifood-cache-v2';
+const CACHE_NAME = 'timifood-cache-v3';
 const urlsToCache = [
   '/',
-  '/index.html',
+  '/index-layout.html',
   '/assets/css/main.css',
   '/assets/css/responsive.css',
   '/assets/js/main.js',
