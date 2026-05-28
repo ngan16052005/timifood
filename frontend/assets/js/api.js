@@ -59,8 +59,14 @@ window.api = {
                 body: JSON.stringify({ subscription })
             });
             console.log('Push notification subscribed successfully');
+            if (typeof toast !== 'undefined') {
+                toast({ title: 'Thành công', message: 'Đã bật thông báo đẩy! Bạn sẽ nhận được thông báo khi đơn hàng cập nhật.', type: 'success', duration: 4000 });
+            }
         } catch (error) {
             console.error('Lỗi khi đăng ký push notification:', error);
+            if (typeof toast !== 'undefined') {
+                toast({ title: 'Thất bại', message: 'Không thể bật thông báo. Vui lòng kiểm tra quyền trên trình duyệt.', type: 'error', duration: 4000 });
+            }
         }
     },
 
