@@ -21,17 +21,31 @@ const hideLoader = () => {
 window.api = {
     subscribePushNotification: async () => {
         try {
-            if (!('serviceWorker' in navigator) || !('PushManager' in window)) return;
+            if (!('serviceWorker' in navigator)) {
+                if (typeof toast !== 'undefined') toast({ title: 'Lỗi', message: 'Trình duyệt không hỗ trợ Service Worker. Vui lòng dùng Chrome/Edge/Safari mới nhất.', type: 'error', duration: 4000 });
+                return;
+            }
+            if (!('PushManager' in window)) {
+                if (typeof toast !== 'undefined') toast({ title: 'Lỗi', message: 'Trình duyệt không hỗ trợ Push Notifications hoặc bạn đang không dùng HTTPS/localhost.', type: 'error', duration: 5000 });
+                return;
+            }
+            
             const registration = await navigator.serviceWorker.ready;
             let subscription = await registration.pushManager.getSubscription();
             if (!subscription) {
                 const permission = await Notification.requestPermission();
-                if (permission !== 'granted') return;
+                if (permission !== 'granted') {
+                    if (typeof toast !== 'undefined') toast({ title: 'Cảnh báo', message: 'Bạn đã chặn quyền hiển thị thông báo. Hãy mở khóa trong cài đặt trình duyệt.', type: 'warning', duration: 5000 });
+                    return;
+                }
 
                 // Fetch public key
                 const response = await fetch(`${BASE_URL}/push/public-key`);
                 const data = await response.json();
-                if (!data.publicKey) return;
+                if (!data.publicKey) {
+                    if (typeof toast !== 'undefined') toast({ title: 'Lỗi', message: 'Không thể lấy Public Key từ Server.', type: 'error', duration: 4000 });
+                    return;
+                }
                 
                 // Convert Base64URL to Uint8Array
                 const padding = '='.repeat((4 - data.publicKey.length % 4) % 4);
