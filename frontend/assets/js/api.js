@@ -25,6 +25,9 @@ window.api = {
             const registration = await navigator.serviceWorker.ready;
             let subscription = await registration.pushManager.getSubscription();
             if (!subscription) {
+                const permission = await Notification.requestPermission();
+                if (permission !== 'granted') return;
+
                 // Fetch public key
                 const response = await fetch(`${BASE_URL}/push/public-key`);
                 const data = await response.json();
@@ -45,7 +48,7 @@ window.api = {
                 });
             }
             // Gửi subscription lên server
-            const token = localStorage.getItem('timi_token');
+            const token = localStorage.getItem('token');
             if (!token) return;
             await fetch(`${BASE_URL}/push/subscribe`, {
                 method: 'POST',
