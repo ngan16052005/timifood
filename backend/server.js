@@ -32,6 +32,15 @@ const { OAuth2Client } = require('google-auth-library');
 const axios = require('axios');
 const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
+const webpush = require('web-push');
+if (process.env.VAPID_PUBLIC_KEY && process.env.VAPID_PRIVATE_KEY) {
+    webpush.setVapidDetails(
+        process.env.VAPID_SUBJECT || 'mailto:admin@timifood.com',
+        process.env.VAPID_PUBLIC_KEY,
+        process.env.VAPID_PRIVATE_KEY
+    );
+}
+
 // OTP Storage (Phone -> {otp, expiry})
 const otpStore = new Map();
 
@@ -1455,6 +1464,36 @@ app.put('/api/orders/:id/status', authenticateToken, isStaffOrAdmin, async (req,
             // System Notification
             await createNotification(orderInfo.customerPhone, "Cập nhật đơn hàng", `Đơn hàng #${id} của bạn đã chuyển sang trạng thái: ${statusName}`, "order");
             
+            // Web Push Notification
+            try {
+                const subsResult = await pool.request()
+                    .input('userPhone', sql.VarChar, orderInfo.customerPhone)
+                    .query('SELECT * FROM PushSubscriptions WHERE userPhone = @userPhone');
+                    
+                const payload = JSON.stringify({
+                    title: 'Cập nhật đơn hàng',
+                    body: `Đơn hàng #${id} của bạn đã chuyển sang trạng thái: ${statusName}`,
+                    icon: '/assets/img/logos/timifood.png',
+                    url: '/components/account.html'
+                });
+                
+                for (const sub of subsResult.recordset) {
+                    const pushSubscription = {
+                        endpoint: sub.endpoint,
+                        keys: {
+                            p256dh: sub.p256dh,
+                            auth: sub.auth
+                        }
+                    };
+                    webpush.sendNotification(pushSubscription, payload).catch(err => {
+                        console.error('Lỗi gửi push notification:', err);
+                        // Optional: Xóa sub lỗi nếu err.statusCode === 410 (Gone)
+                    });
+                }
+            } catch (err) {
+                console.error('Lỗi lấy push subscriptions:', err);
+            }
+
             // Email Notification
             if (orderInfo.email) {
                 sendOrderEmail(id, orderInfo.email, statusName, {
@@ -2425,6 +2464,42 @@ ${(topProducts || []).map((p, i) => `${i+1}. ${p.title} (Bán: ${p.qty} - Thu: $
         console.error('Error generating AI Insights:', error);
         res.status(500).json({ success: false, message: 'Lỗi phân tích AI' });
     }
+});
+// Web Push Subscription
+app.post('/api/push/subscribe', authenticateToken, async (req, res) => {
+    try {
+        const { subscription } = req.body;
+        const userPhone = req.user.phone;
+        
+        if (!subscription || !subscription.endpoint) {
+            return res.status(400).json({ success: false, message: 'Invalid subscription object' });
+        }
+
+        // Kiểm tra xem subscription endpoint đã tồn tại chưa
+        const checkSub = await pool.request()
+            .input('endpoint', sql.NVarChar, subscription.endpoint)
+            .query('SELECT id FROM PushSubscriptions WHERE endpoint = @endpoint');
+            
+        if (checkSub.recordset.length === 0) {
+            await pool.request()
+                .input('userPhone', sql.VarChar, userPhone)
+                .input('endpoint', sql.NVarChar, subscription.endpoint)
+                .input('p256dh', sql.NVarChar, subscription.keys.p256dh)
+                .input('auth', sql.NVarChar, subscription.keys.auth)
+                .query(`
+                    INSERT INTO PushSubscriptions (userPhone, endpoint, p256dh, auth)
+                    VALUES (@userPhone, @endpoint, @p256dh, @auth)
+                `);
+        }
+        res.status(201).json({ success: true, message: 'Subscribed to push notifications' });
+    } catch (error) {
+        console.error('Lỗi khi lưu push subscription:', error);
+        res.status(500).json({ success: false, message: 'Lỗi server' });
+    }
+});
+
+app.get('/api/push/public-key', (req, res) => {
+    res.json({ publicKey: process.env.VAPID_PUBLIC_KEY });
 });
 
 // Gửi tin nhắn cho AI

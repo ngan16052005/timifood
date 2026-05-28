@@ -344,5 +344,45 @@
 - **Cập nhật Server Path:** Cấu hình lại Express tĩnh (`express.static`) để trỏ đến đúng thư mục `frontend` mới.
 - **Tối ưu Package.json:** Cập nhật script khởi động `npm start` để tự động chạy file `server.js` từ thư mục backend, giúp việc chạy dự án vô cùng mượt mà mà không ảnh hưởng tới biến môi trường `.env`.
 
+### ✅ Giai đoạn 35: Tích hợp Đăng nhập bằng Google (Google OAuth2)
+
+- **Cài đặt thư viện:** Bổ sung `google-auth-library` để xử lý xác thực từ Google.
+- **Giao diện chuẩn Google:** Tích hợp `accounts.google.com/gsi/client` để render nút đăng nhập chuẩn hóa.
+- **Luồng xử lý (Social Login Flow):** Tự động tạo Token khi khách hàng mới hoặc liên kết với tài khoản cũ. Cập nhật Số điện thoại cho khách hàng mới.
+
+### ✅ Giai đoạn 36: Tích hợp Đăng nhập bằng Facebook (Facebook Login)
+
+- **Tích hợp SDK Facebook:** Thêm SDK JS và nút Đăng nhập Facebook.
+- **Xác thực Backend:** Sử dụng Axios gọi API Graph Facebook.
+
+### 🌍 Giai đoạn 37: Đa ngôn ngữ (i18n) với Google Translate API
+
+- **Tích hợp Google Translate:** Chuyển đổi linh hoạt giữa Tiếng Việt, Anh, Trung, Hàn, Nhật, Pháp.
+- **Giao diện Tùy chỉnh:** Dropdown menu chọn ngôn ngữ thiết kế theo phong cách Premium.
+
+### 🧪 Giai đoạn 38: Kiểm thử Tự động (Automated Testing Framework)
+
+- **Cài đặt Môi trường:** Tích hợp `jest` và `supertest`.
+- **API Integration Tests:** Viết kịch bản kiểm thử (Test Suites) cho API cốt lõi.
+
 ---
-*Cập nhật lần cuối: 22/05/2026 bởi thaingan & AI Assistant.*
+
+## 🚀 Đề xuất Phát triển Tương lai (Roadmap)
+
+### 🌟 Giai đoạn 39: Chương trình Khách hàng thân thiết (Loyalty & Rewards)
+- Tích điểm tự động (TiMi Points) khi mua hàng. Phân cấp hạng thành viên Đồng, Bạc, Vàng, Kim Cương.
+
+### 📈 Giai đoạn 40: Quản lý Kho nâng cao & Phân tích (Advanced Inventory)
+- Cảnh báo tồn kho tự động (Min Stock Level) qua thông báo/email. Biểu đồ tiêu thụ nguyên liệu.
+
+### 📱 Giai đoạn 41: Ứng dụng PWA & Push Notifications
+- Cài đặt TiMiFood như một App Native trên điện thoại. Push Notification thời gian thực khi trạng thái đơn hàng thay đổi.
+
+### 💬 Giai đoạn 42: Đánh giá sản phẩm nâng cao (Advanced Review System)
+- Khách hàng có thể upload hình ảnh thực tế. Admin có quyền phản hồi (reply) vào bình luận.
+
+### 🚀 Giai đoạn 43: Tối ưu Hiệu năng & Bảo mật (Performance & Security)
+- Tích hợp Redis Caching giảm tải hệ thống. Thiết lập Rate Limiting chặn Spam và DDoS.
+
+---
+*Cập nhật lần cuối: 28/05/2026 bởi thaingan & AI Assistant.*

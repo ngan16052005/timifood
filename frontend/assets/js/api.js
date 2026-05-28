@@ -19,6 +19,48 @@ const hideLoader = () => {
 };
 
 window.api = {
+    subscribePushNotification: async () => {
+        try {
+            if (!('serviceWorker' in navigator) || !('PushManager' in window)) return;
+            const registration = await navigator.serviceWorker.ready;
+            let subscription = await registration.pushManager.getSubscription();
+            if (!subscription) {
+                // Fetch public key
+                const response = await fetch(`${BASE_URL}/push/public-key`);
+                const data = await response.json();
+                if (!data.publicKey) return;
+                
+                // Convert Base64URL to Uint8Array
+                const padding = '='.repeat((4 - data.publicKey.length % 4) % 4);
+                const base64 = (data.publicKey + padding).replace(/\-/g, '+').replace(/_/g, '/');
+                const rawData = window.atob(base64);
+                const outputArray = new Uint8Array(rawData.length);
+                for (let i = 0; i < rawData.length; ++i) {
+                    outputArray[i] = rawData.charCodeAt(i);
+                }
+                
+                subscription = await registration.pushManager.subscribe({
+                    userVisibleOnly: true,
+                    applicationServerKey: outputArray
+                });
+            }
+            // Gửi subscription lên server
+            const token = localStorage.getItem('timi_token');
+            if (!token) return;
+            await fetch(`${BASE_URL}/push/subscribe`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({ subscription })
+            });
+            console.log('Push notification subscribed successfully');
+        } catch (error) {
+            console.error('Lỗi khi đăng ký push notification:', error);
+        }
+    },
+
     getProducts: async (search = "", silent = false) => {
         if (!silent) showLoader();
         try {

@@ -355,4 +355,29 @@ Dưới đây là danh sách đầy đủ các hạng mục đã hoàn thiện t
 - [x] **Xác thực tự động:** Đảm bảo hệ thống trả về đúng HTTP Status Code (200, 401) và cấu trúc dữ liệu theo thiết kế chuẩn.
 
 ---
-*Cập nhật lần cuối: 23/05/2026 bởi thaingan & AI Assistant.*
+
+## 🚀 Đề xuất Phát triển Tương lai (Roadmap)
+
+### 🌟 Giai đoạn 39: Chương trình Khách hàng thân thiết (Loyalty & Rewards Program)
+- [ ] **Tích điểm tự động:** Mỗi đơn hàng hoàn thành sẽ cộng điểm (TiMi Points) cho khách hàng.
+- [ ] **Hạng thành viên:** Phân cấp Đồng, Bạc, Vàng, Kim Cương kèm ưu đãi tự động.
+- [ ] **Đổi điểm lấy quà/Voucher:** Giao diện cho phép người dùng đổi voucher hoặc trừ thẳng tiền vào hóa đơn.
+
+### 📈 Giai đoạn 40: Quản lý Kho nâng cao & Phân tích nguyên liệu (Advanced Inventory)
+- [ ] **Cảnh báo tồn kho tự động:** Đặt ngưỡng `Min Stock`. Tự động báo Notification/Email khi sắp hết.
+- [ ] **Quản lý biến động kho:** Biểu đồ hiển thị tốc độ tiêu thụ của từng món ăn trong tuần.
+
+### 📱 Giai đoạn 41: Ứng dụng PWA (Progressive Web App) & Push Notifications (HOÀN THÀNH)
+- [x] **Cài đặt App không qua Store:** Cài đặt website TiMiFood như một ứng dụng Native.
+- [x] **Push Notifications:** Nhận thông báo trực tiếp trên điện thoại khi đơn hàng đổi trạng thái.
+
+### 💬 Giai đoạn 42: Đánh giá sản phẩm nâng cao (Advanced Review System)
+- [ ] **Upload Hình ảnh:** Cho phép khách hàng tải ảnh thực tế lên phần đánh giá.
+- [ ] **Tương tác Đánh giá:** Admin có quyền **Phản hồi (Reply)** lại bình luận.
+
+### 🚀 Giai đoạn 43: Tối ưu Hiệu năng & Bảo mật (Performance & Security)
+- [ ] **Sử dụng Redis Caching:** Cache danh sách món ăn, danh mục giảm tải Server.
+- [ ] **Rate Limiting Nâng cao:** Ngăn chặn Spam và DDoS bảo vệ ứng dụng.
+
+---
+*Cập nhật lần cuối: 28/05/2026 bởi thaingan & AI Assistant.*

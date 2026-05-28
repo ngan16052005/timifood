@@ -1080,6 +1080,11 @@ function kiemtradangnhap() {
         if (typeof startUserNotifications === 'function') {
             startUserNotifications();
         }
+
+        // Đăng ký nhận thông báo đẩy (Web Push)
+        if (window.api && window.api.subscribePushNotification) {
+            window.api.subscribePushNotification();
+        }
     }
 }
 
