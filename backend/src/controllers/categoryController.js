@@ -1,9 +1,16 @@
 const { sql, connectDB } = require('../config/db');
+const cache = require('../config/cache');
+let pool;
+connectDB().then(p => pool = p).catch(console.error);
 
 exports.getAllCategories = async (req, res) => {
     try {
+        if (cache.has('categories')) {
+            return res.json(cache.get('categories'));
+        }
         const pool = await connectDB();
         const result = await pool.request().query('SELECT * FROM Categories ORDER BY name ASC');
+        cache.set('categories', result.recordset);
         res.json(result.recordset);
     } catch (err) {
         console.error("Fetch categories error:", err);
@@ -30,7 +37,8 @@ exports.addCategory = async (req, res) => {
             .input('name', sql.NVarChar, name)
             .query('INSERT INTO Categories (name) VALUES (@name)');
         
-        await createLog(req.user.id, 'ADD_CATEGORY', `Thêm danh mục: ${name}`);
+        await req.app.locals.createLog(req.user.id, 'ADD_CATEGORY', `Thêm danh mục: ${name}`);
+        cache.del('categories');
         res.status(201).json({ success: true, message: 'Thêm danh mục thành công' });
     } catch (err) {
         if (err.number === 2627) { // Unique constraint violation
@@ -63,7 +71,8 @@ exports.updateCategory = async (req, res) => {
             .input('name', sql.NVarChar, name)
             .query('UPDATE Categories SET name = @name WHERE id = @id');
         
-        await createLog(req.user.id, 'UPDATE_CATEGORY', `Cập nhật danh mục ID: ${id} sang: ${name}`);
+        await req.app.locals.createLog(req.user.id, 'UPDATE_CATEGORY', `Cập nhật danh mục ID: ${id} sang: ${name}`);
+        cache.del('categories');
         res.json({ success: true, message: 'Cập nhật danh mục thành công' });
     } catch (err) {
         console.error("Update category error:", err);
@@ -97,7 +106,8 @@ exports.deleteCategory = async (req, res) => {
             .input('id', sql.Int, id)
             .query('DELETE FROM Categories WHERE id = @id');
         
-        await createLog(req.user.id, 'DELETE_CATEGORY', `Xóa danh mục: ${catName} (ID: ${id})`);
+        await req.app.locals.createLog(req.user.id, 'DELETE_CATEGORY', `Xóa danh mục: ${catName} (ID: ${id})`);
+        cache.del('categories');
         res.json({ success: true, message: 'Xóa danh mục thành công' });
     } catch (err) {
         console.error("Delete category error:", err);

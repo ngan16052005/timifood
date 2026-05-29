@@ -1,9 +1,16 @@
-const { sql, poolPromise } = require('../config/db');
+const { sql, connectDB } = require('../config/db');
+let pool;
+connectDB().then(p => pool = p).catch(console.error);
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const nodemailer = require('nodemailer');
 const twilio = require('twilio');
-const { generateOTP, verifyOTP, saveOTP, markOTPUsed, generateToken, formatPhoneNumber } = require('../helpers/auth');
+const axios = require('axios');
+const { OAuth2Client } = require('google-auth-library');
+const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+const { SECRET_KEY } = require('../middleware/auth');
+
+const otpStore = new Map();
 
 exports.login = async (req, res) => {
     try {
@@ -329,7 +336,18 @@ exports.send_otp = async (req, res) => {
     }
 };
 
-exports.verify_otp = async (req, res) => {
+exports.verify_otp = (req, res) => {
+    const { email, otp } = req.body;
+    const stored = otpStore.get(email);
+    
+    if (!stored || stored.otp !== otp || Date.now() > stored.expiry) {
+        return res.status(400).json({ success: false, message: 'Mã OTP không đúng hoặc đã hết hạn' });
+    }
+    
+    res.json({ success: true, message: 'Mã xác thực chính xác' });
+};
+
+exports.reset_password = async (req, res) => {
     try {
         const { email, otp, newPassword } = req.body;
         

@@ -1337,6 +1337,10 @@ async function renderOrderProduct() {
                         <button class="btn-order-detail" onclick="editOrderUser('${item.id}')">Sửa đơn</button>
                         <button class="btn-order-detail" style="color: #ff4d4f; border-color: #ff4d4f" onclick="cancelOrderUser('${item.id}')">Hủy đơn</button>
                     `;
+                } else if (item.trangthai === 1) {
+                    controlButtons += `
+                        <button class="btn-order-detail" style="color: #1890ff; border-color: #1890ff" onclick="trackOrderUser('${item.id}')"><i class="fa-solid fa-motorcycle"></i> Theo dõi Shipper (Live)</button>
+                    `;
                 }
 
                 // Cho phép xóa lịch sử hoặc Đặt lại nếu đã hoàn thành hoặc đã hủy
@@ -1630,7 +1634,33 @@ async function detailOrderUser(id) {
                 <span class="detail-order-item-right">${detail.sdtnhan}</span>
             </li>
         </ul>`
+        if (detail.trangthai === 1) {
+            detailOrderHtml += `
+                <div class="shipper-tracking-container" style="margin-top: 20px;">
+                    <h3 style="font-size: 16px; margin-bottom: 10px; font-weight: 600; color: #333;"><i class="fa-solid fa-motorcycle" style="color: var(--primary-color);"></i> Theo dõi Shipper (Live)</h3>
+                    <div id="shipper-map-${detail.id}" style="height: 250px; border-radius: 10px; z-index: 1;"></div>
+                </div>
+            `;
+        }
+
         document.querySelector(".detail-order-content").innerHTML = detailOrderHtml;
+
+        if (detail.trangthai === 1) {
+            setTimeout(() => {
+                if (window.shipperMap) { window.shipperMap.remove(); }
+                window.shipperMap = L.map('shipper-map-' + detail.id).setView([10.762622, 106.660172], 15);
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(window.shipperMap);
+                
+                const shipperIcon = L.icon({
+                    iconUrl: 'https://cdn-icons-png.flaticon.com/512/3063/3063822.png',
+                    iconSize: [40, 40]
+                });
+                window.shipperMarker = L.marker([10.762622, 106.660172], {icon: shipperIcon}).addTo(window.shipperMap);
+                window.shipperMarker.bindPopup("<b>Shipper đang giao hàng</b>").openPopup();
+                
+                window.trackingOrderId = detail.id;
+            }, 300);
+        }
     } catch (error) {
         console.error("Error showing user order detail:", error);
     }
@@ -2616,3 +2646,77 @@ async function syncCartOnLogin(user) {
     user.cart = serverCart;
     return user;
 }
+
+
+// Shipper Socket Listener
+if(typeof io !== 'undefined') { 
+    const shipperSocket = io('/shipperLocation', { transports: ['websocket'] });
+    shipperSocket.on('shipperLocation', (data) => { 
+        if (window.shipperMap && window.shipperMarker && window.trackingOrderId === data.orderId) { 
+            window.shipperMarker.setLatLng([data.lat, data.lng]); 
+            window.shipperMap.panTo([data.lat, data.lng]); 
+        } 
+    }); 
+}
+
+window.trackOrderUser = async function(id) {
+    try {
+        let trackingModal = document.querySelector('.modal.tracking-order');
+        if (!trackingModal) {
+            const modalHtml = `
+                <div class="modal tracking-order">
+                    <div class="modal-container mdl-cnt" style="max-width: 800px; width: 90%;">
+                        <h3 class="modal-container-title"><i class="fa-solid fa-motorcycle" style="color: var(--primary-color);"></i> Theo dõi Shipper (Live)</h3>
+                        <button class="form-close" onclick="document.querySelector('.modal.tracking-order').classList.remove('open')"><i class="fa-regular fa-xmark"></i></button>
+                        <div class="tracking-order-content" style="padding: 20px;">
+                            <div id="shipper-map-standalone" style="height: 450px; border-radius: 10px; z-index: 1; width: 100%; position: relative;"></div>
+                            <div style="margin-top: 15px; text-align: center; font-size: 15px; font-weight: 500;">
+                                Đơn hàng: <span id="tracking-order-id-label" style="color: var(--primary-color);"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.body.insertAdjacentHTML('beforeend', modalHtml);
+            trackingModal = document.querySelector('.modal.tracking-order');
+            trackingModal.addEventListener('click', (e) => {
+                if (e.target === trackingModal) {
+                    trackingModal.classList.remove('open');
+                }
+            });
+        }
+        
+        document.getElementById('tracking-order-id-label').innerText = id;
+        trackingModal.classList.add('open');
+
+        setTimeout(() => {
+            if (window.shipperMap) { 
+                window.shipperMap.off();
+                window.shipperMap.remove(); 
+                window.shipperMap = null;
+            }
+            // re-create the map container if leaflet complains about "Map container is already initialized"
+            const mapParent = document.getElementById('shipper-map-standalone').parentElement;
+            document.getElementById('shipper-map-standalone').remove();
+            mapParent.insertAdjacentHTML('afterbegin', '<div id="shipper-map-standalone" style="height: 350px; border-radius: 10px; z-index: 1; width: 100%; position: relative;"></div>');
+            
+            window.shipperMap = L.map('shipper-map-standalone').setView([10.762622, 106.660172], 15);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(window.shipperMap);
+            
+            const shipperIcon = L.icon({
+                iconUrl: 'https://cdn-icons-png.flaticon.com/512/3063/3063822.png',
+                iconSize: [40, 40]
+            });
+            window.shipperMarker = L.marker([10.762622, 106.660172], {icon: shipperIcon}).addTo(window.shipperMap);
+            window.shipperMarker.bindPopup("<b>Shipper đang giao hàng</b>").openPopup();
+            
+            window.trackingOrderId = id;
+            
+            // force map resize
+            window.shipperMap.invalidateSize();
+        }, 300);
+    } catch (error) {
+        console.error(error);
+        toast({ title: 'Lỗi', message: 'Không thể mở theo dõi đơn hàng', type: 'error', duration: 3000 });
+    }
+};

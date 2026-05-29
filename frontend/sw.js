@@ -1,4 +1,4 @@
-const CACHE_NAME = 'timifood-cache-v4';
+const CACHE_NAME = 'timifood-cache-v5';
 const urlsToCache = [
   '/',
   '/index-layout.html',
@@ -10,6 +10,7 @@ const urlsToCache = [
 
 // Install event
 self.addEventListener('install', event => {
+  self.skipWaiting();
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then(cache => {
@@ -34,6 +35,7 @@ self.addEventListener('fetch', event => {
 
 // Activate event (clean up old caches)
 self.addEventListener('activate', event => {
+  event.waitUntil(clients.claim());
   const cacheWhitelist = [CACHE_NAME];
   event.waitUntil(
     caches.keys().then(cacheNames => {

@@ -1,4 +1,6 @@
-const { sql, poolPromise } = require('../config/db');
+const { sql, connectDB } = require('../config/db');
+let pool;
+connectDB().then(p => pool = p).catch(console.error);
 
 exports.getUsers = async (req, res) => {
     try {
@@ -88,7 +90,7 @@ exports.deleteUser = async (req, res) => {
         await pool.request()
             .input('phone', sql.NVarChar, phone)
             .query('DELETE FROM Users WHERE phone=@phone');
-        await createLog(req.user.id, 'DELETE_USER', `Xóa tài khoản: ${phone}`);
+        await req.app.locals.createLog(req.user.id, 'DELETE_USER', `Xóa tài khoản: ${phone}`);
         res.json({ message: 'User deleted' });
     } catch (err) {
         res.status(500).json({ message: 'Error deleting user' });

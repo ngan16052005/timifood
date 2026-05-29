@@ -1,4 +1,27 @@
-const { sql, poolPromise } = require('../config/db');
+const { sql, connectDB } = require('../config/db');
+
+const crypto = require('crypto');
+const webpush = require('web-push');
+const { sendOrderEmail } = require('../helpers/email');
+const { startSimulation, stopSimulation } = require('../helpers/shipperSimulation');
+const PayOS = require('@payos/node');
+const payos = (process.env.PAYOS_CLIENT_ID && process.env.PAYOS_API_KEY && process.env.PAYOS_CHECKSUM_KEY)
+    ? new PayOS(process.env.PAYOS_CLIENT_ID, process.env.PAYOS_API_KEY, process.env.PAYOS_CHECKSUM_KEY)
+    : null;
+
+async function resolveOrderId(paramId) {
+    const isUUID = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/i.test(paramId);
+    if (isUUID) return paramId;
+    const result = await pool.request()
+        .input('orderCode', sql.NVarChar, paramId)
+        .query('SELECT id FROM Orders WHERE orderCode = @orderCode');
+    if (result.recordset.length > 0) return result.recordset[0].id;
+    return paramId; // Return original if not found (will probably throw SQL error, which is expected for invalid IDs)
+}
+
+
+let pool;
+connectDB().then(p => pool = p).catch(console.error);
 
 
 exports.deleteOrder = async (req, res) => {
@@ -71,7 +94,7 @@ exports.createOrder = async (req, res) => {
 
         // Notify user about successful order
         console.log(`[Order] Notifying customer: ${userId}`);
-        await createNotification(userId, "Đơn hàng mới", `Đơn hàng #${finalId} đã được đặt thành công!`, "order");
+        await req.app.locals.createNotification(userId, "Đơn hàng mới", `Đơn hàng #${finalId} đã được đặt thành công!`, "order");
         
         // Fetch user email for notification
         const userResult = await pool.request()
@@ -89,7 +112,7 @@ exports.createOrder = async (req, res) => {
 
         // Notify Admins
         console.log(`[Order] Notifying Admins`);
-        await createNotification("ADMIN", "Đơn hàng mới", `Có đơn hàng mới #${finalId} từ ${userId}`, "order");
+        await req.app.locals.createNotification("ADMIN", "Đơn hàng mới", `Có đơn hàng mới #${finalId} từ ${userId}`, "order");
 
         console.log('Inserting details for order:', finalId);
         for (const item of order.chitiet) {
@@ -127,8 +150,8 @@ exports.createOrder = async (req, res) => {
                 const remainingStock = product.stock - parseInt(item.soluong);
                 const limit = product.minStock !== undefined && product.minStock !== null ? product.minStock : 5;
                 if (remainingStock <= limit) {
-                    if (typeof createNotification === 'function') {
-                        createNotification('all_staff', `CẢNH BÁO TỒN KHO: Sản phẩm "${product.title}" sắp hết. Chỉ còn ${remainingStock} phần!`, 'warning');
+                    if (typeof req.app.locals.createNotification === 'function') {
+                        req.app.locals.createNotification('all_staff', `CẢNH BÁO TỒN KHO: Sản phẩm "${product.title}" sắp hết. Chỉ còn ${remainingStock} phần!`, 'warning');
                     }
                 }
             }
@@ -353,7 +376,7 @@ exports.cancelOrder = async (req, res) => {
             .query('UPDATE Orders SET status = 3 WHERE id = @id'); // 3 = Cancelled
 
         // Notify Admin about the cancellation
-        await createNotification("ADMIN", "Đơn hàng hủy", `Đơn hàng #${id} đã bị khách hàng (${userId}) hủy!`, "cancel");
+        await req.app.locals.createNotification("ADMIN", "Đơn hàng hủy", `Đơn hàng #${id} đã bị khách hàng (${userId}) hủy!`, "cancel");
 
         res.json({ success: true, message: 'Đã hủy đơn hàng thành công' });
     } catch (err) {
@@ -469,10 +492,10 @@ exports.updateOrderStatus = async (req, res) => {
             const statusNames = ["Chờ xử lý", "Đang giao", "Hoàn thành", "Đã hủy"];
             const statusName = statusNames[status] || "Cập nhật";
             
-            await createLog(req.user.id, 'UPDATE_ORDER_STATUS', `Cập nhật đơn hàng #${id} sang: ${statusName}`);
+            await req.app.locals.createLog(req.user.id, 'UPDATE_ORDER_STATUS', `Cập nhật đơn hàng #${id} sang: ${statusName}`);
 
             // System Notification
-            await createNotification(orderInfo.userId, "Cập nhật đơn hàng", `Đơn hàng #${id} của bạn đã chuyển sang trạng thái: ${statusName}`, "order");
+            await req.app.locals.createNotification(orderInfo.userId, "Cập nhật đơn hàng", `Đơn hàng #${id} của bạn đã chuyển sang trạng thái: ${statusName}`, "order");
             
             // Web Push Notification
             try {
@@ -495,9 +518,15 @@ exports.updateOrderStatus = async (req, res) => {
                             auth: sub.auth
                         }
                     };
-                    webpush.sendNotification(pushSubscription, payload).catch(err => {
-                        console.error('Lỗi gửi push notification:', err);
-                        // Optional: Xóa sub lỗi nếu err.statusCode === 410 (Gone)
+                    webpush.sendNotification(pushSubscription, payload).catch(async err => {
+                        if (err.statusCode === 410 || err.statusCode === 404) {
+                            console.log('Xóa subscription đã hết hạn cho user:', orderInfo.userId);
+                            await pool.request()
+                                .input('endpoint', sql.NVarChar, sub.endpoint)
+                                .query('DELETE FROM PushSubscriptions WHERE endpoint = @endpoint');
+                        } else {
+                            console.error('Lỗi gửi push notification (có thể bỏ qua):', err.message);
+                        }
                     });
                 }
             } catch (err) {
@@ -512,6 +541,13 @@ exports.updateOrderStatus = async (req, res) => {
                     receiverPhone: orderInfo.receiverPhone
                 });
             }
+        }
+
+        // Start or stop simulation based on status
+        if (status === 1) { // Đang giao
+            startSimulation(req.app.locals.io, id, orderInfo.userId);
+        } else {
+            stopSimulation(id);
         }
 
         res.json({ success: true, message: 'Order status updated' });

@@ -1,9 +1,18 @@
 const { sql, connectDB } = require('../config/db');
+const cache = require('../config/cache');
+let pool;
+connectDB().then(p => pool = p).catch(console.error);
 
 exports.getAllProducts = async (req, res) => {
     try {
         const pool = await connectDB();
         const { search } = req.query;
+        const cacheKey = `products_${search || 'all'}`;
+
+        if (cache.has(cacheKey)) {
+            return res.json(cache.get(cacheKey));
+        }
+
         let query = `
             SELECT p.*, 
                    COALESCE(AVG(CAST(r.rating AS FLOAT)), 0) as avgRating,
@@ -25,6 +34,8 @@ exports.getAllProducts = async (req, res) => {
             ...p,
             desc: p.description
         }));
+        
+        cache.set(cacheKey, products);
         res.json(products);
     } catch (err) {
         console.error(err);
@@ -62,7 +73,11 @@ exports.addProduct = async (req, res) => {
             .query(`INSERT INTO Products (id, title, img, category, price, description, status, stock, minStock) 
                     VALUES (@id, @title, @img, @category, @price, @description, @status, @stock, @minStock)`);
         
-        await createLog(req.user.id, 'ADD_PRODUCT', `Thêm sản phẩm mới: ${prod.title} (ID: ${id})`);
+        await req.app.locals.createLog(req.user.id, 'ADD_PRODUCT', `Thêm sản phẩm mới: ${prod.title} (ID: ${id})`);
+        
+        // Clear products cache
+        cache.keys().forEach(k => { if (k.startsWith('products_')) cache.del(k); });
+
         res.status(201).json({ success: true, message: 'Product added successfully' });
     } catch (err) {
         console.error('Error adding product:', err);
@@ -89,7 +104,11 @@ exports.updateProduct = async (req, res) => {
                     SET title=@title, img=@img, category=@category, price=@price, description=@description, status=@status, stock=@stock, minStock=@minStock 
                     WHERE id=@id`);
         
-        await createLog(req.user.id, 'UPDATE_PRODUCT', `Cập nhật sản phẩm ID: ${req.params.id} (${prod.title})`);
+        await req.app.locals.createLog(req.user.id, 'UPDATE_PRODUCT', `Cập nhật sản phẩm ID: ${req.params.id} (${prod.title})`);
+        
+        // Clear products cache
+        cache.keys().forEach(k => { if (k.startsWith('products_')) cache.del(k); });
+
         res.json({ success: true, message: 'Product updated successfully' });
     } catch (err) {
         console.error(err);
@@ -116,7 +135,11 @@ exports.deleteProduct = async (req, res) => {
             .input('id', sql.UniqueIdentifier, id)
             .query('DELETE FROM Products WHERE id = @id');
         
-        await createLog(req.user.id, 'DELETE_PRODUCT', `Xóa vĩnh viễn sản phẩm ID: ${id}`);
+        await req.app.locals.createLog(req.user.id, 'DELETE_PRODUCT', `Xóa vĩnh viễn sản phẩm ID: ${id}`);
+        
+        // Clear products cache
+        cache.keys().forEach(k => { if (k.startsWith('products_')) cache.del(k); });
+
         res.json({ success: true, message: 'Product deleted successfully' });
     } catch (err) {
         console.error(err);

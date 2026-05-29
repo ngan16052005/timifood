@@ -1,4 +1,6 @@
-const { sql, poolPromise } = require('../config/db');
+const { sql, connectDB } = require('../config/db');
+let pool;
+connectDB().then(p => pool = p).catch(console.error);
 
 exports.getVouchers = async (req, res) => {
     try {
@@ -50,7 +52,7 @@ exports.createVoucher = async (req, res) => {
             .input('expiryDate', sql.DateTime, expiryDate)
             .query(`INSERT INTO Vouchers (code, description, discountType, discountValue, minOrderValue, maxDiscount, startDate, endDate, usageLimit, usedCount, status) 
                     VALUES (@code, '', @discountType, @discountValue, @minOrder, @maxDiscount, GETDATE(), @expiryDate, 1000, 0, 1)`);
-        await createLog(req.user.id, 'ADD_VOUCHER', `Tạo mã giảm giá mới: ${code}`);
+        await req.app.locals.createLog(req.user.id, 'ADD_VOUCHER', `Tạo mã giảm giá mới: ${code}`);
         res.json({ success: true, message: 'Tạo mã giảm giá thành công' });
     } catch (error) {
         console.error("Create voucher error:", error);
@@ -71,7 +73,7 @@ exports.updateVoucher = async (req, res) => {
             .input('code', sql.NVarChar, code)
             .input('status', sql.Int, status)
             .query('UPDATE Vouchers SET status = @status WHERE code = @code');
-        await createLog(req.user.id, 'UPDATE_VOUCHER', `Cập nhật trạng thái voucher: ${code} (Status: ${status})`);
+        await req.app.locals.createLog(req.user.id, 'UPDATE_VOUCHER', `Cập nhật trạng thái voucher: ${code} (Status: ${status})`);
         res.json({ success: true, message: 'Cập nhật trạng thái voucher thành công' });
     } catch (error) {
         console.error("Update voucher error:", error);
@@ -86,7 +88,7 @@ exports.deleteVoucher = async (req, res) => {
         await pool.request()
             .input('code', sql.NVarChar, code)
             .query('DELETE FROM Vouchers WHERE code = @code');
-        await createLog(req.user.id, 'DELETE_VOUCHER', `Xóa mã giảm giá: ${code}`);
+        await req.app.locals.createLog(req.user.id, 'DELETE_VOUCHER', `Xóa mã giảm giá: ${code}`);
         res.json({ success: true, message: 'Xóa mã giảm giá thành công' });
     } catch (error) {
         console.error("Delete voucher error:", error);

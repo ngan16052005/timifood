@@ -1,4 +1,6 @@
-const { sql, poolPromise } = require('../config/db');
+const { sql, connectDB } = require('../config/db');
+let pool;
+connectDB().then(p => pool = p).catch(console.error);
 
 exports.getInventoryStats = async (req, res) => {
     try {
