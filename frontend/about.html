@@ -51,8 +51,8 @@
                     </ul>
                 </div>
                 <div class="header-top-right">
-                    <ul class="header-top-list">
-                        <li><a href="about.html">Giới thiệu</a></li>
+                    <ul class="header-top-list" style="align-items: center;">
+                        <li><a href="">Giới thiệu</a></li>
                         <li><a href="">Cửa hàng</a></li>
                         <li><a href="javascript:;" onclick="openPolicyModal(event)">Chính sách</a></li>
                     </ul>
@@ -63,7 +63,7 @@
             <div class="container">
                 <div class="header-middle-left">
                     <div class="header-logo">
-                        <a href="index.html">
+                        <a href="">
                             <img src="./assets/img/logos/timifood.png" alt="" class="header-logo-img">
                         </a>
                     </div>
@@ -78,6 +78,23 @@
                 </div>
                 <div class="header-middle-right">
                     <ul class="header-middle-right-list">
+                        <!-- Ngôn ngữ Dropdown -->
+                        <li class="header-middle-right-item dropdown open">
+                            <i class="fa-light fa-globe"></i>
+                            <div class="auth-container">
+                                <span class="text-dndk">Ngôn ngữ</span>
+                                <span class="text-tk current-lang-text">Tiếng Việt <i class="fa-sharp fa-solid fa-caret-down"></i></span>
+                            </div>
+                            <ul class="header-middle-right-menu">
+                                <li><a href="javascript:;" onclick="changeLang('vi', 'Tiếng Việt')"><i class="fa-light fa-check"></i> Tiếng Việt</a></li>
+                                <li><a href="javascript:;" onclick="changeLang('en', 'English')"><i class="fa-light fa-earth-americas"></i> English</a></li>
+                                <li><a href="javascript:;" onclick="changeLang('zh-CN', 'Trung Quốc')"><i class="fa-light fa-earth-asia"></i> Trung (Giản thể)</a></li>
+                                <li><a href="javascript:;" onclick="changeLang('ko', '한국어')"><i class="fa-light fa-language"></i> 한국어 (Hàn)</a></li>
+                                <li><a href="javascript:;" onclick="changeLang('ja', '日本語')"><i class="fa-light fa-language"></i> 日本語 (Nhật)</a></li>
+                                <li><a href="javascript:;" onclick="changeLang('fr', 'Français')"><i class="fa-light fa-earth-europe"></i> Français (Pháp)</a></li>
+                            </ul>
+                            <div id="google_translate_element" style="display: none;"></div>
+                        </li>
                         <li class="header-middle-right-item dnone open" onclick="openSearchMb()">
                             <div class="cart-icon-menu">
                                 <i class="fa-light fa-magnifying-glass"></i>
@@ -88,7 +105,7 @@
                                 <i class="fa-light fa-circle-xmark"></i>
                             </div>
                         </li>
-                        <li class="header-middle-right-item dropdown open">
+                        <li class="header-middle-right-item dropdown open" id="account-dropdown">
                             <i class="fa-light fa-user"></i>
                             <div class="auth-container">
                                 <span class="text-dndk">Đăng nhập / Đăng ký</span>
@@ -536,7 +553,7 @@
                                 </a>
                             </li>
                             <li class="widget-contact-item">
-                                <a href="index.html?view=news">
+                                <a href="javascript:;" onclick="showNewsSection()">
                                     <i class="fa-regular fa-arrow-right"></i>
                                     <span>Tin tức</span>
                                 </a>
