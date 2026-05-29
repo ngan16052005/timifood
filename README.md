@@ -370,18 +370,23 @@
 ## 🚀 Đề xuất Phát triển Tương lai (Roadmap)
 
 ### 🌟 Giai đoạn 39: Chương trình Khách hàng thân thiết (Loyalty & Rewards)
+
 - Tích điểm tự động (TiMi Points) khi mua hàng. Phân cấp hạng thành viên Đồng, Bạc, Vàng, Kim Cương.
 
 ### 📈 Giai đoạn 40: Quản lý Kho nâng cao & Phân tích (Advanced Inventory)
+
 - Cảnh báo tồn kho tự động (Min Stock Level) qua thông báo/email. Biểu đồ tiêu thụ nguyên liệu.
 
 ### 📱 Giai đoạn 41: Ứng dụng PWA & Push Notifications
+
 - Cài đặt TiMiFood như một App Native trên điện thoại. Push Notification thời gian thực khi trạng thái đơn hàng thay đổi.
 
 ### 💬 Giai đoạn 42: Đánh giá sản phẩm nâng cao (Advanced Review System)
+
 - Khách hàng có thể upload hình ảnh thực tế. Admin có quyền phản hồi (reply) vào bình luận.
 
 ### 🚀 Giai đoạn 43: Tối ưu Hiệu năng & Bảo mật (Performance & Security)
+
 - Tích hợp Redis Caching giảm tải hệ thống. Thiết lập Rate Limiting chặn Spam và DDoS.
 
 ---

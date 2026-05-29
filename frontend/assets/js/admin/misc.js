@@ -370,6 +370,14 @@ async function loadInventoryStats() {
             const soldData = data.data.map(item => item.soldQuantity);
             const stockData = data.data.map(item => item.stock);
             
+            const gradientSold = ctx.getContext('2d').createLinearGradient(0, 0, 0, 400);
+            gradientSold.addColorStop(0, 'rgba(0, 184, 148, 0.9)');
+            gradientSold.addColorStop(1, 'rgba(0, 184, 148, 0.4)');
+
+            const gradientStock = ctx.getContext('2d').createLinearGradient(0, 0, 0, 400);
+            gradientStock.addColorStop(0, 'rgba(9, 132, 227, 0.9)');
+            gradientStock.addColorStop(1, 'rgba(9, 132, 227, 0.4)');
+
             inventoryChartInstance = new Chart(ctx, {
                 type: 'bar',
                 data: {
@@ -378,20 +386,71 @@ async function loadInventoryStats() {
                         {
                             label: 'Đã bán (7 ngày)',
                             data: soldData,
-                            backgroundColor: '#00b894'
+                            backgroundColor: gradientSold,
+                            borderRadius: 8,
+                            borderSkipped: false,
+                            barPercentage: 0.6,
+                            categoryPercentage: 0.8
                         },
                         {
                             label: 'Tồn kho hiện tại',
                             data: stockData,
-                            backgroundColor: '#0984e3'
+                            backgroundColor: gradientStock,
+                            borderRadius: 8,
+                            borderSkipped: false,
+                            barPercentage: 0.6,
+                            categoryPercentage: 0.8
                         }
                     ]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            labels: {
+                                font: { family: 'Inter, sans-serif', size: 13, weight: '500' },
+                                usePointStyle: true,
+                                padding: 20
+                            }
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                            titleColor: '#2d3436',
+                            bodyColor: '#636e72',
+                            borderColor: 'rgba(0,0,0,0.05)',
+                            borderWidth: 1,
+                            padding: 15,
+                            boxPadding: 6,
+                            usePointStyle: true,
+                            titleFont: { family: 'Inter, sans-serif', size: 14, weight: 'bold' },
+                            bodyFont: { family: 'Inter, sans-serif', size: 13 }
+                        }
+                    },
                     scales: {
-                        y: { beginAtZero: true }
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                color: 'rgba(0,0,0,0.03)',
+                                drawBorder: false
+                            },
+                            ticks: {
+                                font: { family: 'Inter, sans-serif', size: 12 },
+                                color: '#b2bec3',
+                                padding: 10
+                            }
+                        },
+                        x: {
+                            grid: { display: false, drawBorder: false },
+                            ticks: {
+                                font: { family: 'Inter, sans-serif', size: 12 },
+                                color: '#636e72',
+                                padding: 10
+                            }
+                        }
+                    },
+                    animation: {
+                        y: { duration: 1500, easing: 'easeOutQuart' }
                     }
                 }
             });
