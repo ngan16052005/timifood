@@ -13,11 +13,12 @@ const twilioPhone = 'YOUR_TWILIO_PHONE_NUMBER';
 const { sql, connectDB } = require('./src/config/db');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
-require('dotenv').config();
+require('dotenv').config({ path: require('path').join(__dirname, '..', '.env') });
 
 // --- Module imports (Tách module - Giai đoạn 28) ---
 const { authenticateToken, isAdmin, isStaffOrAdmin, SECRET_KEY } = require('./src/middleware/auth');
-const { loginLimiter, otpLimiter, resetPasswordLimiter, registerLimiter, changePasswordLimiter } = require('./src/middleware/rateLimiter');
+const { globalLimiter, loginLimiter, otpLimiter, resetPasswordLimiter, registerLimiter, changePasswordLimiter, orderLimiter } = require('./src/middleware/rateLimiter');
+const { cacheMiddleware, clearCache } = require('./src/middleware/cache');
 const { transporter, sendOrderEmail, sendContactEmail, sendReplyEmail } = require('./src/helpers/email');
 
 const PayOS = require('@payos/node');
@@ -70,8 +71,8 @@ const io = new Server(server, {
 // Configure Socket.io to use PM2 IPC adapter for Cluster Mode synchronization
 const { createAdapter } = require('@socket.io/cluster-adapter');
 const { setupWorker } = require('@socket.io/sticky');
-io.adapter(createAdapter());
-setupWorker(io);
+if(require('cluster').isWorker) io.adapter(createAdapter());
+if(require('cluster').isWorker) setupWorker(io);
 
 const PORT = process.env.PORT || 3500;
 
@@ -80,6 +81,7 @@ app.use(cors({
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     credentials: true
 }));
+app.use(globalLimiter);
 app.use(compression()); // Gzip compression - Giảm dung lượng response
 app.use(bodyParser.json({ limit: '50mb' }));
 app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }));
@@ -107,8 +109,8 @@ async function startServer() {
                 IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'SystemLogs')
                 BEGIN
                     CREATE TABLE SystemLogs (
-                        id INT PRIMARY KEY IDENTITY(1,1),
-                        userPhone NVARCHAR(20),
+                        id UNIQUEIDENTIFIER PRIMARY KEY DEFAULT NEWID(),
+                        userId UNIQUEIDENTIFIER,
                         action NVARCHAR(100),
                         details NVARCHAR(MAX),
                         createdAt DATETIME DEFAULT GETDATE()
@@ -118,7 +120,7 @@ async function startServer() {
                 IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'Contacts')
                 BEGIN
                     CREATE TABLE Contacts (
-                        id INT PRIMARY KEY IDENTITY(1,1),
+                        id UNIQUEIDENTIFIER PRIMARY KEY DEFAULT NEWID(),
                         name NVARCHAR(100),
                         email NVARCHAR(100),
                         subject NVARCHAR(200),
@@ -131,7 +133,7 @@ async function startServer() {
                 IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'News')
                 BEGIN
                     CREATE TABLE News (
-                        id INT PRIMARY KEY IDENTITY(1,1),
+                        id UNIQUEIDENTIFIER PRIMARY KEY DEFAULT NEWID(),
                         title NVARCHAR(255),
                         thumbnail NVARCHAR(MAX),
                         content NVARCHAR(MAX),
@@ -145,21 +147,21 @@ async function startServer() {
                 IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'Favorites')
                 BEGIN
                     CREATE TABLE Favorites (
-                        id INT PRIMARY KEY IDENTITY(1,1),
-                        userPhone NVARCHAR(20) NOT NULL,
-                        productId NVARCHAR(50) NOT NULL,
+                        id UNIQUEIDENTIFIER PRIMARY KEY DEFAULT NEWID(),
+                        userId UNIQUEIDENTIFIER NOT NULL,
+                        productId UNIQUEIDENTIFIER NOT NULL,
                         createdAt DATETIME DEFAULT GETDATE(),
-                        CONSTRAINT UQ_User_Product UNIQUE (userPhone, productId)
+                        CONSTRAINT UQ_User_Product UNIQUE (userId, productId)
                     )
                 END
 
                 IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'ChatSessions')
                 BEGIN
                     CREATE TABLE ChatSessions (
-                        id INT PRIMARY KEY IDENTITY(1,1),
-                        customerPhone NVARCHAR(20),
+                        id UNIQUEIDENTIFIER PRIMARY KEY DEFAULT NEWID(),
+                        customerId UNIQUEIDENTIFIER,
                         customerName NVARCHAR(100),
-                        staffPhone NVARCHAR(20),
+                        staffId UNIQUEIDENTIFIER,
                         staffName NVARCHAR(100),
                         status NVARCHAR(20) DEFAULT 'waiting', -- waiting, chatting, ended
                         createdAt DATETIME DEFAULT GETDATE(),
@@ -170,12 +172,17 @@ async function startServer() {
                 IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'ChatMessages')
                 BEGIN
                     CREATE TABLE ChatMessages (
-                        id INT PRIMARY KEY IDENTITY(1,1),
-                        sessionId INT FOREIGN KEY REFERENCES ChatSessions(id) ON DELETE CASCADE,
+                        id UNIQUEIDENTIFIER PRIMARY KEY DEFAULT NEWID(),
+                        sessionId UNIQUEIDENTIFIER FOREIGN KEY REFERENCES ChatSessions(id) ON DELETE CASCADE,
                         sender NVARCHAR(20), -- 'customer' or 'staff'
                         text NVARCHAR(MAX),
                         timestamp DATETIME DEFAULT GETDATE()
                     )
+                END
+                IF COL_LENGTH('Products', 'minStock') IS NULL
+                BEGIN
+                    ALTER TABLE Products ADD minStock INT DEFAULT 5;
+                    EXEC('UPDATE Products SET minStock = 5 WHERE minStock IS NULL');
                 END
             `);
             console.log('Database initialized successfully.');
@@ -208,12 +215,21 @@ async function startServer() {
     }
 }
 
-
+// Helper to resolve order ID (UUID vs orderCode)
+async function resolveOrderId(paramId) {
+    const isUUID = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/i.test(paramId);
+    if (isUUID) return paramId;
+    const result = await pool.request()
+        .input('orderCode', sql.NVarChar, paramId)
+        .query('SELECT id FROM Orders WHERE orderCode = @orderCode');
+    if (result.recordset.length > 0) return result.recordset[0].id;
+    return paramId; // Return original if not found (will probably throw SQL error later, but better than crashing here)
+}
 
 // Delete order (Customer can delete history of completed/cancelled orders)
 app.delete('/api/orders/:id', authenticateToken, async (req, res) => {
     try {
-        const id = req.params.id;
+        const id = await resolveOrderId(req.params.id);
         
         // Transaction to delete both details and the order
         const transaction = new sql.Transaction(pool);
@@ -242,7 +258,7 @@ app.delete('/api/orders/:id', authenticateToken, async (req, res) => {
 // --- API ENDPOINTS ---
 
 // Get all products (with optional search)
-app.get('/api/products', async (req, res) => {
+app.get('/api/products', cacheMiddleware(300), async (req, res) => {
     try {
         const { search } = req.query;
         // Using global pool
@@ -260,7 +276,7 @@ app.get('/api/products', async (req, res) => {
             request.input('search', sql.NVarChar, `%${search}%`);
         }
 
-        query += ' GROUP BY p.id, p.title, p.price, p.img, p.category, p.status, p.description, p.stock';
+        query += ' GROUP BY p.id, p.title, p.price, p.img, p.category, p.status, p.description, p.stock, p.minStock';
 
         const result = await request.query(query);
         const products = result.recordset.map(p => ({
@@ -269,7 +285,8 @@ app.get('/api/products', async (req, res) => {
         }));
         res.json(products);
     } catch (err) {
-        res.status(500).json({ message: 'Error fetching products' });
+        console.error(err);
+        res.status(500).json({ message: 'Error fetching products', error: err.message });
     }
 });
 
@@ -298,8 +315,10 @@ app.post('/api/products', authenticateToken, isAdmin, async (req, res) => {
             .input('price', sql.Int, parseInt(prod.price))
             .input('description', sql.NVarChar, prod.description)
             .input('stock', sql.Int, parseInt(prod.stock) || 0)
-            .query('INSERT INTO Products (id, title, img, category, price, description, status, stock) VALUES (@id, @title, @img, @category, @price, @description, 1, @stock)');
-        await createLog(req.user.phone, 'ADD_PRODUCT', `Thêm sản phẩm mới: ${prod.title} (ID: ${nextId})`);
+            .input('minStock', sql.Int, parseInt(prod.minStock) || 5)
+            .query('INSERT INTO Products (id, title, img, category, price, description, status, stock, minStock) VALUES (@id, @title, @img, @category, @price, @description, 1, @stock, @minStock)');
+        await createLog(req.user.id, 'ADD_PRODUCT', `Thêm sản phẩm mới: ${prod.title} (ID: ${nextId})`);
+        clearCache('/api/products');
         res.status(201).json({ success: true, message: 'Product added successfully', id: nextId });
     } catch (err) {
         res.status(500).json({ message: 'Error adding product' });
@@ -309,13 +328,13 @@ app.post('/api/products', authenticateToken, isAdmin, async (req, res) => {
 // Update product (Admin only)
 app.put('/api/products/:id', authenticateToken, isAdmin, async (req, res) => {
     try {
-        const id = parseInt(req.params.id);
+        const id = req.params.id;
         const prod = req.body;
         if (!prod.title) return res.status(400).json({ message: 'Tên sản phẩm không được để trống' });
 
         // Check duplicate product title excluding current product (case-insensitive)
         const existingProduct = await pool.request()
-            .input('id', sql.Int, id)
+            .input('id', sql.UniqueIdentifier, id)
             .input('title', sql.NVarChar, prod.title.trim())
             .query('SELECT TOP 1 id FROM Products WHERE LOWER(TRIM(title)) = LOWER(@title) AND id != @id');
         if (existingProduct.recordset.length > 0) {
@@ -323,7 +342,7 @@ app.put('/api/products/:id', authenticateToken, isAdmin, async (req, res) => {
         }
 
         await pool.request()
-            .input('id', sql.Int, id)
+            .input('id', sql.UniqueIdentifier, id)
             .input('title', sql.NVarChar, prod.title)
             .input('img', sql.NVarChar, prod.img)
             .input('category', sql.NVarChar, prod.category)
@@ -331,8 +350,10 @@ app.put('/api/products/:id', authenticateToken, isAdmin, async (req, res) => {
             .input('description', sql.NVarChar, prod.description)
             .input('status', sql.Int, parseInt(prod.status))
             .input('stock', sql.Int, parseInt(prod.stock) || 0)
-            .query('UPDATE Products SET title=@title, img=@img, category=@category, price=@price, description=@description, status=@status, stock=@stock WHERE id=@id');
-        await createLog(req.user.phone, 'UPDATE_PRODUCT', `Cập nhật sản phẩm ID: ${id} (${prod.title})`);
+            .input('minStock', sql.Int, parseInt(prod.minStock) || 5)
+            .query('UPDATE Products SET title=@title, img=@img, category=@category, price=@price, description=@description, status=@status, stock=@stock, minStock=@minStock WHERE id=@id');
+        await createLog(req.user.id, 'UPDATE_PRODUCT', `Cập nhật sản phẩm ID: ${id} (${prod.title})`);
+        clearCache('/api/products');
         res.json({ success: true, message: 'Product updated successfully' });
     } catch (err) {
         res.status(500).json({ message: 'Error updating product' });
@@ -342,10 +363,10 @@ app.put('/api/products/:id', authenticateToken, isAdmin, async (req, res) => {
 // Delete product (Admin only)
 app.delete('/api/products/:id', authenticateToken, isAdmin, async (req, res) => {
     try {
-        const id = parseInt(req.params.id);
+        const id = req.params.id;
         // Check if product is in any order first
         const checkOrder = await pool.request()
-            .input('id', sql.Int, id)
+            .input('id', sql.UniqueIdentifier, id)
             .query('SELECT TOP 1 * FROM OrderDetails WHERE productId=@id');
 
         if (checkOrder.recordset.length > 0) {
@@ -353,9 +374,10 @@ app.delete('/api/products/:id', authenticateToken, isAdmin, async (req, res) => 
         }
 
         await pool.request()
-            .input('id', sql.Int, id)
+            .input('id', sql.UniqueIdentifier, id)
             .query('DELETE FROM Products WHERE id=@id');
-        await createLog(req.user.phone, 'DELETE_PRODUCT', `Xóa vĩnh viễn sản phẩm ID: ${id}`);
+        await createLog(req.user.id, 'DELETE_PRODUCT', `Xóa vĩnh viễn sản phẩm ID: ${id}`);
+        clearCache('/api/products');
         res.json({ success: true, message: 'Product deleted permanently' });
     } catch (err) {
         res.status(500).json({ message: 'Error deleting product' });
@@ -393,16 +415,25 @@ app.post('/api/login', loginLimiter, async (req, res) => {
 
             if (isMatch) {
                 // Create JWT Token
-                const token = jwt.sign(
-                    { phone: user.phone, userType: user.userType },
+                const token = jwt.sign({ id: user.id, phone: user.phone, userType: user.userType },
                     SECRET_KEY,
                     { expiresIn: '24h' }
                 );
 
+                // Fetch cart items
+                const cartResult = await pool.request()
+                    .input('userId', sql.UniqueIdentifier, user.id)
+                    .query(`
+                        SELECT c.quantity as soluong, c.note as ghichu, p.* 
+                        FROM CartItems c
+                        JOIN Products p ON c.productId = p.id
+                        WHERE c.userId = @userId
+                    `);
+
                 // Remove sensitive info
                 const { password: _, cartData: __, ...safeUser } = user;
                 safeUser.join = user.joinDate;
-                safeUser.cart = user.cartData ? JSON.parse(user.cartData) : [];
+                safeUser.cart = cartResult.recordset;
                 res.json({ success: true, user: safeUser, token });
             } else {
                 res.status(401).json({ success: false, message: 'Số điện thoại hoặc mật khẩu không đúng' });
@@ -437,14 +468,22 @@ app.post('/api/auth/google', loginLimiter, async (req, res) => {
         if (result.recordset.length > 0) {
             // User exists, log them in
             const user = result.recordset[0];
-            const token = jwt.sign(
-                { phone: user.phone, userType: user.userType },
+            const token = jwt.sign({ id: user.id, phone: user.phone, userType: user.userType },
                 SECRET_KEY,
                 { expiresIn: '24h' }
             );
+            const cartResult = await pool.request()
+                .input('userId', sql.UniqueIdentifier, user.id)
+                .query(`
+                    SELECT c.quantity as soluong, c.note as ghichu, p.* 
+                    FROM CartItems c
+                    JOIN Products p ON c.productId = p.id
+                    WHERE c.userId = @userId
+                `);
+
             const { password: _, cartData: __, ...safeUser } = user;
             safeUser.join = user.joinDate;
-            safeUser.cart = user.cartData ? JSON.parse(user.cartData) : [];
+            safeUser.cart = cartResult.recordset;
             res.json({ success: true, user: safeUser, token });
         } else {
             // User does not exist, ask for phone number to complete registration
@@ -487,7 +526,7 @@ app.post('/api/auth/google/complete-registration', registerLimiter, async (req, 
         const randomPassword = Math.random().toString(36).slice(-10) + 'A1@';
         const hashedPassword = await bcrypt.hash(randomPassword, 10);
 
-        await pool.request()
+            const insertResult = await pool.request()
             .input('fullname', sql.NVarChar, name)
             .input('phone', sql.NVarChar, phone)
             .input('password', sql.NVarChar, hashedPassword)
@@ -495,11 +534,12 @@ app.post('/api/auth/google/complete-registration', registerLimiter, async (req, 
             .input('email', sql.NVarChar, email)
             .input('status', sql.Int, 1)
             .input('userType', sql.Int, 0)
-            .query('INSERT INTO Users (fullname, phone, password, address, email, status, userType) VALUES (@fullname, @phone, @password, @address, @email, @status, @userType)');
+            .query('INSERT INTO Users (fullname, phone, password, address, email, status, userType) OUTPUT inserted.id VALUES (@fullname, @phone, @password, @address, @email, @status, @userType)');
+
+        const newUserId = insertResult.recordset[0].id;
 
         // Create JWT Token
-        const token = jwt.sign(
-            { phone: phone, userType: 0 },
+        const token = jwt.sign({ id: newUserId, phone: phone, userType: 0 },
             SECRET_KEY,
             { expiresIn: '24h' }
         );
@@ -536,14 +576,21 @@ app.post('/api/auth/facebook', loginLimiter, async (req, res) => {
         if (result.recordset.length > 0) {
             // User exists, log them in
             const user = result.recordset[0];
-            const token = jwt.sign(
-                { phone: user.phone, userType: user.userType },
+            const token = jwt.sign({ id: user.id, phone: user.phone, userType: user.userType },
                 SECRET_KEY,
                 { expiresIn: '24h' }
             );
+            const cartResult = await pool.request()
+                .input('userId', sql.UniqueIdentifier, user.id)
+                .query(`
+                    SELECT c.quantity as soluong, c.note as ghichu, p.* 
+                    FROM CartItems c
+                    JOIN Products p ON c.productId = p.id
+                    WHERE c.userId = @userId
+                `);
             const { password: _, cartData: __, ...safeUser } = user;
             safeUser.join = user.joinDate;
-            safeUser.cart = user.cartData ? JSON.parse(user.cartData) : [];
+            safeUser.cart = cartResult.recordset;
             res.json({ success: true, user: safeUser, token });
         } else {
             // User does not exist, ask for phone number to complete registration
@@ -584,7 +631,7 @@ app.post('/api/auth/facebook/complete-registration', registerLimiter, async (req
         const randomPassword = Math.random().toString(36).slice(-10) + 'A1@';
         const hashedPassword = await bcrypt.hash(randomPassword, 10);
 
-        await pool.request()
+        const insertResult = await pool.request()
             .input('fullname', sql.NVarChar, name)
             .input('phone', sql.NVarChar, phone)
             .input('password', sql.NVarChar, hashedPassword)
@@ -592,11 +639,12 @@ app.post('/api/auth/facebook/complete-registration', registerLimiter, async (req
             .input('email', sql.NVarChar, fbEmail)
             .input('status', sql.Int, 1)
             .input('userType', sql.Int, 0)
-            .query('INSERT INTO Users (fullname, phone, password, address, email, status, userType) VALUES (@fullname, @phone, @password, @address, @email, @status, @userType)');
+            .query('INSERT INTO Users (fullname, phone, password, address, email, status, userType) OUTPUT inserted.id VALUES (@fullname, @phone, @password, @address, @email, @status, @userType)');
+
+        const newUserId = insertResult.recordset[0].id;
 
         // Create JWT Token
-        const token = jwt.sign(
-            { phone: phone, userType: 0 },
+        const token = jwt.sign({ id: newUserId, phone: phone, userType: 0 },
             SECRET_KEY,
             { expiresIn: '24h' }
         );
@@ -819,7 +867,7 @@ app.post('/api/register', registerLimiter, async (req, res) => {
 
         const hashedPassword = await bcrypt.hash(newUser.password, 10);
 
-        await pool.request()
+        const insertResult = await pool.request()
             .input('fullname', sql.NVarChar, newUser.fullname)
             .input('phone', sql.NVarChar, newUser.phone)
             .input('password', sql.NVarChar, hashedPassword)
@@ -827,11 +875,12 @@ app.post('/api/register', registerLimiter, async (req, res) => {
             .input('email', sql.NVarChar, newUser.email || '')
             .input('status', sql.Int, 1)
             .input('userType', sql.Int, 0)
-            .query('INSERT INTO Users (fullname, phone, password, address, email, status, userType) VALUES (@fullname, @phone, @password, @address, @email, @status, @userType)');
+            .query('INSERT INTO Users (fullname, phone, password, address, email, status, userType) OUTPUT inserted.id VALUES (@fullname, @phone, @password, @address, @email, @status, @userType)');
+
+        newUser.id = insertResult.recordset[0].id;
 
         // Create JWT Token for the new user
-        const token = jwt.sign(
-            { phone: newUser.phone, userType: 0 },
+        const token = jwt.sign({ id: newUser.id, phone: newUser.phone, userType: 0 },
             SECRET_KEY,
             { expiresIn: '24h' }
         );
@@ -854,14 +903,14 @@ app.post('/api/register', registerLimiter, async (req, res) => {
 app.post('/api/change-password', authenticateToken, changePasswordLimiter, async (req, res) => {
     try {
         const { currentPassword, newPassword } = req.body;
-        const userPhone = req.user.phone;
+        const userId = req.user.id;
 
         if (!currentPassword || !newPassword) {
             return res.status(400).json({ message: 'Vui lòng nhập đầy đủ thông tin' });
         }
 
         const result = await pool.request()
-            .input('phone', sql.NVarChar, userPhone)
+            .input('phone', sql.NVarChar, userId)
             .query('SELECT password FROM Users WHERE phone=@phone');
 
         if (result.recordset.length === 0) {
@@ -883,7 +932,7 @@ app.post('/api/change-password', authenticateToken, changePasswordLimiter, async
 
         const hashedNewPassword = await bcrypt.hash(newPassword, 10);
         await pool.request()
-            .input('phone', sql.NVarChar, userPhone)
+            .input('phone', sql.NVarChar, userId)
             .input('password', sql.NVarChar, hashedNewPassword)
             .query('UPDATE Users SET password=@password WHERE phone=@phone');
 
@@ -919,7 +968,7 @@ app.put('/api/users/:phone', authenticateToken, async (req, res) => {
         const { fullname, email, address, password, status, userType } = req.body;
         
         // Security check: Only Admin can update other users or change status/userType
-        if (req.user.userType !== 1 && req.user.phone !== phone) {
+        if (req.user.userType !== 1 && req.user.id !== phone) {
             return res.status(403).json({ message: 'Bạn không có quyền cập nhật thông tin này' });
         }
 
@@ -985,7 +1034,7 @@ app.delete('/api/users/:phone', authenticateToken, isAdmin, async (req, res) => 
         await pool.request()
             .input('phone', sql.NVarChar, phone)
             .query('DELETE FROM Users WHERE phone=@phone');
-        await createLog(req.user.phone, 'DELETE_USER', `Xóa tài khoản: ${phone}`);
+        await createLog(req.user.id, 'DELETE_USER', `Xóa tài khoản: ${phone}`);
         res.json({ message: 'User deleted' });
     } catch (err) {
         res.status(500).json({ message: 'Error deleting user' });
@@ -995,43 +1044,76 @@ app.delete('/api/users/:phone', authenticateToken, isAdmin, async (req, res) => 
 // --- CART API ---
 
 // Get user cart (Protected)
-app.get('/api/cart/:phone', authenticateToken, async (req, res) => {
+app.get('/api/cart', authenticateToken, async (req, res) => {
     try {
-        const { phone } = req.params;
+        const userId = req.user.id;
         const result = await pool.request()
-            .input('phone', sql.NVarChar, phone)
-            .query('SELECT cartData FROM Users WHERE phone=@phone');
-
-        if (result.recordset.length > 0) {
-            const cartData = result.recordset[0].cartData;
-            res.json(cartData ? JSON.parse(cartData) : []);
-        } else {
-            res.status(404).json({ message: 'User not found' });
-        }
+            .input('userId', sql.UniqueIdentifier, userId)
+            .query(`
+                SELECT c.quantity as soluong, c.note as ghichu, p.* 
+                FROM CartItems c
+                JOIN Products p ON c.productId = p.id
+                WHERE c.userId = @userId
+            `);
+        res.json(result.recordset || []);
     } catch (err) {
         res.status(500).json({ message: 'Error fetching cart' });
     }
 });
 
 // Update user cart (Protected)
-app.post('/api/cart/:phone', authenticateToken, async (req, res) => {
+app.post('/api/cart', authenticateToken, async (req, res) => {
     try {
-        const { phone } = req.params;
+        const userId = req.user.id;
         const cart = req.body;
+        
+        // Clear existing cart items
         await pool.request()
-            .input('phone', sql.NVarChar, phone)
-            .input('cartData', sql.NVarChar, JSON.stringify(cart))
-            .query('UPDATE Users SET cartData=@cartData WHERE phone=@phone');
+            .input('userId', sql.UniqueIdentifier, userId)
+            .query('DELETE FROM CartItems WHERE userId = @userId');
+
+        // Insert new cart items
+        if (cart && cart.length > 0) {
+            for (let item of cart) {
+                await pool.request()
+                    .input('userId', sql.UniqueIdentifier, userId)
+                    .input('productId', sql.UniqueIdentifier, item.id)
+                    .input('quantity', sql.Int, item.soluong || 1)
+                    .input('note', sql.NVarChar, item.ghichu || '')
+                    .query('INSERT INTO CartItems (userId, productId, quantity, note) VALUES (@userId, @productId, @quantity, @note)');
+            }
+        }
         res.json({ message: 'Cart updated' });
     } catch (err) {
         res.status(500).json({ message: 'Error updating cart' });
     }
 });
 
+
+// --- INVENTORY API ---
+app.get('/api/inventory/stats', authenticateToken, isStaffOrAdmin, async (req, res) => {
+    try {
+        const result = await pool.request().query(`
+            SELECT TOP 10 p.title, p.stock, p.minStock, SUM(od.quantity) as soldQuantity 
+            FROM OrderDetails od
+            JOIN Orders o ON od.orderId = o.id
+            JOIN Products p ON od.productId = p.id
+            WHERE o.createdAt >= DATEADD(day, -7, GETDATE())
+              AND o.status != 'cancelled'
+            GROUP BY p.title, p.stock, p.minStock
+            ORDER BY soldQuantity DESC
+        `);
+        res.json({ success: true, data: result.recordset });
+    } catch (err) {
+        console.error("Inventory stats error:", err);
+        res.status(500).json({ message: 'Lỗi khi tải thống kê kho' });
+    }
+});
+
 // --- ORDER API ---
 
 // Create order (Protected)
-app.post('/api/orders', authenticateToken, async (req, res) => {
+app.post('/api/orders', authenticateToken, orderLimiter, async (req, res) => {
     console.log('Received order request:', JSON.stringify(req.body, null, 2));
     const transaction = new sql.Transaction(pool);
     try {
@@ -1041,19 +1123,21 @@ app.post('/api/orders', authenticateToken, async (req, res) => {
         }
 
         // Generate Order ID if not provided or to ensure uniqueness
-        const countResult = await pool.request().query('SELECT MAX(CAST(SUBSTRING(id, 3, LEN(id)) AS INT)) as maxId FROM Orders');
+        const countResult = await pool.request().query("SELECT MAX(CAST(SUBSTRING(orderCode, 3, LEN(orderCode)) AS INT)) as maxId FROM Orders WHERE orderCode LIKE 'DH%'");
         const maxId = countResult.recordset[0].maxId || 0;
         const finalId = 'DH' + (maxId + 1).toString().padStart(3, '0');
+        const newOrderId = require('crypto').randomUUID();
 
         await transaction.begin();
 
         const orderRequest = new sql.Request(transaction);
         console.log('Inserting order:', finalId);
-        const customerPhone = order.khachhang;
+        const userId = order.khachhang;
 
         await orderRequest
-            .input('id', sql.NVarChar, finalId)
-            .input('customerPhone', sql.NVarChar, customerPhone)
+            .input('id', sql.UniqueIdentifier, newOrderId)
+            .input('orderCode', sql.NVarChar, finalId)
+            .input('userId', sql.UniqueIdentifier, userId)
             .input('totalPrice', sql.Float, order.tongtien)
             .input('deliveryType', sql.NVarChar, order.hinhthucgiao)
             .input('deliveryTime', sql.NVarChar, order.thoigiangiao)
@@ -1066,17 +1150,17 @@ app.post('/api/orders', authenticateToken, async (req, res) => {
             .input('discountAmount', sql.Int, parseInt(order.discountAmount) || 0)
             .input('shippingFee', sql.Int, parseInt(order.shippingFee) || 0)
             .input('status', sql.Int, 0)
-            .query(`INSERT INTO Orders (id, customerPhone, totalPrice, deliveryType, deliveryTime, deliveryDate, receiverName, receiverPhone, receiverAddress, note, voucherCode, discountAmount, shippingFee, orderDate, status) 
-                    VALUES (@id, @customerPhone, @totalPrice, @deliveryType, @deliveryTime, @deliveryDate, @receiverName, @receiverPhone, @receiverAddress, @note, @voucherCode, @discountAmount, @shippingFee, GETDATE(), @status)`);
+            .query(`INSERT INTO Orders (id, orderCode, userId, totalPrice, deliveryType, deliveryTime, deliveryDate, receiverName, receiverPhone, receiverAddress, note, voucherCode, discountAmount, shippingFee, orderDate, status) 
+                    VALUES (@id, @orderCode, @userId, @totalPrice, @deliveryType, @deliveryTime, @deliveryDate, @receiverName, @receiverPhone, @receiverAddress, @note, @voucherCode, @discountAmount, @shippingFee, GETDATE(), @status)`);
 
         // Notify user about successful order
-        console.log(`[Order] Notifying customer: ${customerPhone}`);
-        await createNotification(customerPhone, "Đơn hàng mới", `Đơn hàng #${finalId} đã được đặt thành công!`, "order");
+        console.log(`[Order] Notifying customer: ${userId}`);
+        await createNotification(userId, "Đơn hàng mới", `Đơn hàng #${finalId} đã được đặt thành công!`, "order");
         
         // Fetch user email for notification
         const userResult = await pool.request()
-            .input('phone', sql.NVarChar, customerPhone)
-            .query('SELECT email FROM Users WHERE phone = @phone');
+            .input('userId', sql.UniqueIdentifier, userId)
+            .query('SELECT email FROM Users WHERE id = @userId');
         
         if (userResult.recordset.length > 0 && userResult.recordset[0].email) {
             const customerEmail = userResult.recordset[0].email;
@@ -1089,15 +1173,15 @@ app.post('/api/orders', authenticateToken, async (req, res) => {
 
         // Notify Admins
         console.log(`[Order] Notifying Admins`);
-        await createNotification("ADMIN", "Đơn hàng mới", `Có đơn hàng mới #${finalId} từ ${customerPhone}`, "order");
+        await createNotification("ADMIN", "Đơn hàng mới", `Có đơn hàng mới #${finalId} từ ${userId}`, "order");
 
         console.log('Inserting details for order:', finalId);
         for (const item of order.chitiet) {
             // Check stock first
             const checkStockReq = new sql.Request(transaction);
             const stockResult = await checkStockReq
-                .input('pId', sql.Int, parseInt(item.id))
-                .query('SELECT stock, title FROM Products WHERE id = @pId');
+                .input('pId', sql.UniqueIdentifier, item.id)
+                .query('SELECT stock, title, minStock FROM Products WHERE id = @pId');
 
             const product = stockResult.recordset[0];
             if (!product || product.stock < parseInt(item.soluong)) {
@@ -1107,8 +1191,8 @@ app.post('/api/orders', authenticateToken, async (req, res) => {
             // Insert order details
             const detailRequest = new sql.Request(transaction);
             await detailRequest
-                .input('orderId', sql.NVarChar, finalId)
-                .input('productId', sql.Int, parseInt(item.id))
+                .input('orderId', sql.UniqueIdentifier, newOrderId)
+                .input('productId', sql.UniqueIdentifier, item.id)
                 .input('price', sql.Float, parseFloat(item.price))
                 .input('quantity', sql.Int, parseInt(item.soluong))
                 .input('note', sql.NVarChar, item.note || '')
@@ -1116,11 +1200,22 @@ app.post('/api/orders', authenticateToken, async (req, res) => {
                         VALUES (@orderId, @productId, @price, @quantity, @note)`);
 
             // Decrease stock
-            const updateStockReq = new sql.Request(transaction);
-            await updateStockReq
-                .input('pId', sql.Int, parseInt(item.id))
-                .input('q', sql.Int, parseInt(item.soluong))
-                .query('UPDATE Products SET stock = stock - @q WHERE id = @pId');
+            if (product && product.stock !== undefined) {
+                const updateStockReq = new sql.Request(transaction);
+                await updateStockReq
+                    .input('pId', sql.UniqueIdentifier, item.id)
+                    .input('q', sql.Int, parseInt(item.soluong))
+                    .query('UPDATE Products SET stock = stock - @q WHERE id = @pId');
+                
+                // Check minStock Warning
+                const remainingStock = product.stock - parseInt(item.soluong);
+                const limit = product.minStock !== undefined && product.minStock !== null ? product.minStock : 5;
+                if (remainingStock <= limit) {
+                    if (typeof createNotification === 'function') {
+                        createNotification('all_staff', `CẢNH BÁO TỒN KHO: Sản phẩm "${product.title}" sắp hết. Chỉ còn ${remainingStock} phần!`, 'warning');
+                    }
+                }
+            }
         }
 
         await transaction.commit();
@@ -1155,8 +1250,8 @@ app.get('/api/orders/paginated', authenticateToken, async (req, res) => {
 
         // If not staff/admin, filter by user's phone
         if (req.user.userType === 0) {
-            baseQuery += ' AND customerPhone = @phone';
-            request.input('phone', sql.NVarChar, req.user.phone);
+            baseQuery += ' AND userId = @userId';
+            request.input('userId', sql.NVarChar, req.user.id);
         }
 
         // Apply filters
@@ -1166,7 +1261,7 @@ app.get('/api/orders/paginated', authenticateToken, async (req, res) => {
         }
 
         if (search) {
-            baseQuery += ' AND (customerPhone LIKE @search OR id LIKE @search)';
+            baseQuery += ' AND (userId LIKE @search OR id LIKE @search)';
             request.input('search', sql.NVarChar, `%${search}%`);
         }
 
@@ -1203,7 +1298,7 @@ app.get('/api/orders/paginated', authenticateToken, async (req, res) => {
         // Fetch details for each order
         for (let order of orders) {
             const detailsResult = await pool.request()
-                .input('orderId', sql.NVarChar, order.id)
+                .input('orderId', sql.UniqueIdentifier, order.id)
                 .query('SELECT od.*, p.title, p.img FROM OrderDetails od JOIN Products p ON od.productId = p.id WHERE od.orderId = @orderId');
             order.chitiet = JSON.stringify(detailsResult.recordset.map(d => ({
                 ...d,
@@ -1215,8 +1310,10 @@ app.get('/api/orders/paginated', authenticateToken, async (req, res) => {
         res.json({
             data: orders.map(o => ({
                 ...o,
+                id: o.orderCode || o.id, // Map orderCode to id for frontend
+                uuid: o.id,
                 thoigiandat: o.orderDate,
-                khachhang: o.customerPhone,
+                khachhang: o.userId,
                 tongtien: o.totalPrice,
                 trangthai: o.status,
                 hinhthucgiao: o.deliveryType,
@@ -1251,8 +1348,8 @@ app.get('/api/orders', authenticateToken, async (req, res) => {
 
         // If not staff/admin, filter by user's phone
         if (req.user.userType === 0) {
-            query += ' WHERE customerPhone = @phone';
-            request.input('phone', sql.NVarChar, req.user.phone);
+            query += ' WHERE userId = @userId';
+            request.input('userId', sql.NVarChar, req.user.id);
         }
 
         const result = await request.query(query);
@@ -1261,7 +1358,7 @@ app.get('/api/orders', authenticateToken, async (req, res) => {
         // Fetch details for each order to include in the response
         for (let order of orders) {
             const detailsResult = await pool.request()
-                .input('orderId', sql.NVarChar, order.id)
+                .input('orderId', sql.UniqueIdentifier, order.id)
                 .query('SELECT od.*, p.title, p.img FROM OrderDetails od JOIN Products p ON od.productId = p.id WHERE od.orderId = @orderId');
             order.chitiet = JSON.stringify(detailsResult.recordset.map(d => ({
                 ...d,
@@ -1272,8 +1369,10 @@ app.get('/api/orders', authenticateToken, async (req, res) => {
 
         res.json(orders.map(o => ({
             ...o,
+            id: o.orderCode || o.id, // Map orderCode to id for frontend
+            uuid: o.id,
             thoigiandat: o.orderDate,
-            khachhang: o.customerPhone,
+            khachhang: o.userId,
             tongtien: o.totalPrice,
             trangthai: o.status,
             hinhthucgiao: o.deliveryType,
@@ -1299,8 +1398,9 @@ app.get('/api/orders', authenticateToken, async (req, res) => {
 // Get order details
 app.get('/api/orders/:id/details', async (req, res) => {
     try {
+        const id = await resolveOrderId(req.params.id);
         const result = await pool.request()
-            .input('orderId', sql.NVarChar, req.params.id)
+            .input('orderId', sql.NVarChar, id)
             .query('SELECT od.*, p.title, p.img FROM OrderDetails od JOIN Products p ON od.productId = p.id WHERE od.orderId = @orderId');
         res.json(result.recordset.map(d => ({
             ...d,
@@ -1315,20 +1415,20 @@ app.get('/api/orders/:id/details', async (req, res) => {
 // Cancel order (User only, status 0 only)
 app.put('/api/orders/:id/cancel', authenticateToken, async (req, res) => {
     try {
-        const { id } = req.params;
-        const userPhone = req.user.phone;
+        const id = await resolveOrderId(req.params.id);
+        const userId = req.user.id;
 
         // Check if order exists and belongs to user and is still processing
         const orderCheck = await pool.request()
             .input('id', sql.NVarChar, id)
-            .query('SELECT customerPhone, status FROM Orders WHERE id = @id');
+            .query('SELECT userId, status FROM Orders WHERE id = @id');
 
         if (orderCheck.recordset.length === 0) {
             return res.status(404).json({ message: 'Không tìm thấy đơn hàng' });
         }
 
         const order = orderCheck.recordset[0];
-        if (order.customerPhone !== userPhone) {
+        if (order.userId !== userId) {
             return res.status(403).json({ message: 'Bạn không có quyền hủy đơn hàng này' });
         }
 
@@ -1341,7 +1441,7 @@ app.put('/api/orders/:id/cancel', authenticateToken, async (req, res) => {
             .query('UPDATE Orders SET status = 3 WHERE id = @id'); // 3 = Cancelled
 
         // Notify Admin about the cancellation
-        await createNotification("ADMIN", "Đơn hàng hủy", `Đơn hàng #${id} đã bị khách hàng (${userPhone}) hủy!`, "cancel");
+        await createNotification("ADMIN", "Đơn hàng hủy", `Đơn hàng #${id} đã bị khách hàng (${userId}) hủy!`, "cancel");
 
         res.json({ success: true, message: 'Đã hủy đơn hàng thành công' });
     } catch (err) {
@@ -1354,22 +1454,22 @@ app.put('/api/orders/:id/cancel', authenticateToken, async (req, res) => {
 app.put('/api/orders/:id/update', authenticateToken, async (req, res) => {
     const transaction = new sql.Transaction(pool);
     try {
-        const { id } = req.params;
+        const id = await resolveOrderId(req.params.id);
         const { note, chitiet, shippingFee, discountAmount } = req.body;
         const items = chitiet; // Map to items for compatibility with existing logic
-        const userPhone = req.user.phone;
+        const userId = req.user.id;
 
         // 1. Check permissions
         const orderCheck = await pool.request()
             .input('id', sql.NVarChar, id)
-            .query('SELECT customerPhone, status FROM Orders WHERE id = @id');
+            .query('SELECT userId, status FROM Orders WHERE id = @id');
 
         if (orderCheck.recordset.length === 0) {
             return res.status(404).json({ message: 'Không tìm thấy đơn hàng' });
         }
 
         const order = orderCheck.recordset[0];
-        if (order.customerPhone !== userPhone) {
+        if (order.userId !== userId) {
             return res.status(403).json({ message: 'Bạn không có quyền sửa đơn hàng này' });
         }
 
@@ -1436,16 +1536,16 @@ app.put('/api/orders/:id/update', authenticateToken, async (req, res) => {
 // Update order status (Staff and Admin)
 app.put('/api/orders/:id/status', authenticateToken, isStaffOrAdmin, async (req, res) => {
     try {
-        const { id } = req.params;
+        const id = await resolveOrderId(req.params.id);
         const { status } = req.body;
 
         // Get order info and user email to notify
         const orderInfoResult = await pool.request()
             .input('id', sql.NVarChar, id)
             .query(`
-                SELECT o.customerPhone, o.totalPrice, o.receiverAddress, o.receiverPhone, u.email 
+                SELECT o.userId, o.totalPrice, o.receiverAddress, o.receiverPhone, u.email 
                 FROM Orders o 
-                JOIN Users u ON o.customerPhone = u.phone 
+                JOIN Users u ON o.userId = u.id 
                 WHERE o.id = @id
             `);
         
@@ -1459,16 +1559,16 @@ app.put('/api/orders/:id/status', authenticateToken, isStaffOrAdmin, async (req,
             const statusNames = ["Chờ xử lý", "Đang giao", "Hoàn thành", "Đã hủy"];
             const statusName = statusNames[status] || "Cập nhật";
             
-            await createLog(req.user.phone, 'UPDATE_ORDER_STATUS', `Cập nhật đơn hàng #${id} sang: ${statusName}`);
+            await createLog(req.user.id, 'UPDATE_ORDER_STATUS', `Cập nhật đơn hàng #${id} sang: ${statusName}`);
 
             // System Notification
-            await createNotification(orderInfo.customerPhone, "Cập nhật đơn hàng", `Đơn hàng #${id} của bạn đã chuyển sang trạng thái: ${statusName}`, "order");
+            await createNotification(orderInfo.userId, "Cập nhật đơn hàng", `Đơn hàng #${id} của bạn đã chuyển sang trạng thái: ${statusName}`, "order");
             
             // Web Push Notification
             try {
                 const subsResult = await pool.request()
-                    .input('userPhone', sql.VarChar, orderInfo.customerPhone)
-                    .query('SELECT * FROM PushSubscriptions WHERE userPhone = @userPhone');
+                    .input('userId', sql.UniqueIdentifier, orderInfo.userId)
+                    .query('SELECT * FROM PushSubscriptions WHERE userId = @userId');
                     
                 const payload = JSON.stringify({
                     title: 'Cập nhật đơn hàng',
@@ -1517,8 +1617,13 @@ app.put('/api/orders/:id/status', authenticateToken, isStaffOrAdmin, async (req,
 app.get('/api/vouchers', authenticateToken, isAdmin, async (req, res) => {
     try {
         // Using global pool
-        const result = await pool.request().query('SELECT * FROM Vouchers ORDER BY expiryDate DESC');
-        res.json(result.recordset);
+        const result = await pool.request().query('SELECT * FROM Vouchers ORDER BY endDate DESC');
+        const vouchers = result.recordset.map(v => ({
+            ...v,
+            minOrder: v.minOrderValue,
+            expiryDate: v.endDate
+        }));
+        res.json(vouchers);
     } catch (error) {
         console.error("Get vouchers error:", error);
         res.status(500).json({ message: 'Lỗi server khi lấy danh sách voucher' });
@@ -1532,10 +1637,12 @@ app.get('/api/vouchers/:code', async (req, res) => {
         // Using global pool
         const result = await pool.request()
             .input('code', sql.NVarChar, code)
-            .query('SELECT * FROM Vouchers WHERE code = @code AND status = 1 AND CAST(expiryDate AS DATE) >= CAST(GETDATE() AS DATE)');
+            .query('SELECT * FROM Vouchers WHERE code = @code AND status = 1 AND CAST(endDate AS DATE) >= CAST(GETDATE() AS DATE)');
 
         if (result.recordset && result.recordset.length > 0) {
-            res.json({ success: true, voucher: result.recordset[0] });
+            const voucher = result.recordset[0];
+            voucher.minOrder = voucher.minOrderValue;
+            res.json({ success: true, voucher: voucher });
         } else {
             res.json({ success: false, message: 'Mã giảm giá không tồn tại hoặc đã hết hạn' });
         }
@@ -1553,12 +1660,13 @@ app.post('/api/vouchers', authenticateToken, isAdmin, async (req, res) => {
         await pool.request()
             .input('code', sql.NVarChar, code)
             .input('discountValue', sql.Int, discountValue)
-            .input('discountType', sql.Int, discountType)
+            .input('discountType', sql.NVarChar, discountType.toString())
             .input('minOrder', sql.Int, minOrder)
             .input('maxDiscount', sql.Int, maxDiscount)
             .input('expiryDate', sql.DateTime, expiryDate)
-            .query('INSERT INTO Vouchers (code, discountValue, discountType, minOrder, maxDiscount, expiryDate, status) VALUES (@code, @discountValue, @discountType, @minOrder, @maxDiscount, @expiryDate, 1)');
-        await createLog(req.user.phone, 'ADD_VOUCHER', `Tạo mã giảm giá mới: ${code}`);
+            .query(`INSERT INTO Vouchers (code, description, discountType, discountValue, minOrderValue, maxDiscount, startDate, endDate, usageLimit, usedCount, status) 
+                    VALUES (@code, '', @discountType, @discountValue, @minOrder, @maxDiscount, GETDATE(), @expiryDate, 1000, 0, 1)`);
+        await createLog(req.user.id, 'ADD_VOUCHER', `Tạo mã giảm giá mới: ${code}`);
         res.json({ success: true, message: 'Tạo mã giảm giá thành công' });
     } catch (error) {
         console.error("Create voucher error:", error);
@@ -1580,7 +1688,7 @@ app.put('/api/vouchers/:code', authenticateToken, isAdmin, async (req, res) => {
             .input('code', sql.NVarChar, code)
             .input('status', sql.Int, status)
             .query('UPDATE Vouchers SET status = @status WHERE code = @code');
-        await createLog(req.user.phone, 'UPDATE_VOUCHER', `Cập nhật trạng thái voucher: ${code} (Status: ${status})`);
+        await createLog(req.user.id, 'UPDATE_VOUCHER', `Cập nhật trạng thái voucher: ${code} (Status: ${status})`);
         res.json({ success: true, message: 'Cập nhật trạng thái voucher thành công' });
     } catch (error) {
         console.error("Update voucher error:", error);
@@ -1596,7 +1704,7 @@ app.delete('/api/vouchers/:code', authenticateToken, isAdmin, async (req, res) =
         await pool.request()
             .input('code', sql.NVarChar, code)
             .query('DELETE FROM Vouchers WHERE code = @code');
-        await createLog(req.user.phone, 'DELETE_VOUCHER', `Xóa mã giảm giá: ${code}`);
+        await createLog(req.user.id, 'DELETE_VOUCHER', `Xóa mã giảm giá: ${code}`);
         res.json({ success: true, message: 'Xóa mã giảm giá thành công' });
     } catch (error) {
         console.error("Delete voucher error:", error);
@@ -1612,8 +1720,8 @@ app.get('/api/products/:id/reviews', async (req, res) => {
         const { id } = req.params;
         // Using global pool
         const result = await pool.request()
-            .input('productId', sql.Int, id)
-            .query('SELECT * FROM Reviews WHERE productId = @productId ORDER BY reviewDate DESC');
+            .input('productId', sql.UniqueIdentifier, id)
+            .query('SELECT r.*, r.createdAt as reviewDate, u.fullname as customerName FROM Reviews r JOIN Users u ON r.userId = u.id WHERE r.productId = @productId ORDER BY r.createdAt DESC');
         res.json(result.recordset);
     } catch (error) {
         console.error("Get reviews error:", error);
@@ -1625,17 +1733,17 @@ app.get('/api/products/:id/reviews', async (req, res) => {
 app.post('/api/reviews', authenticateToken, async (req, res) => {
     try {
         const { productId, rating, comment } = req.body;
-        const customerPhone = req.user.phone;
+        const userId = req.user.id;
 
         // Kiểm tra xem khách hàng đã mua sản phẩm này chưa (Status 2 = Completed)
         const purchaseCheck = await pool.request()
-            .input('phone', sql.NVarChar, customerPhone)
-            .input('productId', sql.Int, productId)
+            .input('userId', sql.UniqueIdentifier, userId)
+            .input('productId', sql.UniqueIdentifier, productId)
             .query(`
                 SELECT TOP 1 d.productId 
                 FROM Orders o 
                 JOIN OrderDetails d ON o.id = d.orderId 
-                WHERE o.customerPhone = @phone 
+                WHERE o.userId = @userId 
                 AND d.productId = @productId 
                 AND o.status = 2
             `);
@@ -1652,7 +1760,7 @@ app.post('/api/reviews', authenticateToken, async (req, res) => {
         // Nếu trong token thiếu fullname, truy vấn lại từ DB
         if (!customerName) {
             const userResult = await pool.request()
-                .input('phone', sql.NVarChar, customerPhone)
+                .input('phone', sql.NVarChar, userId)
                 .query('SELECT fullname FROM Users WHERE phone = @phone');
             if (userResult.recordset.length > 0) {
                 customerName = userResult.recordset[0].fullname;
@@ -1660,12 +1768,11 @@ app.post('/api/reviews', authenticateToken, async (req, res) => {
         }
 
         await pool.request()
-            .input('productId', sql.Int, productId)
-            .input('customerPhone', sql.NVarChar, customerPhone)
-            .input('customerName', sql.NVarChar, customerName || 'Khách hàng')
+            .input('productId', sql.UniqueIdentifier, productId)
+            .input('userId', sql.UniqueIdentifier, userId)
             .input('rating', sql.Int, rating)
             .input('comment', sql.NVarChar, comment || '')
-            .query('INSERT INTO Reviews (productId, customerPhone, customerName, rating, comment, reviewDate) VALUES (@productId, @customerPhone, @customerName, @rating, @comment, GETDATE())');
+            .query('INSERT INTO Reviews (productId, userId, rating, comment, createdAt) VALUES (@productId, @userId, @rating, @comment, GETDATE())');
 
         res.json({ success: true, message: 'Đánh giá của bạn đã được gửi!' });
     } catch (error) {
@@ -1733,10 +1840,11 @@ app.get('/api/admin/reviews', authenticateToken, isAdmin, async (req, res) => {
         // Using global pool
         const result = await pool.request()
             .query(`
-                SELECT r.*, p.title as productTitle 
+                SELECT r.*, r.createdAt as reviewDate, p.title as productTitle, u.fullname as customerName 
                 FROM Reviews r 
                 JOIN Products p ON r.productId = p.id 
-                ORDER BY r.reviewDate DESC
+                LEFT JOIN Users u ON r.userId = u.id 
+                ORDER BY r.createdAt DESC
             `);
         res.json(result.recordset);
     } catch (error) {
@@ -1769,10 +1877,10 @@ app.get('/api/admin/stock-history', authenticateToken, isAdmin, async (req, res)
     try {
         // Using global pool
         const result = await pool.request().query(`
-            SELECT sh.*, p.title as productTitle 
+            SELECT sh.*, sh.createdAt as importDate, p.title as productTitle 
             FROM StockHistory sh 
             JOIN Products p ON sh.productId = p.id 
-            ORDER BY sh.importDate DESC
+            ORDER BY sh.createdAt DESC
         `);
         res.json(result.recordset);
     } catch (err) {
@@ -1797,6 +1905,7 @@ app.get('/api/admin/logs', authenticateToken, isAdmin, async (req, res) => {
 app.post('/api/admin/stock-in', authenticateToken, isAdmin, async (req, res) => {
     try {
         const { productId, quantity, note } = req.body;
+        console.log('stock-in request:', {productId, quantity, note, userId: req.user.id});
         // Using global pool
         const transaction = new sql.Transaction(pool);
 
@@ -1805,16 +1914,18 @@ app.post('/api/admin/stock-in', authenticateToken, isAdmin, async (req, res) => 
         try {
             // 1. Record history
             await transaction.request()
-                .input('productId', sql.Int, productId)
+                .input('productId', sql.UniqueIdentifier, productId)
+                .input('action', sql.NVarChar, 'IMPORT')
                 .input('quantity', sql.Int, quantity)
                 .input('note', sql.NVarChar, note)
-                .query('INSERT INTO StockHistory (productId, quantity, note) VALUES (@productId, @quantity, @note)');
+                .input('createdBy', sql.UniqueIdentifier, req.user.id)
+                .query('INSERT INTO StockHistory (productId, action, quantity, note, createdBy, createdAt) VALUES (@productId, @action, @quantity, @note, @createdBy, GETDATE())');
 
             // 2. Update Product stock
             await transaction.request()
-                .input('productId', sql.Int, productId)
+                .input('productId', sql.UniqueIdentifier, productId)
                 .input('quantity', sql.Int, quantity)
-                .query('UPDATE Products SET stock = stock + @quantity WHERE id = @productId');
+                .query('UPDATE Products SET stock = ISNULL(stock, 0) + @quantity WHERE id = @productId');
 
             await transaction.commit();
             res.status(201).json({ success: true, message: 'Nhập kho thành công!' });
@@ -1833,19 +1944,27 @@ app.post('/api/admin/stock-in', authenticateToken, isAdmin, async (req, res) => 
 // Get notifications for current user
 app.get('/api/notifications', authenticateToken, async (req, res) => {
     try {
-        const userPhone = req.user.phone;
+        const userId = req.user.id;
         const isStaff = req.user.userType === 1 || req.user.userType === 2;
         
-        let query = 'SELECT * FROM Notifications WHERE userPhone = @userPhone';
+        let query = 'SELECT * FROM Notifications WHERE userId = @userId';
         if (isStaff) {
-            query += " OR userPhone = 'ADMIN'";
+            query += " OR userId = 'ADMIN'";
         }
         query += ' ORDER BY createdAt DESC';
 
         const result = await pool.request()
-            .input('userPhone', sql.NVarChar, userPhone)
+            .input('userId', sql.NVarChar, userId)
             .query(query);
-        res.json(result.recordset);
+            
+        // Map database schema fields to what frontend expects
+        const mappedResult = result.recordset.map(row => ({
+            ...row,
+            message: row.body,
+            isRead: row.readStatus
+        }));
+        
+        res.json(mappedResult);
     } catch (err) {
         console.error("Fetch notifications error:", err);
         res.status(500).json({ message: 'Lỗi khi tải thông báo' });
@@ -1856,18 +1975,18 @@ app.get('/api/notifications', authenticateToken, async (req, res) => {
 app.put('/api/notifications/:id/read', authenticateToken, async (req, res) => {
     try {
         const { id } = req.params;
-        const userPhone = req.user.phone;
+        const userId = req.user.id;
         const isStaff = req.user.userType === 1 || req.user.userType === 2;
 
-        let query = 'UPDATE Notifications SET isRead = 1 WHERE id = @id AND (userPhone = @userPhone';
+        let query = 'UPDATE Notifications SET readStatus = 1 WHERE id = @id AND (userId = @userId';
         if (isStaff) {
-            query += " OR userPhone = 'ADMIN'";
+            query += " OR userId = 'ADMIN'";
         }
         query += ')';
 
         await pool.request()
             .input('id', sql.Int, id)
-            .input('userPhone', sql.NVarChar, userPhone)
+            .input('userId', sql.NVarChar, userId)
             .query(query);
         res.json({ success: true });
     } catch (err) {
@@ -1879,16 +1998,16 @@ app.put('/api/notifications/:id/read', authenticateToken, async (req, res) => {
 // Mark all as read
 app.put('/api/notifications/read-all', authenticateToken, async (req, res) => {
     try {
-        const userPhone = req.user.phone;
+        const userId = req.user.id;
         const isStaff = req.user.userType === 1 || req.user.userType === 2;
 
-        let query = 'UPDATE Notifications SET isRead = 1 WHERE userPhone = @userPhone';
+        let query = 'UPDATE Notifications SET readStatus = 1 WHERE userId = @userId';
         if (isStaff) {
-            query += " OR userPhone = 'ADMIN'";
+            query += " OR userId = 'ADMIN'";
         }
 
         await pool.request()
-            .input('userPhone', sql.NVarChar, userPhone)
+            .input('userId', sql.NVarChar, userId)
             .query(query);
         res.json({ success: true });
     } catch (err) {
@@ -1901,18 +2020,18 @@ app.put('/api/notifications/read-all', authenticateToken, async (req, res) => {
 app.delete('/api/notifications/:id', authenticateToken, async (req, res) => {
     try {
         const { id } = req.params;
-        const userPhone = req.user.phone;
+        const userId = req.user.id;
         const isStaff = req.user.userType === 1 || req.user.userType === 2;
 
-        let query = 'DELETE FROM Notifications WHERE id = @id AND (userPhone = @userPhone';
+        let query = 'DELETE FROM Notifications WHERE id = @id AND (userId = @userId';
         if (isStaff) {
-            query += " OR userPhone = 'ADMIN'";
+            query += " OR userId = 'ADMIN'";
         }
         query += ')';
 
         await pool.request()
             .input('id', sql.Int, id)
-            .input('userPhone', sql.NVarChar, userPhone)
+            .input('userId', sql.NVarChar, userId)
             .query(query);
         res.json({ success: true });
     } catch (err) {
@@ -1924,16 +2043,16 @@ app.delete('/api/notifications/:id', authenticateToken, async (req, res) => {
 // Delete all notifications for current user
 app.delete('/api/notifications', authenticateToken, async (req, res) => {
     try {
-        const userPhone = req.user.phone;
+        const userId = req.user.id;
         const isStaff = req.user.userType === 1 || req.user.userType === 2;
 
-        let query = 'DELETE FROM Notifications WHERE userPhone = @userPhone';
+        let query = 'DELETE FROM Notifications WHERE userId = @userId';
         if (isStaff) {
-            query += " OR userPhone = 'ADMIN'";
+            query += " OR userId = 'ADMIN'";
         }
 
         await pool.request()
-            .input('userPhone', sql.NVarChar, userPhone)
+            .input('userId', sql.NVarChar, userId)
             .query(query);
         res.json({ success: true });
     } catch (err) {
@@ -1946,7 +2065,7 @@ app.delete('/api/notifications', authenticateToken, async (req, res) => {
 
 // --- CATEGORY MANAGEMENT ---
 // Get all categories (Public)
-app.get('/api/categories', async (req, res) => {
+app.get('/api/categories', cacheMiddleware(300), async (req, res) => {
     try {
         const result = await pool.request().query('SELECT * FROM Categories ORDER BY name ASC');
         res.json(result.recordset);
@@ -1974,7 +2093,8 @@ app.post('/api/categories', authenticateToken, isAdmin, async (req, res) => {
             .input('name', sql.NVarChar, name)
             .query('INSERT INTO Categories (name) VALUES (@name)');
         
-        await createLog(req.user.phone, 'ADD_CATEGORY', `Thêm danh mục: ${name}`);
+        await createLog(req.user.id, 'ADD_CATEGORY', `Thêm danh mục: ${name}`);
+        clearCache('/api/categories');
         res.status(201).json({ success: true, message: 'Thêm danh mục thành công' });
     } catch (err) {
         if (err.number === 2627) { // Unique constraint violation
@@ -2006,7 +2126,8 @@ app.put('/api/categories/:id', authenticateToken, isAdmin, async (req, res) => {
             .input('name', sql.NVarChar, name)
             .query('UPDATE Categories SET name = @name WHERE id = @id');
         
-        await createLog(req.user.phone, 'UPDATE_CATEGORY', `Cập nhật danh mục ID: ${id} sang: ${name}`);
+        await createLog(req.user.id, 'UPDATE_CATEGORY', `Cập nhật danh mục ID: ${id} sang: ${name}`);
+        clearCache('/api/categories');
         res.json({ success: true, message: 'Cập nhật danh mục thành công' });
     } catch (err) {
         console.error("Update category error:", err);
@@ -2039,7 +2160,8 @@ app.delete('/api/categories/:id', authenticateToken, isAdmin, async (req, res) =
             .input('id', sql.Int, id)
             .query('DELETE FROM Categories WHERE id = @id');
         
-        await createLog(req.user.phone, 'DELETE_CATEGORY', `Xóa danh mục: ${catName} (ID: ${id})`);
+        await createLog(req.user.id, 'DELETE_CATEGORY', `Xóa danh mục: ${catName} (ID: ${id})`);
+        clearCache('/api/categories');
         res.json({ success: true, message: 'Xóa danh mục thành công' });
     } catch (err) {
         console.error("Delete category error:", err);
@@ -2148,7 +2270,7 @@ app.post('/api/payos/webhook', async (req, res) => {
             // Fetch order from DB
             const orderResult = await pool.request()
                 .input('id', sql.NVarChar, orderIdStr)
-                .query('SELECT status, customerPhone, totalPrice, receiverAddress, receiverPhone, note FROM Orders WHERE id = @id');
+                .query('SELECT status, userId, totalPrice, receiverAddress, receiverPhone, note FROM Orders WHERE id = @id');
             
             if (orderResult.recordset.length > 0) {
                 const order = orderResult.recordset[0];
@@ -2171,7 +2293,7 @@ app.post('/api/payos/webhook', async (req, res) => {
 
                 // System Notification for customer
                 await createNotification(
-                    order.customerPhone, 
+                    order.userId, 
                     "Thanh toán thành công", 
                     `Đơn hàng #${orderIdStr} đã được thanh toán thành công qua PayOS! Nhân viên đang chuẩn bị món ăn.`, 
                     "order"
@@ -2181,16 +2303,16 @@ app.post('/api/payos/webhook', async (req, res) => {
                 await createNotification(
                     "ADMIN", 
                     "Thanh toán đơn hàng", 
-                    `Đơn hàng #${orderIdStr} từ ${order.customerPhone} đã được thanh toán thành công qua PayOS`, 
+                    `Đơn hàng #${orderIdStr} từ ${order.userId} đã được thanh toán thành công qua PayOS`, 
                     "order"
                 );
                 
                 // Log activity
-                await createLog(order.customerPhone, 'PAYOS_PAYMENT_SUCCESS', `Thanh toán thành công ${order.totalPrice}đ cho đơn hàng #${orderIdStr}`);
+                await createLog(order.userId, 'PAYOS_PAYMENT_SUCCESS', `Thanh toán thành công ${order.totalPrice}đ cho đơn hàng #${orderIdStr}`);
                 
                 // Send email confirmation
                 const userResult = await pool.request()
-                    .input('phone', sql.NVarChar, order.customerPhone)
+                    .input('phone', sql.NVarChar, order.userId)
                     .query('SELECT email FROM Users WHERE phone = @phone');
                 
                 if (userResult.recordset.length > 0 && userResult.recordset[0].email) {
@@ -2255,7 +2377,7 @@ app.put('/api/contacts/:id/status', authenticateToken, isAdmin, async (req, res)
         const { id } = req.params;
         const { status } = req.body;
         await pool.request()
-            .input('id', sql.Int, id)
+            .input('id', sql.UniqueIdentifier, id)
             .input('status', sql.Int, status)
             .query('UPDATE Contacts SET status = @status WHERE id = @id');
         res.json({ success: true });
@@ -2272,7 +2394,7 @@ app.post('/api/contacts/:id/reply', authenticateToken, isAdmin, async (req, res)
         
         // 1. Get contact info
         const result = await pool.request()
-            .input('id', sql.Int, id)
+            .input('id', sql.UniqueIdentifier, id)
             .query('SELECT * FROM Contacts WHERE id = @id');
             
         if (result.recordset.length === 0) {
@@ -2286,7 +2408,7 @@ app.post('/api/contacts/:id/reply', authenticateToken, isAdmin, async (req, res)
         
         // 3. Update status to Replied (2)
         await pool.request()
-            .input('id', sql.Int, id)
+            .input('id', sql.UniqueIdentifier, id)
             .query('UPDATE Contacts SET status = 2 WHERE id = @id');
             
         res.json({ success: true, message: 'Đã gửi phản hồi thành công' });
@@ -2301,7 +2423,7 @@ app.delete('/api/contacts/:id', authenticateToken, isAdmin, async (req, res) => 
     try {
         const { id } = req.params;
         await pool.request()
-            .input('id', sql.Int, id)
+            .input('id', sql.UniqueIdentifier, id)
             .query('DELETE FROM Contacts WHERE id = @id');
         res.json({ success: true });
     } catch (error) {
@@ -2314,10 +2436,10 @@ app.delete('/api/contacts/:id', authenticateToken, isAdmin, async (req, res) => 
 // Lấy danh sách yêu thích
 app.get('/api/favorites', authenticateToken, async (req, res) => {
     try {
-        const userPhone = req.user.phone;
+        const userId = req.user.id;
         const result = await pool.request()
-            .input('userPhone', sql.NVarChar, userPhone)
-            .query('SELECT productId FROM Favorites WHERE userPhone = @userPhone');
+            .input('userId', sql.NVarChar, userId)
+            .query('SELECT productId FROM Favorites WHERE userId = @userId');
         
         const favorites = result.recordset.map(row => row.productId);
         res.json(favorites);
@@ -2330,17 +2452,17 @@ app.get('/api/favorites', authenticateToken, async (req, res) => {
 // Thêm vào yêu thích
 app.post('/api/favorites', authenticateToken, async (req, res) => {
     try {
-        const userPhone = req.user.phone;
+        const userId = req.user.id;
         const { productId } = req.body;
         if (!productId) return res.status(400).json({ success: false, message: 'Thiếu productId' });
 
         await pool.request()
-            .input('userPhone', sql.NVarChar, userPhone)
+            .input('userId', sql.NVarChar, userId)
             .input('productId', sql.NVarChar, productId.toString())
             .query(`
-                IF NOT EXISTS (SELECT 1 FROM Favorites WHERE userPhone = @userPhone AND productId = @productId)
+                IF NOT EXISTS (SELECT 1 FROM Favorites WHERE userId = @userId AND productId = @productId)
                 BEGIN
-                    INSERT INTO Favorites (userPhone, productId) VALUES (@userPhone, @productId)
+                    INSERT INTO Favorites (userId, productId) VALUES (@userId, @productId)
                 END
             `);
         
@@ -2354,13 +2476,13 @@ app.post('/api/favorites', authenticateToken, async (req, res) => {
 // Xóa khỏi yêu thích
 app.delete('/api/favorites/:productId', authenticateToken, async (req, res) => {
     try {
-        const userPhone = req.user.phone;
+        const userId = req.user.id;
         const { productId } = req.params;
 
         await pool.request()
-            .input('userPhone', sql.NVarChar, userPhone)
+            .input('userId', sql.NVarChar, userId)
             .input('productId', sql.NVarChar, productId.toString())
-            .query('DELETE FROM Favorites WHERE userPhone = @userPhone AND productId = @productId');
+            .query('DELETE FROM Favorites WHERE userId = @userId AND productId = @productId');
             
         res.json({ success: true, message: 'Đã xóa khỏi yêu thích' });
     } catch (error) {
@@ -2399,7 +2521,7 @@ app.get('/api/chat/history', authenticateToken, isAdmin, async (req, res) => {
 app.get('/api/chat/history/:sessionId', authenticateToken, isAdmin, async (req, res) => {
     try {
         const result = await pool.request()
-            .input('sessionId', sql.Int, req.params.sessionId)
+            .input('sessionId', sql.UniqueIdentifier, req.params.sessionId)
             .query('SELECT * FROM ChatMessages WHERE sessionId = @sessionId ORDER BY timestamp ASC');
         res.json(result.recordset);
     } catch (error) {
@@ -2412,7 +2534,7 @@ app.get('/api/chat/history/:sessionId', authenticateToken, isAdmin, async (req, 
 app.delete('/api/chat/history/:sessionId', authenticateToken, isAdmin, async (req, res) => {
     try {
         await pool.request()
-            .input('sessionId', sql.Int, req.params.sessionId)
+            .input('sessionId', sql.UniqueIdentifier, req.params.sessionId)
             .query('DELETE FROM ChatSessions WHERE id = @sessionId'); // Cascade will delete messages
         res.json({ success: true, message: 'Đã xóa phiên chat' });
     } catch (error) {
@@ -2469,7 +2591,7 @@ ${(topProducts || []).map((p, i) => `${i+1}. ${p.title} (Bán: ${p.qty} - Thu: $
 app.post('/api/push/subscribe', authenticateToken, async (req, res) => {
     try {
         const { subscription } = req.body;
-        const userPhone = req.user.phone;
+        const userId = req.user.id;
         
         if (!subscription || !subscription.endpoint) {
             return res.status(400).json({ success: false, message: 'Invalid subscription object' });
@@ -2482,13 +2604,13 @@ app.post('/api/push/subscribe', authenticateToken, async (req, res) => {
             
         if (checkSub.recordset.length === 0) {
             await pool.request()
-                .input('userPhone', sql.VarChar, userPhone)
+                .input('userId', sql.UniqueIdentifier, userId)
                 .input('endpoint', sql.NVarChar, subscription.endpoint)
                 .input('p256dh', sql.NVarChar, subscription.keys.p256dh)
                 .input('auth', sql.NVarChar, subscription.keys.auth)
                 .query(`
-                    INSERT INTO PushSubscriptions (userPhone, endpoint, p256dh, auth)
-                    VALUES (@userPhone, @endpoint, @p256dh, @auth)
+                    INSERT INTO PushSubscriptions (userId, endpoint, p256dh, auth)
+                    VALUES (@userId, @endpoint, @p256dh, @auth)
                 `);
         }
         res.status(201).json({ success: true, message: 'Subscribed to push notifications' });
@@ -2612,7 +2734,7 @@ app.get('/api/admin/news', authenticateToken, isAdmin, async (req, res) => {
 app.get('/api/news/:id', async (req, res) => {
     try {
         const result = await pool.request()
-            .input('id', sql.Int, req.params.id)
+            .input('id', sql.UniqueIdentifier, req.params.id)
             .query('SELECT * FROM News WHERE id = @id');
         if (result.recordset.length === 0) return res.status(404).json({ success: false, message: 'Không tìm thấy' });
         res.json({ success: true, data: result.recordset[0] });
@@ -2646,7 +2768,7 @@ app.put('/api/admin/news/:id', authenticateToken, isAdmin, async (req, res) => {
     try {
         const { title, thumbnail, content, author, status } = req.body;
         await pool.request()
-            .input('id', sql.Int, req.params.id)
+            .input('id', sql.UniqueIdentifier, req.params.id)
             .input('title', sql.NVarChar, title)
             .input('thumbnail', sql.NVarChar, thumbnail)
             .input('content', sql.NVarChar, content)
@@ -2668,7 +2790,7 @@ app.put('/api/admin/news/:id', authenticateToken, isAdmin, async (req, res) => {
 app.delete('/api/admin/news/:id', authenticateToken, isAdmin, async (req, res) => {
     try {
         await pool.request()
-            .input('id', sql.Int, req.params.id)
+            .input('id', sql.UniqueIdentifier, req.params.id)
             .query('DELETE FROM News WHERE id = @id');
         res.json({ success: true, message: 'Xóa thành công' });
     } catch (error) {

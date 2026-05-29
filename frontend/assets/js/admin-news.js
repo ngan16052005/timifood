@@ -46,8 +46,8 @@ function renderNewsTable(data) {
                 <td>${dateStr}</td>
                 <td>${statusBadge}</td>
                 <td>
-                    <button class="btn-edit" onclick="editNews(${item.id})" title="Chỉnh sửa"><i class="fa-light fa-pen-to-square"></i></button>
-                    <button class="btn-delete" onclick="deleteNews(${item.id})" title="Xóa"><i class="fa-light fa-trash"></i></button>
+                    <button class="btn-edit" onclick="editNews('${item.id}')" title="Chỉnh sửa"><i class="fa-light fa-pen-to-square"></i></button>
+                    <button class="btn-delete" onclick="deleteNews('${item.id}')" title="Xóa"><i class="fa-light fa-trash"></i></button>
                 </td>
             </tr>
         `;

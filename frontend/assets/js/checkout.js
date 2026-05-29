@@ -216,9 +216,9 @@ async function showProductCart() {
                 <div class="bill-product-info">
                     <div class="bill-product-name">${detaiSP.title}</div>
                     <div class="checkout-product-qty">
-                        <button class="checkout-qty-btn" onclick="changeQtyCheckout(${index}, -1)"><i class="fa-regular fa-minus"></i></button>
+                        <button class="checkout-qty-btn" onclick="changeQtyCheckout('${index}', -1)"><i class="fa-regular fa-minus"></i></button>
                         <input class="checkout-qty-input" type="text" value="${item.soluong}" readonly>
-                        <button class="checkout-qty-btn" onclick="changeQtyCheckout(${index}, 1)"><i class="fa-regular fa-plus"></i></button>
+                        <button class="checkout-qty-btn" onclick="changeQtyCheckout('${index}', 1)"><i class="fa-regular fa-plus"></i></button>
                     </div>
                     <div class="bill-product-price">${vnd(detaiSP.price * item.soluong)}</div>
                 </div>
@@ -254,7 +254,7 @@ window.changeQtyCheckout = async function (index, delta) {
     if (currentUser) {
         currentUser.cart = cart;
         localStorage.setItem('currentuser', JSON.stringify(currentUser));
-        await window.api.updateCart(currentUser.phone, cart);
+        await window.api.updateCart(cart);
     }
 
     // Refresh UI
@@ -350,7 +350,7 @@ async function closecheckout() {
         if (currentUser) {
             currentUser.cart = JSON.parse(cartBackup);
             localStorage.setItem('currentuser', JSON.stringify(currentUser));
-            await window.api.updateCart(currentUser.phone, currentUser.cart);
+            await window.api.updateCart(currentUser.cart);
         } else {
             localStorage.setItem('cart', cartBackup);
         }
@@ -596,8 +596,8 @@ async function xulyDathang(product) {
     let giaovaogio = document.querySelector("#deliverytime");
     let currentUser = localStorage.getItem('currentuser') ? JSON.parse(localStorage.getItem('currentuser')) : null;
 
-    if (!currentUser) {
-        toast({ title: 'Cảnh báo', message: 'Vui lòng đăng nhập để đặt hàng!', type: 'warning', duration: 3000 });
+    if (!currentUser || !currentUser.id) {
+        toast({ title: 'Cảnh báo', message: 'Phiên đăng nhập đã hết hạn. Vui lòng đăng xuất và đăng nhập lại!', type: 'warning', duration: 4000 });
         return;
     }
 
@@ -694,7 +694,7 @@ async function xulyDathang(product) {
     let paymentMethod = paymentActive ? paymentActive.getAttribute('data-payment') : 'cash';
 
     let donhang = {
-        khachhang: currentUser.phone,
+        khachhang: currentUser.id,
         hinhthucgiao: hinhthucgiao,
         ngaygiaohang: pickDateActive ? pickDateActive.getAttribute("data-date") : "",
         thoigiangiao: thoigiangiao,
@@ -726,7 +726,7 @@ async function xulyDathang(product) {
                     currentUserObj.cart = [];
                     localStorage.setItem('currentuser', JSON.stringify(currentUserObj));
                     if (typeof updateCartCount === 'function') updateCartCount();
-                    try { await window.api.updateCart(currentUserObj.phone, []); } catch (e) { }
+                    try { await window.api.updateCart([]); } catch (e) { }
                 }
             } else {
                 toast({ title: 'Lỗi', message: result.message || 'Lỗi khi tạo đơn hàng!', type: 'error', duration: 3000 });
@@ -758,8 +758,14 @@ async function xulyDathang(product) {
                     duration: 3000
                 });
             } else {
-                // Đối với đặt hàng mới, hệ thống Notification sẽ tự động hiển thị Toast "Đơn hàng mới"
-                // Chúng ta chỉ cần ép buộc đồng bộ ngay lập tức để Toast hiện ra nhanh hơn
+                toast({
+                    title: 'Thành công',
+                    message: 'Đặt hàng thành công!',
+                    type: 'success',
+                    duration: 3000
+                });
+                
+                // Đồng bộ Notifications để cập nhật danh sách thông báo nếu có
                 if (typeof syncNotificationsFromServer === 'function') {
                     syncNotificationsFromServer();
                 }
@@ -777,7 +783,7 @@ async function xulyDathang(product) {
                 currentUser.cart = [];
                 localStorage.setItem('currentuser', JSON.stringify(currentUser));
                 // Đồng bộ giỏ hàng trống lên server
-                try { await window.api.updateCart(currentUser.phone, []); } catch (e) { }
+                try { await window.api.updateCart([]); } catch (e) { }
             }
 
             // Cập nhật lại số lượng giỏ hàng trên icon

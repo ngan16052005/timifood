@@ -171,7 +171,7 @@ async function detailProduct(index) {
                     <span class="star" data-value="5"><i class="fa-regular fa-star"></i></span>
                 </div>
                 <textarea id="review-comment" placeholder="Chia sẻ cảm nhận của bạn về món ăn này..."></textarea>
-                <button id="submit-review-btn" onclick="handleReviewSubmit(${infoProduct.id})">Gửi đánh giá</button>
+                <button id="submit-review-btn" onclick="handleReviewSubmit('${infoProduct.id}')">Gửi đánh giá</button>
             ` : `
                 <div class="guest-review-notice">
                     <p>Vui lòng <a href="javascript:;" onclick="openLoginModal()">đăng nhập</a> để đánh giá món ăn này.</p>
@@ -328,6 +328,7 @@ function animationCart() {
 // Them SP vao gio hang
 async function addCart(index) {
     let currentuser = localStorage.getItem('currentuser') ? JSON.parse(localStorage.getItem('currentuser')) : null;
+    if (currentuser && !currentuser.cart) currentuser.cart = [];
 
     let soluongInput = document.querySelector('.product-control .input-qty');
     let soluong = soluongInput ? soluongInput.value : 1;
@@ -349,7 +350,7 @@ async function addCart(index) {
         }
 
         try {
-            await window.api.updateCart(currentuser.phone, currentuser.cart);
+            await window.api.updateCart(currentuser.cart);
             localStorage.setItem('currentuser', JSON.stringify(currentuser));
             updateAmount();
             closeModal();
@@ -376,6 +377,7 @@ async function addCart(index) {
 //Show gio hang
 async function showCart() {
     let currentuser = localStorage.getItem('currentuser') ? JSON.parse(localStorage.getItem('currentuser')) : null;
+    if (currentuser && !currentuser.cart) currentuser.cart = [];
     let guestCart = localStorage.getItem('cart') ? JSON.parse(localStorage.getItem('cart')) : [];
     let cartToRender = currentuser ? currentuser.cart : guestCart;
 
@@ -399,7 +401,7 @@ async function showCart() {
                 </div>
                 <p class="product-note"><i class="fa-light fa-pencil"></i><span>${product.note}</span></p>
                 <div class="cart-item-control">
-                    <button class="cart-item-delete" onclick="deleteCartItem(${product.id},this)">Xóa</button>
+                    <button class="cart-item-delete" onclick="deleteCartItem('${product.id}',this)">Xóa</button>
                     <div class="buttons_added">
                         <input class="minus is-form" type="button" value="-" onclick="decreasingNumber(this)">
                         <input class="input-qty" max="100" min="1" name="" type="number" value="${product.soluong}">
@@ -453,12 +455,13 @@ async function showCart() {
 async function deleteCartItem(id, el) {
     let cartParent = el.parentNode.parentNode;
     let currentUser = localStorage.getItem('currentuser') ? JSON.parse(localStorage.getItem('currentuser')) : null;
+    if (currentUser && !currentUser.cart) currentUser.cart = [];
 
     if (currentUser) {
         let vitri = currentUser.cart.findIndex(item => item.id == id);
         currentUser.cart.splice(vitri, 1);
         try {
-            await window.api.updateCart(currentUser.phone, currentUser.cart);
+            await window.api.updateCart(currentUser.cart);
             localStorage.setItem('currentuser', JSON.stringify(currentUser));
         } catch (error) {
             toast({ title: 'Lỗi', message: 'Không thể cập nhật giỏ hàng!', type: 'error', duration: 3000 });
@@ -491,7 +494,7 @@ async function updateCartTotal() {
 async function getCartTotal() {
     let currentUser = localStorage.getItem('currentuser') ? JSON.parse(localStorage.getItem('currentuser')) : null;
     let guestCart = localStorage.getItem('cart') ? JSON.parse(localStorage.getItem('cart')) : [];
-    let cart = currentUser ? currentUser.cart : guestCart;
+    let cart = currentUser ? (currentUser.cart || []) : guestCart;
 
     let tongtien = 0;
     if (cart.length > 0) {
@@ -546,13 +549,13 @@ function saveAmountCart() {
     cartAmountbtn.forEach((btn, index) => {
         btn.addEventListener('click', async () => {
             let id = listProduct[parseInt(index / 2)].getAttribute("data-id");
-            let cart = currentUser ? currentUser.cart : JSON.parse(localStorage.getItem('cart'));
+            let cart = currentUser ? (currentUser.cart || []) : JSON.parse(localStorage.getItem('cart'));
             let productId = cart.find(item => item.id == id);
             productId.soluong = parseInt(listProduct[parseInt(index / 2)].querySelector(".input-qty").value);
 
             if (currentUser) {
                 try {
-                    await window.api.updateCart(currentUser.phone, currentUser.cart);
+                    await window.api.updateCart(currentUser.cart);
                     localStorage.setItem('currentuser', JSON.stringify(currentUser));
                 } catch (error) {
                     console.error("Cart sync error:", error);
@@ -1084,7 +1087,7 @@ function kiemtradangnhap() {
 
         // Đăng ký nhận thông báo đẩy (Web Push)
         if (window.api && window.api.subscribePushNotification) {
-            window.api.subscribePushNotification();
+            window.api.subscribePushNotification(true);
         }
     }
 }
@@ -1274,7 +1277,7 @@ async function renderOrderProduct() {
     let orderHtml = `<div class="order-history-group">`;
     try {
         const orders = await window.api.getOrders();
-        let arrDonHang = orders.filter(o => o.khachhang === currentUser.phone);
+        let arrDonHang = orders.filter(o => o.khachhang === currentUser.id);
         const products = await window.api.getProducts();
 
         // Tính tổng chi tiêu (trạng thái = 2 là Hoàn thành)
@@ -1687,15 +1690,15 @@ function renderProducts(showProduct) {
             productHtml += `<div class="col-product">
             <article class="card-product" >
                 <div class="card-header" style="position: relative;">
-                    <a href="#" class="card-image-link" onclick="detailProduct(${product.id})">
+                    <a href="#" class="card-image-link" onclick="detailProduct('${product.id}')">
                     <img class="card-image" src="${product.img}" alt="${product.title}" loading="lazy">
                     </a>
-                    <button class="btn-favorite" onclick="toggleFavorite(${product.id}, event, this)" style="position: absolute; top: 10px; right: 10px; background: rgba(255, 255, 255, 0.9); border: none; border-radius: 50%; width: 35px; height: 35px; cursor: pointer; box-shadow: 0 2px 10px rgba(0,0,0,0.1); z-index: 2; transition: all 0.3s; display: flex; align-items: center; justify-content: center; font-size: 1.1rem;">${favIcon}</button>
+                    <button class="btn-favorite" onclick="toggleFavorite('${product.id}', event, this)" style="position: absolute; top: 10px; right: 10px; background: rgba(255, 255, 255, 0.9); border: none; border-radius: 50%; width: 35px; height: 35px; cursor: pointer; box-shadow: 0 2px 10px rgba(0,0,0,0.1); z-index: 2; transition: all 0.3s; display: flex; align-items: center; justify-content: center; font-size: 1.1rem;">${favIcon}</button>
                 </div>
                 <div class="food-info">
                     <div class="card-content">
                         <div class="card-title">
-                            <a href="#" class="card-title-link" onclick="detailProduct(${product.id})">${product.title}</a>
+                            <a href="#" class="card-title-link" onclick="detailProduct('${product.id}')">${product.title}</a>
                         </div>
                         <div class="card-rating">
                             ${renderStars(product.avgRating)}
@@ -1707,7 +1710,7 @@ function renderProducts(showProduct) {
                             <span class="current-price">${vnd(product.price)}</span>
                         </div>
                     <div class="product-buy">
-                        <button onclick="detailProduct(${product.id})" class="card-button order-item"><i class="fa-regular fa-cart-shopping-fast"></i> Đặt món</button>
+                        <button onclick="detailProduct('${product.id}')" class="card-button order-item"><i class="fa-regular fa-cart-shopping-fast"></i> Đặt món</button>
                     </div> 
                 </div>
                 </div>
@@ -1939,12 +1942,15 @@ function startUserNotifications() {
     // Setup Socket.io real-time notification listener
     if (typeof io !== 'undefined') {
         if (!userSocket) {
-            console.log('[Socket] Initializing Socket.io for user:', currentUser.phone);
+            console.log('[Socket] Initializing Socket.io for user:', currentUser.id);
             userSocket = io({ transports: ['websocket'] });
 
             userSocket.on('connect', () => {
-                console.log('[Socket] Connected to server, joining room userRoom_' + currentUser.phone);
-                userSocket.emit('joinUser', currentUser.phone);
+                console.log('[Socket] Connected to server, joining rooms for ID and Phone');
+                userSocket.emit('joinUser', currentUser.id);
+                if (currentUser.phone) {
+                    userSocket.emit('joinUser', currentUser.phone);
+                }
             });
 
             userSocket.on('userNotification', async (noti) => {
@@ -2051,7 +2057,7 @@ function updateNotificationUI() {
 
 
     listEl.innerHTML = notifications.map(n => `
-        <li class="notification-item ${n.unread ? 'unread' : ''}" onclick="markAsRead(${n.id})">
+        <li class="notification-item ${n.unread ? 'unread' : ''}" onclick="markAsRead('${n.id}')">
             <span class="notification-title">${n.title}</span>
             <span class="notification-msg">${n.message}</span>
             <span class="notification-time">${n.time}</span>
@@ -2240,15 +2246,15 @@ async function renderFavorites() {
         productHtml += `<div class="col-product" style="width: 100%">
         <article class="card-product" >
             <div class="card-header" style="position: relative;">
-                <a href="#" class="card-image-link" onclick="detailProduct(${product.id})">
+                <a href="#" class="card-image-link" onclick="detailProduct('${product.id}')">
                 <img class="card-image" src="${product.img}" alt="${product.title}" loading="lazy">
                 </a>
-                <button class="btn-favorite" onclick="toggleFavorite(${product.id}, event, this)" style="position: absolute; top: 10px; right: 10px; background: rgba(255, 255, 255, 0.9); border: none; border-radius: 50%; width: 35px; height: 35px; cursor: pointer; box-shadow: 0 2px 10px rgba(0,0,0,0.1); z-index: 2; display: flex; align-items: center; justify-content: center; font-size: 1.1rem;">${favIcon}</button>
+                <button class="btn-favorite" onclick="toggleFavorite('${product.id}', event, this)" style="position: absolute; top: 10px; right: 10px; background: rgba(255, 255, 255, 0.9); border: none; border-radius: 50%; width: 35px; height: 35px; cursor: pointer; box-shadow: 0 2px 10px rgba(0,0,0,0.1); z-index: 2; display: flex; align-items: center; justify-content: center; font-size: 1.1rem;">${favIcon}</button>
             </div>
             <div class="food-info">
                 <div class="card-content">
                     <div class="card-title">
-                        <a href="#" class="card-title-link" onclick="detailProduct(${product.id})">${product.title}</a>
+                        <a href="#" class="card-title-link" onclick="detailProduct('${product.id}')">${product.title}</a>
                     </div>
                     <div class="card-rating">
                         ${renderStars(product.avgRating)}
@@ -2260,7 +2266,7 @@ async function renderFavorites() {
                         <span class="current-price">${vnd(product.price)}</span>
                     </div>
                 <div class="product-buy">
-                    <button onclick="detailProduct(${product.id})" class="card-button order-item"><i class="fa-regular fa-cart-shopping-fast"></i> Đặt món</button>
+                    <button onclick="detailProduct('${product.id}')" class="card-button order-item"><i class="fa-regular fa-cart-shopping-fast"></i> Đặt món</button>
                 </div> 
             </div>
             </div>
@@ -2532,7 +2538,7 @@ async function showNewsSection() {
         globalNewsList.forEach(item => {
             const dateStr = new Date(item.createdAt).toLocaleDateString('vi-VN');
             html += `
-                <div class="news-card" style="background: #fff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.05); cursor: pointer; transition: transform 0.3s ease, box-shadow 0.3s ease;" onclick="readNews(${item.id})" onmouseover="this.style.transform='translateY(-5px)'; this.style.boxShadow='0 10px 25px rgba(0,0,0,0.1)';" onmouseout="this.style.transform='none'; this.style.boxShadow='0 4px 15px rgba(0,0,0,0.05)';">
+                <div class="news-card" style="background: #fff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.05); cursor: pointer; transition: transform 0.3s ease, box-shadow 0.3s ease;" onclick="readNews('${item.id}')" onmouseover="this.style.transform='translateY(-5px)'; this.style.boxShadow='0 10px 25px rgba(0,0,0,0.1)';" onmouseout="this.style.transform='none'; this.style.boxShadow='0 4px 15px rgba(0,0,0,0.05)';">
                     <img src="${item.thumbnail}" alt="" style="width: 100%; height: 200px; object-fit: cover;" onerror="this.src='./assets/img/blank-image.png'">
                     <div class="news-card-body" style="padding: 20px;">
                         <h3 style="font-size: 1.1rem; color: #1e293b; margin-bottom: 10px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; text-overflow: ellipsis; line-height: 1.4;">${item.title}</h3>
@@ -2600,7 +2606,7 @@ async function syncCartOnLogin(user) {
         });
         // Update server with merged cart
         try {
-            await window.api.updateCart(user.phone, serverCart);
+            await window.api.updateCart(serverCart);
         } catch (e) {
             console.error("Failed to sync cart to server:", e);
         }

@@ -19,23 +19,38 @@ const hideLoader = () => {
 };
 
 window.api = {
-    subscribePushNotification: async () => {
+    subscribePushNotification: async (silent = false) => {
+        let loadingToast = null;
         try {
+            if (!silent && typeof toast !== 'undefined') {
+                loadingToast = toast({ title: 'Đang xử lý', message: 'Đang đăng ký thông báo đẩy...', type: 'info', duration: 10000 });
+            }
+            const token = localStorage.getItem('token');
+            if (!token) {
+                if (!silent && typeof toast !== 'undefined') toast({ title: 'Lỗi', message: 'Vui lòng đăng nhập để nhận thông báo.', type: 'warning', duration: 3000 });
+                return;
+            }
+
             if (!('serviceWorker' in navigator)) {
-                if (typeof toast !== 'undefined') toast({ title: 'Lỗi', message: 'Trình duyệt không hỗ trợ Service Worker. Vui lòng dùng Chrome/Edge/Safari mới nhất.', type: 'error', duration: 4000 });
+                if (!silent && typeof toast !== 'undefined') toast({ title: 'Lỗi', message: 'Trình duyệt không hỗ trợ Service Worker.', type: 'error', duration: 4000 });
                 return;
             }
             if (!('PushManager' in window)) {
-                if (typeof toast !== 'undefined') toast({ title: 'Lỗi', message: 'Trình duyệt không hỗ trợ Push Notifications hoặc bạn đang không dùng HTTPS/localhost.', type: 'error', duration: 5000 });
+                if (!silent && typeof toast !== 'undefined') toast({ title: 'Lỗi', message: 'Trình duyệt không hỗ trợ Push Notifications hoặc bạn đang không dùng HTTPS.', type: 'error', duration: 5000 });
                 return;
             }
             
-            const registration = await navigator.serviceWorker.ready;
+            let registration = await navigator.serviceWorker.getRegistration();
+            if (!registration) {
+                registration = await navigator.serviceWorker.register('./sw.js');
+                await navigator.serviceWorker.ready;
+            }
+
             let subscription = await registration.pushManager.getSubscription();
             if (!subscription) {
                 const permission = await Notification.requestPermission();
                 if (permission !== 'granted') {
-                    if (typeof toast !== 'undefined') toast({ title: 'Cảnh báo', message: 'Bạn đã chặn quyền hiển thị thông báo. Hãy mở khóa trong cài đặt trình duyệt.', type: 'warning', duration: 5000 });
+                    if (!silent && typeof toast !== 'undefined') toast({ title: 'Cảnh báo', message: 'Bạn đã chặn quyền hiển thị thông báo. Hãy mở khóa trong cài đặt trình duyệt.', type: 'warning', duration: 5000 });
                     return;
                 }
 
@@ -43,7 +58,7 @@ window.api = {
                 const response = await fetch(`${BASE_URL}/push/public-key`);
                 const data = await response.json();
                 if (!data.publicKey) {
-                    if (typeof toast !== 'undefined') toast({ title: 'Lỗi', message: 'Không thể lấy Public Key từ Server.', type: 'error', duration: 4000 });
+                    if (!silent && typeof toast !== 'undefined') toast({ title: 'Lỗi', message: 'Không thể lấy Public Key từ Server.', type: 'error', duration: 4000 });
                     return;
                 }
                 
@@ -61,9 +76,8 @@ window.api = {
                     applicationServerKey: outputArray
                 });
             }
+            
             // Gửi subscription lên server
-            const token = localStorage.getItem('token');
-            if (!token) return;
             await fetch(`${BASE_URL}/push/subscribe`, {
                 method: 'POST',
                 headers: {
@@ -73,13 +87,17 @@ window.api = {
                 body: JSON.stringify({ subscription })
             });
             console.log('Push notification subscribed successfully');
-            if (typeof toast !== 'undefined') {
+            if (!silent && typeof toast !== 'undefined') {
                 toast({ title: 'Thành công', message: 'Đã bật thông báo đẩy! Bạn sẽ nhận được thông báo khi đơn hàng cập nhật.', type: 'success', duration: 4000 });
             }
         } catch (error) {
             console.error('Lỗi khi đăng ký push notification:', error);
             if (typeof toast !== 'undefined') {
-                toast({ title: 'Thất bại', message: 'Không thể bật thông báo. Vui lòng kiểm tra quyền trên trình duyệt.', type: 'error', duration: 4000 });
+                toast({ title: 'Thất bại', message: 'Không thể bật thông báo. Lỗi: ' + error.message, type: 'error', duration: 4000 });
+            }
+        } finally {
+            if (loadingToast && loadingToast.parentNode) {
+                loadingToast.parentNode.removeChild(loadingToast);
             }
         }
     },
@@ -501,9 +519,9 @@ window.api = {
     },
 
     // --- Cart Synchronization APIs ---
-    getCart: async (phone) => {
+    getCart: async () => {
         try {
-            const response = await fetch(`${BASE_URL}/cart/${phone}`, {
+            const response = await fetch(`${BASE_URL}/cart`, {
                 headers: getHeaders()
             });
             if (!response.ok) {
@@ -517,9 +535,9 @@ window.api = {
         }
     },
 
-    updateCart: async (phone, cartData) => {
+    updateCart: async (cartData) => {
         try {
-            const response = await fetch(`${BASE_URL}/cart/${phone}`, {
+            const response = await fetch(`${BASE_URL}/cart`, {
                 method: 'POST',
                 headers: getHeaders(),
                 body: JSON.stringify(cartData)

@@ -984,6 +984,21 @@ header {
     border: 2px solid var(--red);
 }
 
+.modal-cart {
+    background-color: rgba(0, 0, 0, .6);
+    position: fixed;
+    top: 0;
+    right: 0;
+    left: 0;
+    bottom: 0;
+    z-index: 1001;
+    display: flex;
+    align-items: center;
+    flex-direction: row;
+    justify-content: flex-end;
+    visibility: hidden;
+}
+
 /*Modal Box*/
 .modal {
     background-color: rgba(0, 0, 0, .6);
@@ -1387,7 +1402,7 @@ label a {
     right: 0;
     left: 0;
     bottom: 0;
-    z-index: 16;
+    z-index: 1001;
     display: flex;
     align-items: center;
     flex-direction: row;

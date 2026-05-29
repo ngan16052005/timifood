@@ -143,7 +143,7 @@ function updateAdminNotificationUI() {
     }
     
     list.innerHTML = adminNotifications.map(noti => `
-        <li class="admin-noti-item ${noti.read ? '' : 'unread'}" onclick="markAsRead(${noti.id})">
+        <li class="admin-noti-item ${noti.read ? '' : 'unread'}" onclick="markAsRead('${noti.id}')">
             <span class="admin-noti-title">${noti.title}</span>
             <span class="admin-noti-msg">${noti.message}</span>
             <span class="admin-noti-time">${noti.time}</span>

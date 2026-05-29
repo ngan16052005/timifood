@@ -363,9 +363,9 @@ Dưới đây là danh sách đầy đủ các hạng mục đã hoàn thiện t
 - [ ] **Hạng thành viên:** Phân cấp Đồng, Bạc, Vàng, Kim Cương kèm ưu đãi tự động.
 - [ ] **Đổi điểm lấy quà/Voucher:** Giao diện cho phép người dùng đổi voucher hoặc trừ thẳng tiền vào hóa đơn.
 
-### 📈 Giai đoạn 40: Quản lý Kho nâng cao & Phân tích nguyên liệu (Advanced Inventory)
-- [ ] **Cảnh báo tồn kho tự động:** Đặt ngưỡng `Min Stock`. Tự động báo Notification/Email khi sắp hết.
-- [ ] **Quản lý biến động kho:** Biểu đồ hiển thị tốc độ tiêu thụ của từng món ăn trong tuần.
+### 📈 Giai đoạn 40: Quản lý Kho nâng cao & Phân tích nguyên liệu (Advanced Inventory) (HOÀN THÀNH)
+- [x] **Cảnh báo tồn kho tự động:** Đặt ngưỡng `Min Stock`. Tự động báo Notification/Email khi sắp hết.
+- [x] **Quản lý biến động kho:** Biểu đồ hiển thị tốc độ tiêu thụ của từng món ăn trong tuần.
 
 ### 📱 Giai đoạn 41: Ứng dụng PWA (Progressive Web App) & Push Notifications (HOÀN THÀNH)
 - [x] **Cài đặt App không qua Store:** Cài đặt website TiMiFood như một ứng dụng Native.
@@ -376,8 +376,8 @@ Dưới đây là danh sách đầy đủ các hạng mục đã hoàn thiện t
 - [ ] **Tương tác Đánh giá:** Admin có quyền **Phản hồi (Reply)** lại bình luận.
 
 ### 🚀 Giai đoạn 43: Tối ưu Hiệu năng & Bảo mật (Performance & Security)
-- [ ] **Sử dụng Redis Caching:** Cache danh sách món ăn, danh mục giảm tải Server.
-- [ ] **Rate Limiting Nâng cao:** Ngăn chặn Spam và DDoS bảo vệ ứng dụng.
+- [x] **Sử dụng In-memory Caching (Node-Cache):** Cache danh sách món ăn, danh mục giảm tải Server (Thay thế cho Redis để tối ưu triển khai).
+- [x] **Rate Limiting Nâng cao:** Ngăn chặn Spam và DDoS bảo vệ ứng dụng (Đã sử dụng express-rate-limit).
 
 ---
 *Cập nhật lần cuối: 28/05/2026 bởi thaingan & AI Assistant.*

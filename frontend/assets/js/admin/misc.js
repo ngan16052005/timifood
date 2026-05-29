@@ -36,7 +36,7 @@ async function showReviews() {
                     <td title="${commentText}">${commentText.length > 50 ? commentText.substring(0, 50) + '...' : commentText}</td>
                     <td>${displayDate}</td>
                     <td class="control">
-                        <button class="btn-delete" onclick="deleteReviewAdmin(${r.id})">
+                        <button class="btn-delete" onclick="deleteReviewAdmin('${r.id}')">
                             <i class="fa-regular fa-trash"></i> Xóa
                         </button>
                     </td>
@@ -90,6 +90,7 @@ async function showStockHistory() {
             });
         }
         document.getElementById("show-stock-history").innerHTML = html;
+        await loadInventoryStats();
     } catch (error) {
         console.error("Show stock history error:", error);
     }
@@ -126,7 +127,7 @@ async function submitStockIn() {
 
     try {
         await window.api.stockIn({
-            productId: parseInt(productId),
+            productId: productId,
             quantity: parseInt(quantity),
             note: note
         });
@@ -149,10 +150,10 @@ async function showCategories() {
                     <td>${cat.id}</td>
                     <td>${cat.name}</td>
                     <td>
-                        <button class="btn-edit" onclick="openEditCategoryModal(${cat.id}, '${cat.name}')">
+                        <button class="btn-edit" onclick="openEditCategoryModal('${cat.id}', '${cat.name}')">
                             <i class="fa-light fa-pen-to-square"></i>
                         </button>
-                        <button class="btn-delete" onclick="deleteCategory(${cat.id})">
+                        <button class="btn-delete" onclick="deleteCategory('${cat.id}')">
                             <i class="fa-light fa-trash"></i>
                         </button>
                     </td>
@@ -349,4 +350,53 @@ window.addEventListener('DOMContentLoaded', () => {
     }
 });
 
-// Load live chat sessions from API
+// Load live chat sessions from API
+let inventoryChartInstance = null;
+async function loadInventoryStats() {
+    try {
+        const response = await fetch('/api/inventory/stats', {
+            headers: { 'Authorization': 'Bearer ' + localStorage.getItem('token') }
+        });
+        const data = await response.json();
+        if (data.success) {
+            const ctx = document.getElementById('inventoryChart');
+            if (!ctx) return;
+            
+            if (inventoryChartInstance) {
+                inventoryChartInstance.destroy();
+            }
+            
+            const labels = data.data.map(item => item.title);
+            const soldData = data.data.map(item => item.soldQuantity);
+            const stockData = data.data.map(item => item.stock);
+            
+            inventoryChartInstance = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'Đã bán (7 ngày)',
+                            data: soldData,
+                            backgroundColor: '#00b894'
+                        },
+                        {
+                            label: 'Tồn kho hiện tại',
+                            data: stockData,
+                            backgroundColor: '#0984e3'
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: { beginAtZero: true }
+                    }
+                }
+            });
+        }
+    } catch (err) {
+        console.error('Inventory chart error:', err);
+    }
+}

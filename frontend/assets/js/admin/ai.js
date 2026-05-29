@@ -121,8 +121,8 @@ async function loadChatHistory() {
                     <td>${statusHtml}</td>
                     <td>
                         <div style="display: flex; gap: 8px; justify-content: center;">
-                            <button class="btn-control" style="background:#3b82f6; color:white; border:none; padding:6px 12px; border-radius:4px; cursor:pointer;" onclick="viewChatMessages(${session.id})"><i class="fa-light fa-eye"></i> Xem</button>
-                            <button class="btn-control" style="background:#ef4444; color:white; border:none; padding:6px 12px; border-radius:4px; cursor:pointer;" onclick="deleteChatSession(${session.id})"><i class="fa-light fa-trash"></i> Xóa</button>
+                            <button class="btn-control" style="background:#3b82f6; color:white; border:none; padding:6px 12px; border-radius:4px; cursor:pointer;" onclick="viewChatMessages('${session.id}')"><i class="fa-light fa-eye"></i> Xem</button>
+                            <button class="btn-control" style="background:#ef4444; color:white; border:none; padding:6px 12px; border-radius:4px; cursor:pointer;" onclick="deleteChatSession('${session.id}')"><i class="fa-light fa-trash"></i> Xóa</button>
                         </div>
                     </td>
                 </tr>

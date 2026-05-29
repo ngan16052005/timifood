@@ -106,7 +106,7 @@ module.exports = function({ io, pool, sql }) {
                         .input('staffPhone', sql.NVarChar, staffPhone)
                         .input('staffName', sql.NVarChar, staffName)
                         .input('status', sql.NVarChar, 'chatting')
-                        .input('id', sql.Int, activeChats[customerPhone].dbSessionId)
+                        .input('id', sql.UniqueIdentifier, activeChats[customerPhone].dbSessionId)
                         .query(`
                             UPDATE ChatSessions 
                             SET staffPhone = @staffPhone, staffName = @staffName, status = @status 
@@ -164,7 +164,7 @@ module.exports = function({ io, pool, sql }) {
             if (pool && sql && activeChats[phone].dbSessionId) {
                 try {
                     await pool.request()
-                        .input('sessionId', sql.Int, activeChats[phone].dbSessionId)
+                        .input('sessionId', sql.UniqueIdentifier, activeChats[phone].dbSessionId)
                         .input('sender', sql.NVarChar, sender)
                         .input('text', sql.NVarChar, text)
                         .query(`
@@ -211,7 +211,7 @@ module.exports = function({ io, pool, sql }) {
             if (pool && sql && activeChats[phone].dbSessionId) {
                 try {
                     await pool.request()
-                        .input('id', sql.Int, activeChats[phone].dbSessionId)
+                        .input('id', sql.UniqueIdentifier, activeChats[phone].dbSessionId)
                         .query(`UPDATE ChatSessions SET status = 'ended', endedAt = GETDATE() WHERE id = @id`);
                 } catch (e) {
                     console.error('DB Error ending chat session:', e);
@@ -246,7 +246,7 @@ module.exports = function({ io, pool, sql }) {
                     if (pool && sql && activeChats[phone].dbSessionId) {
                         try {
                             await pool.request()
-                                .input('id', sql.Int, activeChats[phone].dbSessionId)
+                                .input('id', sql.UniqueIdentifier, activeChats[phone].dbSessionId)
                                 .query(`UPDATE ChatSessions SET status = 'ended', endedAt = GETDATE() WHERE id = @id`);
                         } catch (e) {
                             console.error('DB Error ending chat session on disconnect:', e);

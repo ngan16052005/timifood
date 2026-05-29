@@ -409,7 +409,7 @@ function initChatbot() {
                                     <div class="chat-product-info">
                                         <p class="chat-product-title">${p.title}</p>
                                         <p class="chat-product-price">${chatbotFormatVND(p.price)}</p>
-                                        <button class="chat-product-btn" onclick="chatbotAddCart(${p.id})"><i class="fa-solid fa-cart-plus"></i> Đặt món</button>
+                                        <button class="chat-product-btn" onclick="chatbotAddCart('${p.id}')"><i class="fa-solid fa-cart-plus"></i> Đặt món</button>
                                     </div>
                                 </div>
                             `;
@@ -454,7 +454,7 @@ function initChatbot() {
                                     <div class="chat-product-info">
                                         <p class="chat-product-title">${p.title}</p>
                                         <p class="chat-product-price">${chatbotFormatVND(p.price)}</p>
-                                        <button class="chat-product-btn" onclick="chatbotAddCart(${p.id})"><i class="fa-solid fa-cart-plus"></i> Đặt món</button>
+                                        <button class="chat-product-btn" onclick="chatbotAddCart('${p.id}')"><i class="fa-solid fa-cart-plus"></i> Đặt món</button>
                                     </div>
                                 </div>
                             `;
@@ -494,7 +494,7 @@ function initChatbot() {
                                         <div class="chat-product-info">
                                             <p class="chat-product-title">${p.title}</p>
                                             <p class="chat-product-price">${chatbotFormatVND(p.price)}</p>
-                                            <button class="chat-product-btn" onclick="chatbotAddCart(${p.id})"><i class="fa-solid fa-cart-plus"></i> Đặt món</button>
+                                            <button class="chat-product-btn" onclick="chatbotAddCart('${p.id}')"><i class="fa-solid fa-cart-plus"></i> Đặt món</button>
                                         </div>
                                     </div>
                                 </div>`;
@@ -549,7 +549,7 @@ function initChatbot() {
                                     <div class="chat-product-info">
                                         <p class="chat-product-title">${p.title}</p>
                                         <p class="chat-product-price">${chatbotFormatVND(p.price)}</p>
-                                        <button class="chat-product-btn" onclick="chatbotAddCart(${p.id})"><i class="fa-solid fa-cart-plus"></i> Đặt món</button>
+                                        <button class="chat-product-btn" onclick="chatbotAddCart('${p.id}')"><i class="fa-solid fa-cart-plus"></i> Đặt món</button>
                                     </div>
                                 </div>
                             `;

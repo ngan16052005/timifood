@@ -5,9 +5,9 @@ function showProductArr(arr) {
     } else {
         arr.forEach(product => {
             let btnCtl = product.status == 1 ?
-                `<button class="btn-detail" onclick="hideProduct(${product.id})" title="Ẩn sản phẩm"><i class="fa-regular fa-eye-slash"></i></button>` :
-                `<button class="btn-detail" onclick="showProductAdmin(${product.id})" title="Hiện sản phẩm"><i class="fa-regular fa-eye"></i></button>`;
-            btnCtl += `<button class="btn-delete" onclick="deleteProductPermanently(${product.id})" title="Xóa vĩnh viễn"><i class="fa-regular fa-trash"></i></button>`;
+                `<button class="btn-detail" onclick="hideProduct('${product.id}')" title="Ẩn sản phẩm"><i class="fa-regular fa-eye-slash"></i></button>` :
+                `<button class="btn-detail" onclick="showProductAdmin('${product.id}')" title="Hiện sản phẩm"><i class="fa-regular fa-eye"></i></button>`;
+            btnCtl += `<button class="btn-delete" onclick="deleteProductPermanently('${product.id}')" title="Xóa vĩnh viễn"><i class="fa-regular fa-trash"></i></button>`;
             productHtml += `
             <div class="list">
                     <div class="list-left">
@@ -29,7 +29,7 @@ function showProductArr(arr) {
                     </div>
                     <div class="list-control">
                     <div class="list-tool">
-                        <button class="btn-edit" onclick="editProduct(${product.id})"><i class="fa-light fa-pen-to-square"></i></button>
+                        <button class="btn-edit" onclick="editProduct('${product.id}')"><i class="fa-light fa-pen-to-square"></i></button>
                         ${btnCtl}
                     </div>                       
                 </div>
@@ -261,6 +261,7 @@ async function editProduct(id) {
     document.getElementById("mo-ta").value = productsData[index].description || productsData[index].desc || "";
     document.getElementById("chon-mon").value = productsData[index].category;
     document.getElementById("stock").value = productsData[index].stock || 0;
+    document.getElementById("min-stock").value = productsData[index].minStock !== undefined && productsData[index].minStock !== null ? productsData[index].minStock : 5;
 }
 
 function getPathImage(path) {
@@ -283,8 +284,9 @@ btnUpdateProductIn.addEventListener("click", async (e) => {
     let descProductCur = document.getElementById("mo-ta").value;
     let categoryText = document.getElementById("chon-mon").value;
     let stockProductCur = document.getElementById("stock").value;
+    let minStockProductCur = document.getElementById("min-stock").value;
 
-    if (titleProductCur == "" || curProductCur == "" || descProductCur == "" || stockProductCur == "") {
+    if (titleProductCur == "" || curProductCur == "" || descProductCur == "" || stockProductCur == "" || minStockProductCur == "") {
         toast({ title: "Cảnh báo", message: "Vui lòng nhập đầy đủ thông tin món!", type: "warning", duration: 3000, });
         return;
     }
@@ -296,7 +298,8 @@ btnUpdateProductIn.addEventListener("click", async (e) => {
         price: parseInt(curProductCur),
         description: descProductCur,
         status: productsData[indexCur].status,
-        stock: parseInt(stockProductCur)
+        stock: parseInt(stockProductCur),
+        minStock: parseInt(minStockProductCur)
     }
 
     try {
@@ -320,8 +323,9 @@ btnAddProductIn.addEventListener("click", async (e) => {
     let moTa = document.getElementById("mo-ta").value;
     let categoryText = document.getElementById("chon-mon").value;
     let stock = document.getElementById("stock").value;
+    let minStock = document.getElementById("min-stock").value;
 
-    if (tenMon == "" || price == "" || moTa == "" || stock == "") {
+    if (tenMon == "" || price == "" || moTa == "" || stock == "" || minStock == "") {
         toast({ title: "Cảnh báo", message: "Vui lòng nhập đầy đủ thông tin món!", type: "warning", duration: 3000, });
         return;
     }
@@ -338,6 +342,7 @@ btnAddProductIn.addEventListener("click", async (e) => {
         price: parseInt(price),
         description: moTa,
         stock: parseInt(stock) || 0,
+        minStock: parseInt(minStock) || 5,
         status: 1
     };
 
@@ -362,6 +367,7 @@ function setDefaultValue() {
     document.getElementById("gia-moi").value = "";
     document.getElementById("mo-ta").value = "";
     document.getElementById("stock").value = "";
+    document.getElementById("min-stock").value = "5";
     document.getElementById("chon-mon").value = "Món chay";
 }
 

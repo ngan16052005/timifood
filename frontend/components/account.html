@@ -24,10 +24,10 @@
                             </div>
                             <div class="form-group">
                                 <label for="infoaddress" class="form-label">Địa chỉ</label>
-                                <div style="display: flex; gap: 10px;">
+                                <div style="position: relative; display: flex; align-items: center;">
                                     <input class="form-control" type="text" name="infoaddress" id="infoaddress"
-                                        placeholder="Thêm địa chỉ giao hàng của bạn" style="flex: 1;">
-                                    <button type="button" class="btn-location-picker" id="btn-location-picker" title="Chon vi tri" onclick="openLocationPicker('infoaddress')" style="background-color: #f1f5f9; border: 1px solid #cbd5e1; border-radius: 4px; padding: 0 15px; color: #475569; cursor: pointer; position: relative; z-index: 10;"><i class="fa-light fa-map-location-dot"></i></button>
+                                        placeholder="Thêm địa chỉ giao hàng của bạn" style="width: 100%; padding-right: 40px;">
+                                    <button type="button" class="btn-location-picker" id="btn-location-picker" title="Chọn vị trí trên bản đồ" onclick="openLocationPicker('infoaddress')" style="position: absolute; right: 5px; background: none; border: none; padding: 5px; color: #ef4444; cursor: pointer; font-size: 1.2rem; display: flex; align-items: center; justify-content: center;"><i class="fa-light fa-map-location-dot"></i></button>
                                 </div>
                             </div>
                         </form>

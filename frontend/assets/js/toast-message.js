@@ -53,5 +53,6 @@ function toast({
     <div class="toast__background"style="background-color: ${color};">
     </div>`
     main.appendChild(toast);
+    return toast;
     }
 }
