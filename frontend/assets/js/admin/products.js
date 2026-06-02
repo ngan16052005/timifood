@@ -70,44 +70,57 @@ async function cancelSearchProduct() {
 }
 
 async function initAdmin() {
-    await showProduct();
     try {
         const currentUser = JSON.parse(localStorage.getItem("currentuser"));
         const isAdmin = currentUser && currentUser.userType == 1;
         const isStaff = currentUser && currentUser.userType == 2;
 
-        const products = await window.api.getProducts(null, true);
-        const orders = await window.api.getOrders(true);
+        // Optimize performance using Promise.all to fetch data in parallel instead of sequentially (waterfall)
+        const commonPromises = [
+            showProduct(),
+            window.api.getOrders(true),
+            (typeof loadPaginatedOrders === 'function') ? loadPaginatedOrders(1) : Promise.resolve(null)
+        ];
 
-        if (typeof loadPaginatedOrders === 'function') {
-            await loadPaginatedOrders(1);
-        } else {
+        let adminPromises = [];
+        if (isAdmin) {
+            adminPromises = [
+                window.api.getProducts(null, true),
+                window.api.getVouchers(true),
+                window.api.getUsers(true),
+                window.api.getProfitReport().catch(e => { console.error("Lỗi lấy báo cáo lợi nhuận:", e); return []; })
+            ];
+        }
+
+        // Wait for all fetches simultaneously
+        const [commonResults, adminResults] = await Promise.all([
+            Promise.all(commonPromises),
+            Promise.all(adminPromises)
+        ]);
+
+        const orders = commonResults[1];
+
+        if (typeof loadPaginatedOrders !== 'function') {
             showOrder(orders);
         }
 
         if (isAdmin) {
-            const vouchers = await window.api.getVouchers(true);
+            const products = adminResults[0];
+            const vouchers = adminResults[1];
+            const users = adminResults[2];
+            const profitData = adminResults[3];
+
             showVoucherArr(vouchers);
-        }
-
-
-        if (isAdmin) {
-            const users = await window.api.getUsers(true);
+            
             document.getElementById("amount-user").innerHTML = getAmoumtUser(users);
             document.getElementById("amount-product").innerHTML = getAmoumtProduct(products);
             document.getElementById("doanh-thu").innerHTML = vnd(getMoney(orders));
             showUserArr(users);
             
-            try {
-                const profitData = await window.api.getProfitReport();
-                const totalProfit = profitData.reduce((acc, curr) => acc + (curr.profit || 0), 0);
-                document.getElementById("loi-nhuan").innerHTML = vnd(totalProfit);
-            } catch (e) {
-                console.error("Lỗi lấy báo cáo lợi nhuận:", e);
-                document.getElementById("loi-nhuan").innerHTML = "0₫";
-            }
+            const totalProfit = profitData.reduce((acc, curr) => acc + (curr.profit || 0), 0);
+            document.getElementById("loi-nhuan").innerHTML = vnd(totalProfit);
             
-            await thongKe();
+            thongKe(); // Fire asynchronously
         }
 
         // Set latest order ID for notifications
