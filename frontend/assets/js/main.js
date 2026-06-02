@@ -2345,7 +2345,7 @@ async function handleGoogleCredentialResponse(response) {
     if (!response.credential) return;
 
     try {
-        const res = await fetch('/api/auth/google', {
+        const res = await fetch(`${window.BACKEND_URL}/api/auth/google`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ credential: response.credential })
@@ -2406,7 +2406,7 @@ if (googleCompleteBtn) {
         googleCompleteBtn.disabled = true;
 
         try {
-            const res = await fetch('/api/auth/google/complete-registration', {
+            const res = await fetch(`${window.BACKEND_URL}/api/auth/google/complete-registration`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ credential: currentGoogleCredential, phone })
@@ -2455,7 +2455,7 @@ function loginWithFacebook() {
 
 async function handleFacebookCredentialResponse(accessToken) {
     try {
-        const res = await fetch('/api/auth/facebook', {
+        const res = await fetch(`${window.BACKEND_URL}/api/auth/facebook`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ accessToken })
@@ -2516,7 +2516,7 @@ if (fbCompleteBtn) {
         fbCompleteBtn.disabled = true;
 
         try {
-            const res = await fetch('/api/auth/facebook/complete-registration', {
+            const res = await fetch(`${window.BACKEND_URL}/api/auth/facebook/complete-registration`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ accessToken: currentFacebookToken, phone })
