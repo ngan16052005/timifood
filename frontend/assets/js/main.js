@@ -1877,7 +1877,10 @@ async function showCategory(category) {
     const nds = document.getElementById('news-detail-section');
     if(nds) nds.style.display = 'none';
     const ws = document.getElementById('wishlist-section');
-    if(ws) ws.style.display = 'none';
+    if(ws) {
+        ws.style.display = 'none';
+        ws.classList.remove('open');
+    }
 
     try {
         if (productAll.length == 0) {
@@ -2555,7 +2558,10 @@ async function showNewsSection() {
     }
     trangchu.style.display = 'none';
     const wishlistSection = document.getElementById('wishlist-section');
-    if (wishlistSection) wishlistSection.style.display = 'none';
+    if (wishlistSection) {
+        wishlistSection.style.display = 'none';
+        wishlistSection.classList.remove('open');
+    }
     
     document.getElementById('news-detail-section').style.display = 'none';
     document.getElementById('news-section').style.display = 'block';
