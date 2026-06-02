@@ -1974,7 +1974,7 @@ function startUserNotifications() {
     if (typeof io !== 'undefined') {
         if (!userSocket) {
             console.log('[Socket] Initializing Socket.io for user:', currentUser.id);
-            userSocket = io({ transports: ['websocket'] });
+            userSocket = io(window.BACKEND_URL, { transports: ['websocket'] });
 
             userSocket.on('connect', () => {
                 console.log('[Socket] Connected to server, joining rooms for ID and Phone');
@@ -2656,7 +2656,7 @@ async function syncCartOnLogin(user) {
 
 // Shipper Socket Listener
 if(typeof io !== 'undefined') { 
-    const shipperSocket = io('/shipperLocation', { transports: ['websocket'] });
+    const shipperSocket = io(window.BACKEND_URL + '/shipperLocation', { transports: ['websocket'] });
     shipperSocket.on('shipperLocation', (data) => { 
         if (window.shipperMap && window.shipperMarker && window.trackingOrderId === data.orderId) { 
             window.shipperMarker.setLatLng([data.lat, data.lng]); 
@@ -2769,3 +2769,54 @@ window.trackOrderUser = async function(id, address) {
         toast({ title: 'Lỗi', message: 'Không thể mở theo dõi đơn hàng', type: 'error', duration: 3000 });
     }
 };
+
+// Tự động thêm biểu tượng mắt để ẩn/hiện mật khẩu cho tất cả các ô nhập mật khẩu
+document.addEventListener('DOMContentLoaded', () => {
+    // Tìm tất cả các input type password
+    const passwordInputs = document.querySelectorAll('input[type="password"]');
+    passwordInputs.forEach(input => {
+        // Tạo wrapper để chứa input và icon
+        const wrapper = document.createElement('div');
+        wrapper.style.position = 'relative';
+        wrapper.style.display = 'flex';
+        wrapper.style.alignItems = 'center';
+        wrapper.style.width = '100%';
+        
+        // Chèn wrapper vào trước input
+        input.parentNode.insertBefore(wrapper, input);
+        // Di chuyển input vào trong wrapper
+        wrapper.appendChild(input);
+        
+        // Thêm padding right để chữ không đè lên icon
+        input.style.paddingRight = '40px';
+        
+        // Tạo icon mắt
+        const icon = document.createElement('i');
+        icon.className = 'fa-regular fa-eye-slash toggle-password-icon';
+        icon.style.position = 'absolute';
+        icon.style.right = '15px';
+        icon.style.cursor = 'pointer';
+        icon.style.color = '#888';
+        icon.style.zIndex = '10';
+        icon.title = 'Hiện mật khẩu';
+        
+        // Xử lý sự kiện click để ẩn/hiện
+        icon.addEventListener('click', function() {
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.classList.remove('fa-eye-slash');
+                icon.classList.add('fa-eye');
+                icon.title = 'Ẩn mật khẩu';
+            } else {
+                input.type = 'password';
+                icon.classList.remove('fa-eye');
+                icon.classList.add('fa-eye-slash');
+                icon.title = 'Hiện mật khẩu';
+            }
+        });
+        
+        // Thêm icon vào wrapper
+        wrapper.appendChild(icon);
+    });
+});
+

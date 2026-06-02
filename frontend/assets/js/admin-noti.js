@@ -3,7 +3,7 @@ let adminNotifications = [];
 let lastAdminNotiId = null;
 
 // Socket.io for real-time notifications
-const socket = io({
+const socket = io(window.BACKEND_URL, {
     transports: ['websocket'] // Force websocket to prevent PM2 cluster mode sticky session issues
 });
 

@@ -1,4 +1,4 @@
-﻿const express = require('express');
+const express = require('express');
 const helmet = require('helmet');
 const cors = require('cors');
 const bodyParser = require('body-parser');
@@ -317,7 +317,7 @@ app.get('/admin.html', (req, res) => {
 
 app.use(express.static(path.join(__dirname, '../frontend')));
 
-if (process.env.NODE_ENV !== 'production' && process.env.NODE_ENV !== 'test') {
+if (process.env.NODE_ENV !== 'test') {
     startServer();
 }
 

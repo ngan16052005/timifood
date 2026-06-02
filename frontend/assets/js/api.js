@@ -1,4 +1,7 @@
-const BASE_URL = `${window.location.origin}/api`;
+const IS_LOCAL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+const BACKEND_URL = IS_LOCAL ? 'http://localhost:3500' : 'https://timifood.onrender.com';
+const BASE_URL = `${BACKEND_URL}/api`;
+window.BACKEND_URL = BACKEND_URL;
 
 const getHeaders = () => {
     const token = localStorage.getItem('token');
