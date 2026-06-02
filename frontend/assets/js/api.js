@@ -105,6 +105,25 @@ window.api = {
         }
     },
 
+    getPaginatedProducts: async (page = 1, limit = 10, category = "Tất cả", search = "") => {
+        showLoader();
+        try {
+            let url = `${BASE_URL}/products/admin/paginated?page=${page}&limit=${limit}&category=${encodeURIComponent(category)}`;
+            if (search) url += `&search=${encodeURIComponent(search)}`;
+            
+            const response = await fetch(url, {
+                headers: getHeaders()
+            });
+            if (!response.ok) throw new Error('Network response was not ok');
+            return await response.json();
+        } catch (error) {
+            console.error("Failed to fetch paginated products:", error);
+            throw error;
+        } finally {
+            hideLoader();
+        }
+    },
+
     getProducts: async (search = "", silent = false) => {
         if (!silent) showLoader();
         try {
