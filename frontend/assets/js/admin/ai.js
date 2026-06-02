@@ -39,7 +39,7 @@ async function openAIAssistantModal() {
         const dateRange = (timeStart && timeEnd) ? `${timeStart} đến ${timeEnd}` : 'Toàn thời gian';
 
         // Call backend API
-        const response = await fetch('/api/admin/ai-insights', {
+        const response = await fetch(`${window.BACKEND_URL}/api/admin/ai-insights`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -86,7 +86,7 @@ async function loadChatHistory() {
     const phone = document.getElementById('chat-history-phone').value;
     const date = document.getElementById('chat-history-date').value;
     
-    let url = '/api/chat/history?';
+    let url = `${window.BACKEND_URL}/api/chat/history?`;
     if (phone) url += `phone=${phone}&`;
     if (date) url += `date=${date}`;
 
@@ -140,7 +140,7 @@ function closeChatMessagesModal() {
 
 async function viewChatMessages(sessionId) {
     try {
-        const response = await fetch(`/api/chat/history/${sessionId}`, {
+        const response = await fetch(`${window.BACKEND_URL}/api/chat/history/${sessionId}`, {
             headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
         });
         const messages = await response.json();
@@ -183,7 +183,7 @@ async function viewChatMessages(sessionId) {
 async function deleteChatSession(sessionId) {
     if (confirm('Bạn có chắc chắn muốn xóa phiên chat này không? Mọi tin nhắn bên trong cũng sẽ bị xóa vĩnh viễn.')) {
         try {
-            const response = await fetch(`/api/chat/history/${sessionId}`, {
+            const response = await fetch(`${window.BACKEND_URL}/api/chat/history/${sessionId}`, {
                 method: 'DELETE',
                 headers: {
                     'Authorization': 'Bearer ' + localStorage.getItem('token')
