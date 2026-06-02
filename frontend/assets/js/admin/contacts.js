@@ -1,6 +1,6 @@
 async function showContacts() {
     try {
-        const response = await fetch('/api/contacts', {
+        const response = await fetch(`${window.BACKEND_URL}/api/contacts`, {
             headers: {
                 'Authorization': 'Bearer ' + localStorage.getItem('token')
             }
@@ -79,7 +79,7 @@ function viewContact(contact) {
 
     // Mark as read if unread
     if (contact.status == 0) {
-        fetch(`/api/contacts/${contact.id}/status`, {
+        fetch(`${window.BACKEND_URL}/api/contacts/${contact.id}/status`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
@@ -108,7 +108,7 @@ async function sendContactReply(id) {
     btn.disabled = true;
 
     try {
-        const response = await fetch(`/api/contacts/${id}/reply`, {
+        const response = await fetch(`${window.BACKEND_URL}/api/contacts/${id}/reply`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -142,7 +142,7 @@ function closeContactModal() {
 async function deleteContact(id) {
     if (confirm("Bạn có chắc chắn muốn xóa liên hệ này?")) {
         try {
-            const response = await fetch(`/api/contacts/${id}`, {
+            const response = await fetch(`${window.BACKEND_URL}/api/contacts/${id}`, {
                 method: 'DELETE',
                 headers: {
                     'Authorization': 'Bearer ' + localStorage.getItem('token')

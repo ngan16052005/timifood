@@ -404,7 +404,7 @@ window.addEventListener('DOMContentLoaded', () => {
 let inventoryChartInstance = null;
 async function loadInventoryStats() {
     try {
-        const response = await fetch('/api/inventory/stats', {
+        const response = await fetch(`${window.BACKEND_URL}/api/inventory/stats`, {
             headers: { 'Authorization': 'Bearer ' + localStorage.getItem('token') }
         });
         const data = await response.json();
