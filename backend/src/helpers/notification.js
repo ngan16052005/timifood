@@ -15,7 +15,7 @@ module.exports = function({ pool, sql, io }) {
                 .input('type', sql.VarChar, type)
                 .query(`INSERT INTO Notifications (userId, title, body, type, readStatus, createdAt) 
                         OUTPUT INSERTED.id
-                        VALUES (@userId, @title, @body, @type, 0, GETDATE())`);
+                        VALUES (@userId, @title, @body, @type, 0, GETUTCDATE())`);
             
             const newNotiId = result.recordset[0].id;
             console.log(`[Notification] Success: Created for ${userId}, ID: ${newNotiId}`);

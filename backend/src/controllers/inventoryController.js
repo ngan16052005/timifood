@@ -54,7 +54,7 @@ exports.importStock = async (req, res) => {
                 .input('importedBy', sql.UniqueIdentifier, importedBy)
                 .query(`
                     INSERT INTO StockImports (productId, quantity, importPrice, totalPrice, note, importedBy, importDate)
-                    VALUES (@productId, @quantity, @importPrice, @totalPrice, @note, @importedBy, GETDATE())
+                    VALUES (@productId, @quantity, @importPrice, @totalPrice, @note, @importedBy, GETUTCDATE())
                 `);
 
             // 4. Cập nhật lại số lượng và giá vốn trung bình cho Sản phẩm
@@ -334,7 +334,7 @@ exports.createPurchaseOrder = async (req, res) => {
                     .input('importedBy', sql.UniqueIdentifier, staffId)
                     .query(`
                         INSERT INTO StockImports (purchaseOrderId, productId, quantity, importPrice, totalPrice, note, importedBy, importDate)
-                        VALUES (@purchaseOrderId, @productId, @quantity, @importPrice, @totalPrice, @note, @importedBy, GETDATE())
+                        VALUES (@purchaseOrderId, @productId, @quantity, @importPrice, @totalPrice, @note, @importedBy, GETUTCDATE())
                     `);
 
                 // Update Product

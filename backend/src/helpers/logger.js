@@ -9,7 +9,7 @@ module.exports = function({ pool, sql }) {
                 .input('userId', sql.UniqueIdentifier, userId)
                 .input('action', sql.NVarChar, action)
                 .input('details', sql.NVarChar, details)
-                .query('INSERT INTO SystemLogs (userId, action, details, createdAt) VALUES (@userId, @action, @details, GETDATE())');
+                .query('INSERT INTO SystemLogs (userId, action, details, createdAt) VALUES (@userId, @action, @details, GETUTCDATE())');
             return true;
         } catch (err) {
             console.error("[Log] Error creating system log:", err);

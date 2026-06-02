@@ -10,7 +10,7 @@ const config = {
     options: {
         encrypt: true, // For Azure
         trustServerCertificate: true, // For local development
-        useUTC: false // Fix timezone conversion for GETDATE()
+        useUTC: true // Always use UTC for DATETIME columns
     }
 };
 

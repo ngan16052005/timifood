@@ -24,7 +24,7 @@ exports.getVoucherByCode = async (req, res) => {
         // Using global pool
         const result = await pool.request()
             .input('code', sql.NVarChar, code)
-            .query('SELECT * FROM Vouchers WHERE code = @code AND status = 1 AND CAST(endDate AS DATE) >= CAST(GETDATE() AS DATE)');
+            .query('SELECT * FROM Vouchers WHERE code = @code AND status = 1 AND CAST(endDate AS DATE) >= CAST(GETUTCDATE() AS DATE)');
 
         if (result.recordset && result.recordset.length > 0) {
             const voucher = result.recordset[0];
@@ -51,7 +51,7 @@ exports.createVoucher = async (req, res) => {
             .input('maxDiscount', sql.Int, maxDiscount)
             .input('expiryDate', sql.DateTime, expiryDate)
             .query(`INSERT INTO Vouchers (code, description, discountType, discountValue, minOrderValue, maxDiscount, startDate, endDate, usageLimit, usedCount, status) 
-                    VALUES (@code, '', @discountType, @discountValue, @minOrder, @maxDiscount, GETDATE(), @expiryDate, 1000, 0, 1)`);
+                    VALUES (@code, '', @discountType, @discountValue, @minOrder, @maxDiscount, GETUTCDATE(), @expiryDate, 1000, 0, 1)`);
         await req.app.locals.createLog(req.user.id, 'ADD_VOUCHER', `Tạo mã giảm giá mới: ${code}`);
         res.json({ success: true, message: 'Tạo mã giảm giá thành công' });
     } catch (error) {

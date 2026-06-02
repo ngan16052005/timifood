@@ -50,7 +50,7 @@ module.exports = function({ io, pool, sql }) {
                         .query(`
                             INSERT INTO ChatSessions (customerPhone, customerName, status, createdAt)
                             OUTPUT INSERTED.id
-                            VALUES (@phone, @name, @status, GETDATE())
+                            VALUES (@phone, @name, @status, GETUTCDATE())
                         `);
                     dbSessionId = result.recordset[0].id;
                 } catch (e) {
@@ -169,7 +169,7 @@ module.exports = function({ io, pool, sql }) {
                         .input('text', sql.NVarChar, text)
                         .query(`
                             INSERT INTO ChatMessages (sessionId, sender, text, timestamp) 
-                            VALUES (@sessionId, @sender, @text, GETDATE())
+                            VALUES (@sessionId, @sender, @text, GETUTCDATE())
                         `);
                 } catch (e) {
                     console.error('DB Error inserting chat message:', e);
@@ -212,7 +212,7 @@ module.exports = function({ io, pool, sql }) {
                 try {
                     await pool.request()
                         .input('id', sql.UniqueIdentifier, activeChats[phone].dbSessionId)
-                        .query(`UPDATE ChatSessions SET status = 'ended', endedAt = GETDATE() WHERE id = @id`);
+                        .query(`UPDATE ChatSessions SET status = 'ended', endedAt = GETUTCDATE() WHERE id = @id`);
                 } catch (e) {
                     console.error('DB Error ending chat session:', e);
                 }
@@ -248,7 +248,7 @@ module.exports = function({ io, pool, sql }) {
                         try {
                             await pool.request()
                                 .input('id', sql.UniqueIdentifier, activeChats[phone].dbSessionId)
-                                .query(`UPDATE ChatSessions SET status = 'ended', endedAt = GETDATE() WHERE id = @id`);
+                                .query(`UPDATE ChatSessions SET status = 'ended', endedAt = GETUTCDATE() WHERE id = @id`);
                         } catch (e) {}
                     }
                     io.to('adminRoom').emit('chat_session_ended_admin', { customerPhone: phone });

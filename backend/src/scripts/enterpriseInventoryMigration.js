@@ -18,7 +18,7 @@ async function migrate() {
                 email NVARCHAR(255),
                 address NVARCHAR(MAX),
                 status INT DEFAULT 1,
-                createdAt DATETIME DEFAULT GETDATE()
+                createdAt DATETIME DEFAULT GETUTCDATE()
             )
         `);
         console.log('- Suppliers table checked/created');
@@ -34,7 +34,7 @@ async function migrate() {
                 totalAmount FLOAT DEFAULT 0,
                 note NVARCHAR(MAX),
                 status INT DEFAULT 1, -- 1: Completed, 0: Draft/Cancelled
-                importDate DATETIME DEFAULT GETDATE(),
+                importDate DATETIME DEFAULT GETUTCDATE(),
                 FOREIGN KEY (supplierId) REFERENCES Suppliers(id),
                 FOREIGN KEY (staffId) REFERENCES Users(id)
             )

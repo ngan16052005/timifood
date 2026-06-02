@@ -9,7 +9,7 @@ exports.getInventoryStats = async (req, res) => {
             FROM OrderDetails od
             JOIN Orders o ON od.orderId = o.id
             JOIN Products p ON od.productId = p.id
-            WHERE o.orderDate >= DATEADD(day, -7, GETDATE())
+            WHERE o.orderDate >= DATEADD(day, -7, GETUTCDATE())
               AND o.status != 3
             GROUP BY p.title, p.stock, p.minStock
             ORDER BY soldQuantity DESC
@@ -41,7 +41,7 @@ exports.getStatsReport = async (req, res) => {
             SELECT MONTH(CAST(o.orderDate AS DATE)) as month, SUM(o.totalPrice) as revenue
             FROM Orders o
             WHERE o.status = 2 
-            AND YEAR(CAST(o.orderDate AS DATE)) = YEAR(GETDATE())
+            AND YEAR(CAST(o.orderDate AS DATE)) = YEAR(GETUTCDATE())
             GROUP BY MONTH(CAST(o.orderDate AS DATE))
             ORDER BY month ASC
         `);
@@ -200,7 +200,7 @@ exports.createAdmin_stock_in = async (req, res) => {
                 .input('quantity', sql.Int, quantity)
                 .input('note', sql.NVarChar, note)
                 .input('createdBy', sql.UniqueIdentifier, req.user.id)
-                .query('INSERT INTO StockHistory (productId, action, quantity, note, createdBy, createdAt) VALUES (@productId, @action, @quantity, @note, @createdBy, GETDATE())');
+                .query('INSERT INTO StockHistory (productId, action, quantity, note, createdBy, createdAt) VALUES (@productId, @action, @quantity, @note, @createdBy, GETUTCDATE())');
 
             // 2. Update Product stock
             await transaction.request()
@@ -240,7 +240,7 @@ exports.createAdmin_supplier = async (req, res) => {
             .input('phone', sql.NVarChar, phone)
             .input('email', sql.NVarChar, email)
             .input('address', sql.NVarChar, address)
-            .query('INSERT INTO Suppliers (name, phone, email, address, status, createdAt) VALUES (@name, @phone, @email, @address, 1, GETDATE())');
+            .query('INSERT INTO Suppliers (name, phone, email, address, status, createdAt) VALUES (@name, @phone, @email, @address, 1, GETUTCDATE())');
         res.status(201).json({ success: true, message: 'Thêm nhà cung cấp thành công' });
     } catch (error) {
         console.error(error);
@@ -282,7 +282,7 @@ exports.createAdmin_purchase_order = async (req, res) => {
                 .query(`
                     INSERT INTO PurchaseOrders (supplierId, staffId, totalAmount, note, status, importDate)
                     OUTPUT INSERTED.id
-                    VALUES (@supplierId, @staffId, @totalAmount, @note, 1, GETDATE())
+                    VALUES (@supplierId, @staffId, @totalAmount, @note, 1, GETUTCDATE())
                 `);
             const poId = poResult.recordset[0].id;
 
@@ -299,7 +299,7 @@ exports.createAdmin_purchase_order = async (req, res) => {
                     .input('importedBy', sql.UniqueIdentifier, req.user.id)
                     .query(`
                         INSERT INTO StockImports (purchaseOrderId, productId, quantity, importPrice, totalPrice, note, importedBy, importDate)
-                        VALUES (@purchaseOrderId, @productId, @quantity, @importPrice, @totalPrice, @note, @importedBy, GETDATE())
+                        VALUES (@purchaseOrderId, @productId, @quantity, @importPrice, @totalPrice, @note, @importedBy, GETUTCDATE())
                     `);
 
                 // b. Insert StockHistory
@@ -309,7 +309,7 @@ exports.createAdmin_purchase_order = async (req, res) => {
                     .input('quantity', sql.Int, item.quantity)
                     .input('note', sql.NVarChar, 'Nhập từ phiếu nhập')
                     .input('createdBy', sql.UniqueIdentifier, req.user.id)
-                    .query('INSERT INTO StockHistory (productId, action, quantity, note, createdBy, createdAt) VALUES (@productId, @action, @quantity, @note, @createdBy, GETDATE())');
+                    .query('INSERT INTO StockHistory (productId, action, quantity, note, createdBy, createdAt) VALUES (@productId, @action, @quantity, @note, @createdBy, GETUTCDATE())');
 
                 // c. Update Products stock
                 await transaction.request()

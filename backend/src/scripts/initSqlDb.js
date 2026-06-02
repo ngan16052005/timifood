@@ -21,7 +21,7 @@ async function initializeDB() {
                 address NVARCHAR(MAX),
                 email NVARCHAR(255),
                 status INT DEFAULT 1,
-                joinDate DATETIME DEFAULT GETDATE(),
+                joinDate DATETIME DEFAULT GETUTCDATE(),
                 userType INT DEFAULT 0
             )
         `);
@@ -48,7 +48,7 @@ async function initializeDB() {
                 id UNIQUEIDENTIFIER PRIMARY KEY DEFAULT NEWID(),
                 orderCode NVARCHAR(50) UNIQUE,
                 userId UNIQUEIDENTIFIER,
-                orderDate DATETIME DEFAULT GETDATE(),
+                orderDate DATETIME DEFAULT GETUTCDATE(),
                 totalPrice FLOAT,
                 deliveryType NVARCHAR(100),
                 deliveryTime NVARCHAR(100),
@@ -96,7 +96,7 @@ async function initializeDB() {
                 productId UNIQUEIDENTIFIER,
                 quantity INT,
                 note NVARCHAR(MAX),
-                createdAt DATETIME DEFAULT GETDATE(),
+                createdAt DATETIME DEFAULT GETUTCDATE(),
                 FOREIGN KEY (userId) REFERENCES Users(id),
                 FOREIGN KEY (productId) REFERENCES Products(id)
             )
@@ -109,7 +109,7 @@ async function initializeDB() {
                 id UNIQUEIDENTIFIER PRIMARY KEY DEFAULT NEWID(),
                 userId UNIQUEIDENTIFIER,
                 productId UNIQUEIDENTIFIER,
-                createdAt DATETIME DEFAULT GETDATE(),
+                createdAt DATETIME DEFAULT GETUTCDATE(),
                 FOREIGN KEY (userId) REFERENCES Users(id),
                 FOREIGN KEY (productId) REFERENCES Products(id)
             )
@@ -127,7 +127,7 @@ async function initializeDB() {
                 staffPhone NVARCHAR(20),
                 staffName NVARCHAR(255),
                 status NVARCHAR(50) DEFAULT 'waiting',
-                createdAt DATETIME DEFAULT GETDATE(),
+                createdAt DATETIME DEFAULT GETUTCDATE(),
                 endedAt DATETIME
             )
         `);
@@ -140,7 +140,7 @@ async function initializeDB() {
                 sessionId UNIQUEIDENTIFIER,
                 sender NVARCHAR(50),
                 text NVARCHAR(MAX),
-                timestamp DATETIME DEFAULT GETDATE(),
+                timestamp DATETIME DEFAULT GETUTCDATE(),
                 FOREIGN KEY (sessionId) REFERENCES ChatSessions(id)
             )
         `);
@@ -178,7 +178,7 @@ async function initializeDB() {
                     userId UNIQUEIDENTIFIER,
                     rating INT,
                     comment NVARCHAR(MAX),
-                    createdAt DATETIME DEFAULT GETDATE()
+                    createdAt DATETIME DEFAULT GETUTCDATE()
                 );
             END
         `);
@@ -207,7 +207,7 @@ async function initializeDB() {
                     body NVARCHAR(MAX) NOT NULL,
                     type VARCHAR(50) NOT NULL,
                     readStatus BIT DEFAULT 0,
-                    createdAt DATETIME DEFAULT GETDATE(),
+                    createdAt DATETIME DEFAULT GETUTCDATE(),
                     actionUrl NVARCHAR(MAX) NULL
                 )
             END
@@ -225,7 +225,7 @@ async function initializeDB() {
                     subject NVARCHAR(255) NULL,
                     message NVARCHAR(MAX) NOT NULL,
                     status INT DEFAULT 0,
-                    createdAt DATETIME DEFAULT GETDATE()
+                    createdAt DATETIME DEFAULT GETUTCDATE()
                 )
             END
         `);
@@ -243,8 +243,8 @@ async function initializeDB() {
                     author NVARCHAR(100) NULL,
                     status VARCHAR(50) DEFAULT 'published',
                     views INT DEFAULT 0,
-                    createdAt DATETIME DEFAULT GETDATE(),
-                    updatedAt DATETIME DEFAULT GETDATE()
+                    createdAt DATETIME DEFAULT GETUTCDATE(),
+                    updatedAt DATETIME DEFAULT GETUTCDATE()
                 )
             END
         `);
@@ -260,7 +260,7 @@ async function initializeDB() {
                     quantity INT NOT NULL,
                     note NVARCHAR(255) NULL,
                     createdBy UNIQUEIDENTIFIER NULL,
-                    createdAt DATETIME DEFAULT GETDATE()
+                    createdAt DATETIME DEFAULT GETUTCDATE()
                 )
             END
         `);
@@ -274,7 +274,7 @@ async function initializeDB() {
                     userId UNIQUEIDENTIFIER NULL,
                     action VARCHAR(100) NOT NULL,
                     details NVARCHAR(MAX) NULL,
-                    createdAt DATETIME DEFAULT GETDATE()
+                    createdAt DATETIME DEFAULT GETUTCDATE()
                 )
             END
         `);

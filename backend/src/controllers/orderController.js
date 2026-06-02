@@ -92,7 +92,7 @@ exports.createOrder = async (req, res) => {
             .input('shippingFee', sql.Int, parseInt(order.shippingFee) || 0)
             .input('status', sql.Int, 0)
             .query(`INSERT INTO Orders (id, orderCode, userId, totalPrice, deliveryType, deliveryTime, deliveryDate, receiverName, receiverPhone, receiverAddress, lat, lng, note, voucherCode, discountAmount, shippingFee, orderDate, status) 
-                    VALUES (@id, @orderCode, @userId, @totalPrice, @deliveryType, @deliveryTime, @deliveryDate, @receiverName, @receiverPhone, @receiverAddress, @lat, @lng, @note, @voucherCode, @discountAmount, @shippingFee, GETDATE(), @status)`);
+                    VALUES (@id, @orderCode, @userId, @totalPrice, @deliveryType, @deliveryTime, @deliveryDate, @receiverName, @receiverPhone, @receiverAddress, @lat, @lng, @note, @voucherCode, @discountAmount, @shippingFee, GETUTCDATE(), @status)`);
 
         // Notify user about successful order
         console.log(`[Order] Notifying customer: ${userId}`);

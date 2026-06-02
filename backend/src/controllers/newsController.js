@@ -66,7 +66,7 @@ exports.updateNews = async (req, res) => {
             .query(`
                 UPDATE News 
                 SET title = @title, thumbnail = @thumbnail, content = @content, 
-                    author = @author, status = @status, updatedAt = GETDATE()
+                    author = @author, status = @status, updatedAt = GETUTCDATE()
                 WHERE id = @id
             `);
         res.json({ success: true, message: 'Cập nhật thành công' });

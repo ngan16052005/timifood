@@ -8,7 +8,7 @@ const initDatabase = async (pool) => {
                     userId UNIQUEIDENTIFIER,
                     action NVARCHAR(100),
                     details NVARCHAR(MAX),
-                    createdAt DATETIME DEFAULT GETDATE()
+                    createdAt DATETIME DEFAULT GETUTCDATE()
                 )
             END
             
@@ -21,7 +21,7 @@ const initDatabase = async (pool) => {
                     subject NVARCHAR(200),
                     message NVARCHAR(MAX),
                     status INT DEFAULT 0, -- 0: Unread, 1: Read/Resolved
-                    createdAt DATETIME DEFAULT GETDATE()
+                    createdAt DATETIME DEFAULT GETUTCDATE()
                 )
             END
 
@@ -34,8 +34,8 @@ const initDatabase = async (pool) => {
                     content NVARCHAR(MAX),
                     author NVARCHAR(100),
                     status INT DEFAULT 1, -- 1: Active, 0: Hidden
-                    createdAt DATETIME DEFAULT GETDATE(),
-                    updatedAt DATETIME DEFAULT GETDATE()
+                    createdAt DATETIME DEFAULT GETUTCDATE(),
+                    updatedAt DATETIME DEFAULT GETUTCDATE()
                 )
             END
 
@@ -45,7 +45,7 @@ const initDatabase = async (pool) => {
                     id UNIQUEIDENTIFIER PRIMARY KEY DEFAULT NEWID(),
                     userId UNIQUEIDENTIFIER NOT NULL,
                     productId UNIQUEIDENTIFIER NOT NULL,
-                    createdAt DATETIME DEFAULT GETDATE(),
+                    createdAt DATETIME DEFAULT GETUTCDATE(),
                     CONSTRAINT UQ_User_Product UNIQUE (userId, productId)
                 )
             END
@@ -59,7 +59,7 @@ const initDatabase = async (pool) => {
                     staffId UNIQUEIDENTIFIER,
                     staffName NVARCHAR(100),
                     status NVARCHAR(20) DEFAULT 'waiting', -- waiting, chatting, ended
-                    createdAt DATETIME DEFAULT GETDATE(),
+                    createdAt DATETIME DEFAULT GETUTCDATE(),
                     endedAt DATETIME
                 )
             END
@@ -71,7 +71,7 @@ const initDatabase = async (pool) => {
                     sessionId UNIQUEIDENTIFIER FOREIGN KEY REFERENCES ChatSessions(id) ON DELETE CASCADE,
                     sender NVARCHAR(20), -- 'customer' or 'staff'
                     text NVARCHAR(MAX),
-                    timestamp DATETIME DEFAULT GETDATE()
+                    timestamp DATETIME DEFAULT GETUTCDATE()
                 )
             END
             IF COL_LENGTH('Products', 'minStock') IS NULL

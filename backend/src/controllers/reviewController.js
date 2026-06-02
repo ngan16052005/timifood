@@ -64,7 +64,7 @@ const reviewController = {
             .input('userId', sql.UniqueIdentifier, userId)
             .input('rating', sql.Int, rating)
             .input('comment', sql.NVarChar, comment || '')
-            .query('INSERT INTO Reviews (productId, userId, rating, comment, createdAt) VALUES (@productId, @userId, @rating, @comment, GETDATE())');
+            .query('INSERT INTO Reviews (productId, userId, rating, comment, createdAt) VALUES (@productId, @userId, @rating, @comment, GETUTCDATE())');
 
         res.json({ success: true, message: 'Đánh giá của bạn đã được gửi!' });
     } catch (error) {
