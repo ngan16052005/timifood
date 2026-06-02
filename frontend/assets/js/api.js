@@ -125,6 +125,10 @@ window.api = {
     },
 
     getProducts: async (search = "", silent = false) => {
+        if (!search && window._productsCache && (Date.now() - window._productsCacheTime < 300000)) {
+            return window._productsCache;
+        }
+
         if (!silent) showLoader();
         try {
             let url = `${BASE_URL}/products`;
@@ -133,7 +137,12 @@ window.api = {
                 headers: getHeaders()
             });
             if (!response.ok) throw new Error('Network response was not ok');
-            return await response.json();
+            const data = await response.json();
+            if (!search) {
+                window._productsCache = data;
+                window._productsCacheTime = Date.now();
+            }
+            return data;
         } catch (error) {
             console.error("Failed to fetch products:", error);
             throw error;
@@ -304,6 +313,7 @@ window.api = {
 
     // --- Product CRUD APIs ---
     addProduct: async (productData) => {
+        window._productsCache = null;
         showLoader();
         try {
             const response = await fetch(`${BASE_URL}/products`, {
@@ -325,6 +335,7 @@ window.api = {
     },
 
     updateProduct: async (id, productData) => {
+        window._productsCache = null;
         showLoader();
         try {
             const response = await fetch(`${BASE_URL}/products/${id}`, {
@@ -346,6 +357,7 @@ window.api = {
     },
 
     deleteProduct: async (id) => {
+        window._productsCache = null;
         showLoader();
         try {
             const response = await fetch(`${BASE_URL}/products/${id}`, {

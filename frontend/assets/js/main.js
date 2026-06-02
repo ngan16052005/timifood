@@ -1116,22 +1116,33 @@ window.addEventListener('load', async () => {
     kiemtradangnhap();
     checkAdmin();
 
-    // Sync cart from server on load if logged in
     let user = localStorage.getItem('currentuser') ? JSON.parse(localStorage.getItem('currentuser')) : null;
+    
+    // Execute multiple init tasks in parallel to significantly reduce load time
+    const initTasks = [];
+
+    // 1. Sync cart
     if (user) {
-        try {
-            const serverCart = await window.api.getCart(user.phone);
-            user.cart = serverCart;
-            localStorage.setItem('currentuser', JSON.stringify(user));
-        } catch (error) {
-            console.error("Initial cart sync failed:", error);
-        }
+        initTasks.push(
+            window.api.getCart(user.phone).then(serverCart => {
+                user.cart = serverCart;
+                localStorage.setItem('currentuser', JSON.stringify(user));
+            }).catch(error => console.error("Initial cart sync failed:", error))
+        );
     }
 
-    await loadUserFavorites();
+    // 2. Load favorites
+    initTasks.push(loadUserFavorites().catch(e => console.error(e)));
+
+    // 3. Load products for home
+    initTasks.push(showProductHome().catch(e => console.error(e)));
+
+    // Wait for all network tasks to complete
+    await Promise.all(initTasks);
+
+    // Update UI
     updateAmount();
-    await updateCartTotal();
-    await showProductHome();
+    await updateCartTotal(); // Uses cached or fetched products
     initSlider();
 });
 
