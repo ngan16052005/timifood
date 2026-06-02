@@ -2050,8 +2050,8 @@ async function syncNotificationsFromServer() {
                     // Phát âm thanh
                     try {
                         const audioUrl = latest.type === 'cancel' || latest.title.toLowerCase().includes('hủy') 
-                            ? 'https://assets.mixkit.co/active_storage/sfx/1110/1110-preview.mp3' 
-                            : 'https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3';
+                            ? '/assets/audio/warning.mp3' 
+                            : '/assets/audio/success.mp3';
                         const audio = new Audio(audioUrl);
                         audio.volume = 1.0;
                         audio.play().catch(e => console.log('Audio autoplay prevented. User must interact with the page first.', e));
@@ -2144,6 +2144,22 @@ async function clearAllNotifications(event) {
 }
 
 
+
+// --- Audio Unlocking Logic ---
+let audioUnlocked = false;
+function unlockAudio() {
+    if (audioUnlocked) return;
+    const audio = new Audio('/assets/audio/success.mp3');
+    audio.muted = true;
+    audio.play().then(() => {
+        audioUnlocked = true;
+        console.log("User Audio system: Ready");
+        document.removeEventListener('click', unlockAudio);
+        document.removeEventListener('keydown', unlockAudio);
+    }).catch(() => {});
+}
+document.addEventListener('click', unlockAudio);
+document.addEventListener('keydown', unlockAudio);
 
 // Khởi chạy hệ thống thông báo khi trang web tải xong
 window.addEventListener('load', () => {
