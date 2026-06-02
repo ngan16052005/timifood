@@ -2046,6 +2046,16 @@ async function syncNotificationsFromServer() {
                 const latest = serverNotis[0];
                 if (lastNotificationId !== null && latest.id > lastNotificationId && !latest.isRead) {
                     toast({ title: latest.title, message: latest.message, type: latest.type === 'order' ? 'success' : 'info', duration: 8000 });
+                    
+                    // Phát âm thanh
+                    try {
+                        const audioUrl = latest.type === 'cancel' || latest.title.toLowerCase().includes('hủy') 
+                            ? 'https://assets.mixkit.co/active_storage/sfx/1110/1110-preview.mp3' 
+                            : 'https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3';
+                        const audio = new Audio(audioUrl);
+                        audio.volume = 1.0;
+                        audio.play().catch(e => console.log('Audio autoplay prevented. User must interact with the page first.', e));
+                    } catch(err) { console.error('Audio error:', err); }
                 }
                 lastNotificationId = latest.id;
             }
