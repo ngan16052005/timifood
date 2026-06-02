@@ -469,7 +469,7 @@ function initChatbot() {
 
             case "search_keyword_silent":
                 try {
-                    const response = await fetch('/api/chat/ai', {
+                    const response = await fetch(`${window.BACKEND_URL}/api/chat/ai`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ message: extraData, history: aiChatHistory.slice(-4) }) // Giữ 4 tin nhắn gần nhất làm context
