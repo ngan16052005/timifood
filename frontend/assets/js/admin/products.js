@@ -29,7 +29,8 @@ function showProductArr(arr) {
                     </div>
                     <div class="list-control">
                     <div class="list-tool">
-                        <button class="btn-edit" onclick="editProduct('${product.id}')"><i class="fa-light fa-pen-to-square"></i></button>
+                        <button class="btn-edit" onclick="openImportStockModal('${product.id}', '${product.title.replace(/'/g, "\\'")}')" title="Nhập Kho" style="background-color: #10b981; border-color: #10b981;"><i class="fa-light fa-box-open"></i></button>
+                        <button class="btn-edit" onclick="editProduct('${product.id}')" title="Sửa"><i class="fa-light fa-pen-to-square"></i></button>
                         ${btnCtl}
                     </div>                       
                 </div>
@@ -44,25 +45,17 @@ async function showProduct() {
     let selectOp = document.getElementById('the-loai').value;
     let valeSearchInput = document.getElementById('form-search-product').value;
     try {
-        productsData = await window.api.getProducts(valeSearchInput);
+        const response = await window.api.getPaginatedProducts(currentPage, perPage, selectOp, valeSearchInput);
+        productsData = response.data || [];
+        
+        displayList(productsData);
+        setupPagination(response.totalPages || 0);
     } catch (err) {
-        console.error("Failed to fetch products:", err);
+        console.error("Failed to fetch paginated products:", err);
         productsData = [];
+        displayList([]);
+        setupPagination(0);
     }
-
-    if (!Array.isArray(productsData)) productsData = [];
-
-    let result = [];
-    if (selectOp == "Tất cả") {
-        result = productsData.filter((item) => item.status == 1);
-    } else if (selectOp == "Đã ẩn") {
-        result = productsData.filter((item) => item.status == 0);
-    } else {
-        result = productsData.filter((item) => item.category == selectOp);
-    }
-
-    displayList(result, perPage, currentPage);
-    setupPagination(result, perPage, currentPage);
 }
 
 let latestOrderId = 0;
@@ -73,7 +66,7 @@ async function cancelSearchProduct() {
     document.getElementById('the-loai').value = "Tất cả";
     document.getElementById('form-search-product').value = "";
     currentPage = 1; // Reset to page 1
-    await initAdmin();
+    await showProduct();
 }
 
 async function initAdmin() {
@@ -104,6 +97,16 @@ async function initAdmin() {
             document.getElementById("amount-product").innerHTML = getAmoumtProduct(products);
             document.getElementById("doanh-thu").innerHTML = vnd(getMoney(orders));
             showUserArr(users);
+            
+            try {
+                const profitData = await window.api.getProfitReport();
+                const totalProfit = profitData.reduce((acc, curr) => acc + (curr.profit || 0), 0);
+                document.getElementById("loi-nhuan").innerHTML = vnd(totalProfit);
+            } catch (e) {
+                console.error("Lỗi lấy báo cáo lợi nhuận:", e);
+                document.getElementById("loi-nhuan").innerHTML = "0₫";
+            }
+            
             await thongKe();
         }
 
@@ -121,7 +124,6 @@ async function initAdmin() {
             setInterval(updateClock, 1000);
 
             // Initial check for order list refresh
-            startOrderListPolling();
             isFirstLoad = false;
         }
     } catch (error) {
@@ -134,44 +136,19 @@ function updateClock() {
     const hours = String(now.getHours()).padStart(2, '0');
     const minutes = String(now.getMinutes()).padStart(2, '0');
     const seconds = String(now.getSeconds()).padStart(2, '0');
-    const timeString = `${hours}:${minutes}:${seconds}`;
+    
+    const day = String(now.getDate()).padStart(2, '0');
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const year = now.getFullYear();
+    
+    const timeString = `${hours}:${minutes}:${seconds} - ${day}/${month}/${year}`;
     const clockElement = document.getElementById('current-time');
     if (clockElement) {
         clockElement.textContent = timeString;
     }
 }
 
-function startOrderListPolling() {
-    setInterval(async () => {
-        try {
-            const orders = await window.api.getOrders(true);
-            if (Array.isArray(orders)) {
-                const currentOrderCount = orders.length;
-                const lastKnownCount = parseInt(localStorage.getItem('admin_last_order_count')) || 0;
-
-                if (currentOrderCount !== lastKnownCount) {
-                    localStorage.setItem('admin_last_order_count', currentOrderCount);
-                    if (typeof loadPaginatedOrders === 'function') {
-                        await loadPaginatedOrders(typeof currentOrderPage !== 'undefined' ? currentOrderPage : 1);
-                    } else if (typeof showOrder === 'function') {
-                        showOrder(orders);
-                    }
-
-                    // Update stats if we are on dashboard
-                    const currentUser = JSON.parse(localStorage.getItem("currentuser"));
-                    if (currentUser && currentUser.userType == 1) {
-                        const doanhThuEl = document.getElementById("doanh-thu");
-                        if (doanhThuEl) doanhThuEl.innerHTML = vnd(getMoney(orders));
-                        if (typeof thongKe === 'function') await thongKe();
-                    }
-                }
-            }
-        } catch (error) {
-            console.error("Order list polling failed:", error);
-        }
-    }, 5000);
-}
-
+// startOrderListPolling removed for performance. Now using Socket.IO in admin-noti.js
 
 // Redundant window.onload removed and merged into the main one at the top.
 
@@ -399,4 +376,79 @@ function uploadImage(el) {
     document.querySelector(".upload-image-preview").setAttribute("src", path);
 }
 
-// Đổi trạng thái đơn hàng
+// ---- QUẢN LÝ NHẬP KHO ----
+let currentImportProductId = null;
+
+function openImportStockModal(productId, productTitle) {
+    currentImportProductId = productId;
+    
+    // Tạo modal nếu chưa có
+    if (!document.getElementById("import-stock-modal")) {
+        const modalHtml = `
+        <div class="modal stock-in" id="import-stock-modal">
+            <div class="modal-container">
+                <div class="modal-close" onclick="closeImportStockModal()"><i class="fa-regular fa-xmark"></i></div>
+                <h2 class="modal-container-title"><i class="fa-light fa-box-open" style="color: #10b981;"></i> Phiếu Nhập Kho</h2>
+                <div class="modal-content">
+                    <form id="form-import-stock">
+                        <div class="form-group">
+                            <label class="form-label">Sản phẩm</label>
+                            <input type="text" id="import-product-name" class="form-control" readonly style="font-weight: bold;">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Số lượng nhập <span style="color:red">*</span></label>
+                            <input type="number" id="import-quantity" class="form-control" min="1" required placeholder="Nhập số lượng...">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Giá vốn / SP (VNĐ) <span style="color:red">*</span></label>
+                            <input type="number" id="import-price" class="form-control" min="0" required placeholder="Nhập giá vốn (VD: 10000)">
+                            <small style="color: #64748b; margin-top: 5px; display: block; font-size: 13px;">Giá nhập của lô hàng này để tính lợi nhuận.</small>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Ghi chú</label>
+                            <textarea id="import-note" class="form-control" placeholder="Nhà cung cấp, mã phiếu..."></textarea>
+                        </div>
+                        <button type="button" class="form-submit" onclick="submitImportStock()"><i class="fa-regular fa-check"></i> XÁC NHẬN NHẬP KHO</button>
+                    </form>
+                </div>
+            </div>
+        </div>`;
+        document.body.insertAdjacentHTML('beforeend', modalHtml);
+    }
+    
+    document.getElementById("import-product-name").value = productTitle;
+    document.getElementById("import-quantity").value = "";
+    document.getElementById("import-price").value = "";
+    document.getElementById("import-note").value = "";
+    document.getElementById("import-stock-modal").classList.add("open");
+}
+
+function closeImportStockModal() {
+    const modal = document.getElementById("import-stock-modal");
+    if(modal) modal.classList.remove("open");
+}
+
+async function submitImportStock() {
+    const quantity = document.getElementById("import-quantity").value;
+    const importPrice = document.getElementById("import-price").value;
+    const note = document.getElementById("import-note").value;
+    
+    if(!quantity || quantity <= 0) return toast({title: "Cảnh báo", message: "Số lượng phải > 0", type: "warning", duration: 3000});
+    if(!importPrice || importPrice < 0) return toast({title: "Cảnh báo", message: "Giá vốn không hợp lệ", type: "warning", duration: 3000});
+    
+    try {
+        const payload = {
+            productId: currentImportProductId,
+            quantity: parseInt(quantity),
+            importPrice: parseFloat(importPrice),
+            note: note
+        };
+        await window.api.importStockInventory(payload);
+        toast({ title: "Thành công", message: "Đã nhập kho thành công!", type: "success", duration: 3000 });
+        closeImportStockModal();
+        await showProduct(); // Cập nhật lại số lượng trên UI
+    } catch (err) {
+        toast({ title: "Lỗi", message: err.message, type: "error", duration: 3000 });
+    }
+}
+

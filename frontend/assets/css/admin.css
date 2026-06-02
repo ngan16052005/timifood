@@ -2198,7 +2198,7 @@ label a {
 
 .chat-session-item.active {
     background: #eff6ff;
-    border-left: 4px solid #3b82f6;
+    border-left: 4px solid var(--red);
 }
 
 .chat-session-item .session-info {
@@ -2310,7 +2310,7 @@ label a {
 
 .chat-msg-admin.staff {
     align-self: flex-end;
-    background: #3b82f6;
+    background: var(--red);
     color: #ffffff;
     border-bottom-right-radius: 2px;
     box-shadow: 0 1px 2px rgba(59, 130, 246, 0.1);
@@ -2677,10 +2677,39 @@ label a {
     font-size: 14px;
 }
 
+
 .modal.chat-messages-modal .chat-window-messages {
     background: #f8fafc;
     border: 1px solid #e2e8f0;
     border-radius: 12px;
     padding: 20px;
     box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.02);
+}
+
+/* Inventory Tabs */
+.admin-tabs {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 20px;
+    border-bottom: 1px solid #e2e8f0;
+    padding-bottom: 10px;
+}
+.tab-btn {
+    padding: 8px 16px;
+    border: none;
+    background: transparent;
+    font-size: 14px;
+    font-weight: 500;
+    color: #64748b;
+    cursor: pointer;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+}
+.tab-btn:hover {
+    background: #f1f5f9;
+    color: #b71c1c;
+}
+.tab-btn.active {
+    background: #b71c1c;
+    color: white;
 }

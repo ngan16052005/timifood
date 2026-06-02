@@ -349,7 +349,7 @@
                         trọn vẹn nhất.
                     </p>
                     <a href="index.html"
-                        style="display: inline-block; margin-top: 25px; padding: 12px 30px; background: var(--red); color: white; border-radius: 30px; text-decoration: none; font-weight: 600; box-shadow: 0 8px 20px rgba(231,76,60,0.3); transition: all 0.3s;">Đặt
+                        style="display: inline-block; margin-top: 25px; padding: 12px 30px; background: var(--red); color: white; border-radius: 30px; text-decoration: none; font-weight: 600; box-shadow: 0 8px 20px rgba(231,76,60,0.3); ">Đặt
                         món ngay</a>
                 </div>
             </div>
@@ -1112,41 +1112,67 @@
         </div>
     </div>
     <!-- Modal Bản đồ -->
+        <!-- Modal Bản đồ -->
+        <!-- Modal Bản đồ -->
     <div class="modal modal-map" onclick="closeMapModal()">
-        <div class="modal-container" onclick="event.stopPropagation()" style="position: relative;">
-            <div class="modal-close" onclick="closeMapModal()"
-                style="position: absolute; top: 15px; right: 15px; z-index: 10; width: 35px; height: 35px; background: rgba(0,0,0,0.1); display: flex; align-items: center; justify-content: center; border-radius: 50%; cursor: pointer; transition: all 0.3s;">
-                <i class="fa-regular fa-xmark" style="font-size: 18px; color: #333;"></i>
-            </div>
-            <header class="modal-header"
-                style="flex-direction: column; height: auto; padding: 15px; align-items: flex-start; gap: 15px; padding-right: 60px;">
-                <div style="display: flex; justify-content: space-between; width: 100%; align-items: center;">
-                    <div class="modal-header-title" style="margin: 0;">Chọn vị trí giao hàng</div>
+        <div class="modal-container" onclick="event.stopPropagation()" style="width: 900px; max-width: 95vw; height: 80vh; max-height: 750px; background: #fff; border-radius: 16px; position: relative; display: flex; flex-direction: column; overflow: hidden; padding: 0; box-shadow: 0 20px 60px rgba(0,0,0,0.2);">
+            
+            <!-- Header -->
+            <div style="display: flex; justify-content: space-between; align-items: center; padding: 16px 24px; background: #fff; border-bottom: 1px solid #f1f5f9; z-index: 10;">
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <div style="width: 40px; height: 40px; background: rgba(238, 77, 45, 0.1); border-radius: 10px; display: flex; align-items: center; justify-content: center;">
+                        <i class="fa-solid fa-map-location-dot" style="color: var(--red); font-size: 18px;"></i>
+                    </div>
+                    <h3 style="margin: 0; font-size: 18px; font-weight: 700; color: #1e293b;">Chọn vị trí giao hàng</h3>
                 </div>
-                <div class="modal-search-map" style="width: 100%; display: flex; gap: 8px;">
-                    <input type="text" id="search-map-input" placeholder="Nhập địa chỉ, tên đường hoặc địa danh..."
-                        style="flex: 1; padding: 10px 15px; border: 1px solid #ddd; border-radius: 6px; outline: none; font-size: 14px; box-shadow: inset 0 1px 3px rgba(0,0,0,0.05);">
-                    <button type="button" onclick="event.stopPropagation(); searchAddressOnMap();"
-                        style="background: var(--red); color: #fff; border: none; padding: 0 20px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.3s;">
-                        <i class="fa-solid fa-magnifying-glass"></i>
-                    </button>
-                </div>
-            </header>
-            <div class="modal-body" id="map-container" style="height: 400px;">
-                <!-- Bản đồ sẽ hiển thị ở đây -->
+                <button type="button" class="modal-close" onclick="closeMapModal()" style="background: #f1f5f9; border: none; width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; color: #64748b; ">
+                    <i class="fa-solid fa-xmark" style="font-size: 18px;"></i>
+                </button>
             </div>
-            <footer class="modal-footer"
-                style="padding: 15px; display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #eee;">
-                <p id="selected-address-preview"
-                    style="font-size: 13px; color: #666; margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 60%;">
-                    Vui lòng chọn vị trí trên bản đồ</p>
-                <button class="btn-confirm-address" onclick="confirmMapAddress()"
-                    style="background: var(--red); color: #fff; border: none; padding: 10px 20px; border-radius: 5px; font-weight: 600; cursor: pointer;">Xác
-                    nhận vị trí</button>
-            </footer>
+
+            <!-- Search Bar Area -->
+            <div style="padding: 16px 24px; background: #fff; display: flex; gap: 12px; z-index: 10; border-bottom: 1px solid #f1f5f9;">
+                <div style="flex: 1; position: relative; display: flex; align-items: center;">
+                    <i class="fa-regular fa-magnifying-glass" style="position: absolute; left: 16px; color: #94a3b8; font-size: 16px;"></i>
+                    <input type="text" id="search-map-input" placeholder="Nhập địa chỉ, tên đường hoặc địa danh..." style="width: 100%; height: 44px; padding: 0 16px 0 44px; border: 1px solid #e2e8f0; border-radius: 8px; outline: none; font-size: 15px; color: #334155; transition: border-color 0.2s;">
+                </div>
+                <button type="button" onclick="event.stopPropagation(); searchAddressOnMap();" style="padding: 0 24px; height: 44px; background: var(--red); color: #fff; border: none; border-radius: 8px; font-weight: 600; font-size: 15px; cursor: pointer;  box-shadow: 0 4px 10px rgba(238,77,45,0.2);">
+                    Tìm kiếm
+                </button>
+                <button type="button" onclick="map.locate({setView: true, maxZoom: 16});" title="Vị trí của tôi" style="width: 44px; height: 44px; background: rgba(238, 77, 45, 0.1); border: 1px solid rgba(238, 77, 45, 0.2); border-radius: 8px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--red); ">
+                    <i class="fa-solid fa-crosshairs" style="font-size: 18px;"></i>
+                </button>
+            </div>
+
+            <!-- Map and Footer Container -->
+            <div style="display: flex; flex: 1; flex-direction: column; position: relative;">
+                <!-- Map -->
+                <div id="map-container" style="flex: 1; width: 100%; background: #f8fafc; z-index: 1;"></div>
+                
+                <!-- Bottom Footer -->
+                <div style="padding: 20px 24px; background: #fff; border-top: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center; z-index: 10; box-shadow: 0 -4px 15px rgba(0,0,0,0.02);">
+                    <div style="display: flex; align-items: center; gap: 16px; flex: 1; padding-right: 24px; overflow: hidden;">
+                        <div style="width: 44px; height: 44px; background: rgba(238, 77, 45, 0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                            <i class="fa-solid fa-location-dot" style="color: var(--red); font-size: 20px;"></i>
+                        </div>
+                        <div style="display: flex; flex-direction: column; overflow: hidden;">
+                            <span style="font-size: 12px; color: #64748b; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Vị trí đã chọn</span>
+                            <p id="selected-address-preview" style="margin: 2px 0 0 0; font-size: 15px; color: #0f172a; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Vui lòng chọn vị trí...</p>
+                        </div>
+                    </div>
+                    <div style="display: flex; gap: 12px; flex-shrink: 0;">
+                        <button type="button" onclick="closeMapModal()" style="padding: 0 20px; height: 44px; background: #fff; color: #475569; border: 1px solid #cbd5e1; border-radius: 8px; font-weight: 600; font-size: 15px; cursor: pointer; ">
+                            Hủy
+                        </button>
+                        <button type="button" onclick="confirmMapAddress()" style="padding: 0 28px; height: 44px; background: var(--red); color: #fff; border: none; border-radius: 8px; font-weight: 600; font-size: 15px; cursor: pointer; box-shadow: 0 4px 10px rgba(238,77,45,0.2); transition: opacity 0.2s;">
+                            Xác nhận vị trí
+                        </button>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
-
+    
     <!-- Smart AI Chatbot Widget -->
     <div class="chatbot-toggle" id="chatbot-toggle-btn">
         <i class="fa-solid fa-comments"></i>

@@ -249,7 +249,7 @@ input[type="checkbox"]:checked+label:before {
     margin: 0 auto;
 }
 
-/* SEO: Screen Reader Only - Ẩn trực quan nhưng vẫn đọc được bởi crawler/screen reader */
+/* SEO: Screen Reader Only - áº¨n trá»±c quan nhÆ°ng váº«n Ä‘á»c Ä‘Æ°á»£c bá»Ÿi crawler/screen reader */
 .sr-only {
     position: absolute;
     width: 1px;
@@ -1614,7 +1614,7 @@ button.thanh-toan.disabled {
 }
 
 #trangchu.hide {
-    display: none;
+    display: none !important;
 }
 
 #account-user {
@@ -2847,14 +2847,17 @@ input[type=number] {
 .modal-map .modal-container {
     max-width: 800px;
     width: 95%;
-    height: 600px;
+    max-height: 90vh;
     padding: 0;
     overflow: hidden;
+    display: flex;
+    flex-direction: column;
 }
 
 #map-container {
     width: 100%;
-    height: 100%;
+    flex: 1;
+    min-height: 300px;
     background: #f0f0f0;
 }
 
@@ -3778,7 +3781,7 @@ input[type=number] {
 }
 
 /* ==========================================
-   ✨ PREMIUM MICRO-INTERACTIONS & TRANSITIONS 
+   âœ¨ PREMIUM MICRO-INTERACTIONS & TRANSITIONS 
    ========================================== */
 
 /* 1. Backdrop Glassmorphism for Modals */
@@ -3804,16 +3807,18 @@ input[type=number] {
 
 /* 3. Sleek close button animations */
 .modal-close,
-.form-close {
+.form-close,
+.btn-close {
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
 }
 
 .modal-close:hover,
-.form-close:hover {
+.form-close:hover,
+.btn-close:hover {
     background-color: var(--red) !important;
     color: var(--white) !important;
-    transform: scale(1.1) rotate(90deg);
-    box-shadow: 0 4px 12px rgba(231, 76, 60, 0.4);
+    transform: scale(1.1) rotate(90deg) !important;
+    box-shadow: 0 4px 12px rgba(231, 76, 60, 0.4) !important;
 }
 
 /* 4. Soft bounce & float effect for Cart items */
@@ -3882,7 +3887,7 @@ button.thanh-toan:hover:not(.disabled) {
 }
 
 /* ==========================================
-   💬 SMART AI CHATBOT WIDGET (GLASSMORPHISM)
+   ðŸ’¬ SMART AI CHATBOT WIDGET (GLASSMORPHISM)
    ========================================== */
 
 /* 1. Chatbot Floating Toggle Button */
@@ -4564,3 +4569,6 @@ body {
     top: 0px !important;
     position: static !important;
 }
+
+
+

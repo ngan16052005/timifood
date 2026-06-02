@@ -1,3 +1,7 @@
+function emailIsValid(email) {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+}
+
 function openCreateAccount() {
     document.querySelector(".signup").classList.add("open");
     document.querySelectorAll(".edit-account-e").forEach(item => {
@@ -28,6 +32,7 @@ function showUserArr(arr) {
             let roleLabel = "";
             if (account.userType == 1) roleLabel = `<span class="status-complete" style="background-color: #ff4757;">Quản trị</span>`;
             else if (account.userType == 2) roleLabel = `<span class="status-complete" style="background-color: #3742fa;">Nhân viên</span>`;
+            else if (account.userType == 3) roleLabel = `<span class="status-complete" style="background-color: #ffa502;">Vận chuyển</span>`;
             else roleLabel = `<span class="status-no-complete" style="background-color: #747d8c;">Khách hàng</span>`;
 
             let tinhtrang = account.status == 0 ? `<span class="status-no-complete">Bị khóa</span>` : `<span class="status-complete">Hoạt động</span>`;
@@ -164,11 +169,15 @@ updateAccount.addEventListener("click", async (e) => {
             userType: parseInt(userRole),
             status: status
         };
-        await window.api.updateUser(phone, userObj);
-        toast({ title: 'Thành công', message: 'Cập nhật tài khoản thành công!', type: 'success', duration: 3000 });
-        document.querySelector(".modal.signup").classList.remove("open");
-        signUpFormReset();
-        showUser();
+        const result = await window.api.updateUser(phone, userObj);
+        if (result && result.success) {
+            toast({ title: 'Thành công', message: 'Cập nhật tài khoản thành công!', type: 'success', duration: 3000 });
+            document.querySelector(".modal.signup").classList.remove("open");
+            signUpFormReset();
+            showUser();
+        } else {
+            toast({ title: 'Lỗi', message: result.message || 'Không thể cập nhật tài khoản!', type: 'error', duration: 3000 });
+        }
     } catch (error) {
         toast({ title: 'Lỗi', message: 'Không thể cập nhật tài khoản!', type: 'error', duration: 3000 });
     }

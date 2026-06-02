@@ -1,4 +1,4 @@
-const express = require('express');
+﻿const express = require('express');
 const helmet = require('helmet');
 const cors = require('cors');
 const bodyParser = require('body-parser');
@@ -53,6 +53,7 @@ const http = require('http');
 const { Server } = require('socket.io');
 
 const app = express();
+app.set('trust proxy', 1);
 const server = http.createServer(app);
 const corsOrigin = process.env.CORS_ORIGIN || '*';
 const parsedCorsOrigin = corsOrigin === '*' ? '*' : corsOrigin.split(',').map(s => s.trim());
@@ -245,6 +246,7 @@ app.use('/', require('./src/routes/reviewRoutes'));
 
 app.use('/', require('./src/routes/notificationRoutes'));
 app.use('/api/categories', require('./src/routes/categoryRoutes'));
+app.use('/api/inventory', require('./src/routes/inventoryRoutes'));
 
 
 app.use('/', require('./src/routes/livechatRoutes'));
@@ -254,17 +256,17 @@ app.use('/', require('./src/routes/favoriteRoutes'));
 app.use('/', require('./src/routes/chatHistoryRoutes'));
 app.use('/', require('./src/routes/copilotRoutes'));
 
-// Lấy danh sách tin tức (Public)
+// Láº¥y danh sÃ¡ch tin tá»©c (Public)
 
-// Lấy danh sách tin tức (Admin - Lấy cả bài ẩn)
+// Láº¥y danh sÃ¡ch tin tá»©c (Admin - Láº¥y cáº£ bÃ i áº©n)
 
-// Lấy chi tiết tin tức
+// Láº¥y chi tiáº¿t tin tá»©c
 
-// Thêm tin tức (Admin)
+// ThÃªm tin tá»©c (Admin)
 
-// Sửa tin tức (Admin)
+// Sá»­a tin tá»©c (Admin)
 
-// Xóa tin tức (Admin)
+// XÃ³a tin tá»©c (Admin)
 
 const fs = require('fs');
 
@@ -325,12 +327,13 @@ app.get('/', (req, res) => {
 
 
 app.use((err, req, res, next) => {
-    console.error('🔥 [Global Error]:', err.stack || err.message || err);
+    console.error('ðŸ”¥ [Global Error]:', err.stack || err.message || err);
     res.status(err.status || 500).json({
         success: false,
-        message: 'Đã xảy ra lỗi hệ thống, vui lòng thử lại sau!',
+        message: 'ÄÃ£ xáº£y ra lá»—i há»‡ thá»‘ng, vui lÃ²ng thá»­ láº¡i sau!',
         error: process.env.NODE_ENV === 'development' ? err.message : undefined
     });
 });
 
-module.exports = app; 
+module.exports = app;
+

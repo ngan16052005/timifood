@@ -1,4 +1,4 @@
-const CACHE_NAME = 'timifood-cache-v5';
+const CACHE_NAME = 'timifood-cache-v6';
 const urlsToCache = [
   '/',
   '/index-layout.html',
@@ -19,16 +19,36 @@ self.addEventListener('install', event => {
   );
 });
 
-// Fetch event
+// Fetch event - Stale-While-Revalidate Strategy
 self.addEventListener('fetch', event => {
+  // Ignore non-GET requests, API/Socket routes, and non-HTTP schemes (like chrome-extension://)
+  if (event.request.method !== 'GET' || 
+      event.request.url.includes('/api/') || 
+      event.request.url.includes('/socket.io/') ||
+      (event.request.headers.get('Accept') && event.request.headers.get('Accept').includes('application/json')) ||
+      !event.request.url.startsWith('http')) {
+      return; // Let the browser handle these normally
+  }
+
   event.respondWith(
     caches.match(event.request)
-      .then(response => {
-        // Cache hit - return response
-        if (response) {
-          return response;
-        }
-        return fetch(event.request);
+      .then(cachedResponse => {
+        // Fetch fresh data from network in the background
+        const fetchPromise = fetch(event.request).then(networkResponse => {
+          // Update cache with new version if request is successful
+          if (networkResponse && networkResponse.status === 200 && networkResponse.type === 'basic') {
+            const responseToCache = networkResponse.clone(); // Must clone before consuming
+            caches.open(CACHE_NAME).then(cache => {
+              cache.put(event.request, responseToCache);
+            });
+          }
+          return networkResponse;
+        }).catch(() => {
+          // Ignore network errors in background (user is offline)
+        });
+
+        // Return cached version immediately if available, otherwise wait for network
+        return cachedResponse || fetchPromise;
       })
   );
 });

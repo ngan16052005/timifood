@@ -230,33 +230,61 @@ module.exports = function({ io, pool, sql }) {
             io.to('adminRoom').emit('active_chats_updated', getActiveChatsSummary());
             io.to('adminRoom').emit('chat_session_ended_admin', { customerPhone: phone });
         });
+        // --- SHIPPER LOCATION EVENTS (Legacy fallback) ---
+        socket.on('shipperLocation', async (data) => {
+            const { orderId, lat, lng, phone, isOnline } = data;
+            io.emit('shipperLocation', data);
+        });
 
         socket.on('error', (err) => {
             console.error(`[Socket] Connection error on socket ${socket.id}:`, err);
         });
 
         socket.on('disconnect', async () => {
-            console.log('User disconnected:', socket.id);
-            
-            // Find if disconnected user had an active chat session
+            // ... (keep disconnect logic for live chat)
             for (const phone in activeChats) {
                 if (activeChats[phone].socketId === socket.id) {
-                    console.log(`[LiveChat] Client (${phone}) disconnected, ending chat session`);
-                    
                     if (pool && sql && activeChats[phone].dbSessionId) {
                         try {
                             await pool.request()
                                 .input('id', sql.UniqueIdentifier, activeChats[phone].dbSessionId)
                                 .query(`UPDATE ChatSessions SET status = 'ended', endedAt = GETDATE() WHERE id = @id`);
-                        } catch (e) {
-                            console.error('DB Error ending chat session on disconnect:', e);
-                        }
+                        } catch (e) {}
                     }
-
                     io.to('adminRoom').emit('chat_session_ended_admin', { customerPhone: phone });
                     delete activeChats[phone];
                     io.to('adminRoom').emit('active_chats_updated', getActiveChatsSummary());
                     break;
+                }
+            }
+        });
+    });
+
+    // --- SHIPPER LOCATION NAMESPACE ---
+    const shipperIo = io.of('/shipperLocation');
+    shipperIo.on('connection', (socket) => {
+        console.log('Shipper / Customer connected to /shipperLocation:', socket.id);
+
+        socket.on('shipperLocation', async (data) => {
+            const { orderId, lat, lng, phone, isOnline } = data;
+            // Broadcast to all clients (customers tracking orders) in this namespace
+            shipperIo.emit('shipperLocation', data);
+
+            // Persist shipper location to DB
+            if (pool && sql && phone) {
+                try {
+                    await pool.request()
+                        .input('phone', sql.NVarChar, phone)
+                        .input('lat', sql.Float, lat)
+                        .input('lng', sql.Float, lng)
+                        .input('isOnline', sql.Bit, isOnline ? 1 : 0)
+                        .query(`
+                            UPDATE Users 
+                            SET currentLat = @lat, currentLng = @lng, isOnline = @isOnline 
+                            WHERE phone = @phone AND userType = 3
+                        `);
+                } catch (e) {
+                    console.error('DB Error updating shipper location:', e);
                 }
             }
         });

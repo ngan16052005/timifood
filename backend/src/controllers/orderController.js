@@ -84,13 +84,15 @@ exports.createOrder = async (req, res) => {
             .input('receiverName', sql.NVarChar, order.tenguoinhan)
             .input('receiverPhone', sql.NVarChar, order.sdtnhan)
             .input('receiverAddress', sql.NVarChar, order.diachinhan)
+            .input('lat', sql.Float, order.lat || null)
+            .input('lng', sql.Float, order.lng || null)
             .input('note', sql.NVarChar, order.ghichu || '')
             .input('voucherCode', sql.NVarChar, order.voucherCode || null)
             .input('discountAmount', sql.Int, parseInt(order.discountAmount) || 0)
             .input('shippingFee', sql.Int, parseInt(order.shippingFee) || 0)
             .input('status', sql.Int, 0)
-            .query(`INSERT INTO Orders (id, orderCode, userId, totalPrice, deliveryType, deliveryTime, deliveryDate, receiverName, receiverPhone, receiverAddress, note, voucherCode, discountAmount, shippingFee, orderDate, status) 
-                    VALUES (@id, @orderCode, @userId, @totalPrice, @deliveryType, @deliveryTime, @deliveryDate, @receiverName, @receiverPhone, @receiverAddress, @note, @voucherCode, @discountAmount, @shippingFee, GETDATE(), @status)`);
+            .query(`INSERT INTO Orders (id, orderCode, userId, totalPrice, deliveryType, deliveryTime, deliveryDate, receiverName, receiverPhone, receiverAddress, lat, lng, note, voucherCode, discountAmount, shippingFee, orderDate, status) 
+                    VALUES (@id, @orderCode, @userId, @totalPrice, @deliveryType, @deliveryTime, @deliveryDate, @receiverName, @receiverPhone, @receiverAddress, @lat, @lng, @note, @voucherCode, @discountAmount, @shippingFee, GETDATE(), @status)`);
 
         // Notify user about successful order
         console.log(`[Order] Notifying customer: ${userId}`);
@@ -120,7 +122,7 @@ exports.createOrder = async (req, res) => {
             const checkStockReq = new sql.Request(transaction);
             const stockResult = await checkStockReq
                 .input('pId', sql.UniqueIdentifier, item.id)
-                .query('SELECT stock, title, minStock FROM Products WHERE id = @pId');
+                .query('SELECT stock, title, minStock, movingAverageCost FROM Products WHERE id = @pId');
 
             const product = stockResult.recordset[0];
             if (!product || product.stock < parseInt(item.soluong)) {
@@ -133,10 +135,11 @@ exports.createOrder = async (req, res) => {
                 .input('orderId', sql.UniqueIdentifier, newOrderId)
                 .input('productId', sql.UniqueIdentifier, item.id)
                 .input('price', sql.Float, parseFloat(item.price))
+                .input('costPrice', sql.Float, product.movingAverageCost || 0)
                 .input('quantity', sql.Int, parseInt(item.soluong))
                 .input('note', sql.NVarChar, item.note || '')
-                .query(`INSERT INTO OrderDetails (orderId, productId, price, quantity, note) 
-                        VALUES (@orderId, @productId, @price, @quantity, @note)`);
+                .query(`INSERT INTO OrderDetails (orderId, productId, price, costPrice, quantity, note) 
+                        VALUES (@orderId, @productId, @price, @costPrice, @quantity, @note)`);
 
             // Decrease stock
             if (product && product.stock !== undefined) {
@@ -545,7 +548,7 @@ exports.updateOrderStatus = async (req, res) => {
 
         // Start or stop simulation based on status
         if (status === 1) { // Đang giao
-            startSimulation(req.app.locals.io, id, orderInfo.userId);
+            // startSimulation(req.app.locals.io, id, orderInfo.userId); // Disabled to allow real Shipper App tracking
         } else {
             stopSimulation(id);
         }

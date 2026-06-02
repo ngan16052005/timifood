@@ -98,6 +98,26 @@ socket.on('newNotification', (latest) => {
             showContacts();
         }
     }
+
+    // Auto refresh orders and stats on new order or cancellation
+    if (latest.type === 'order' || latest.type === 'cancel') {
+        if (typeof loadPaginatedOrders === 'function') {
+            const currentOrderPage = window.currentOrderPage || 1;
+            loadPaginatedOrders(currentOrderPage);
+        } else if (typeof showOrder === 'function') {
+            window.api.getOrders(true).then(orders => showOrder(orders));
+        }
+
+        // Update stats if we are on dashboard
+        const currentUser = JSON.parse(localStorage.getItem("currentuser"));
+        if (currentUser && currentUser.userType == 1) {
+            window.api.getOrders(true).then(orders => {
+                const doanhThuEl = document.getElementById("doanh-thu");
+                if (doanhThuEl) doanhThuEl.innerHTML = vnd(getMoney(orders));
+            });
+            if (typeof thongKe === 'function') thongKe();
+        }
+    }
 });
 
 async function syncAdminNotifications() {

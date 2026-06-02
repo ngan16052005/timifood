@@ -67,7 +67,7 @@ function viewContact(contact) {
                 ${contact.status == 2 ? '<div style="margin-bottom: 10px; color: #16a34a; font-size: 13px; font-weight: 600;"><i class="fa-solid fa-circle-check"></i> Đã gửi phản hồi cho liên hệ này</div>' : ''}
                 <textarea id="contact-reply-msg" placeholder="Nhập nội dung phản hồi gửi qua email cho khách..." style="width: 100%; min-height: 100px; padding: 12px; border: 1px solid #cbd5e1; border-radius: 8px; outline: none; margin-bottom: 10px; resize: vertical;"></textarea>
                 <div style="text-align: right;">
-                    <button id="btn-send-reply" onclick="sendContactReply('${contact.id}')" style="background-color: #3b82f6; color: white; border: none; padding: 10px 20px; border-radius: 6px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 8px;">
+                    <button id="btn-send-reply" onclick="sendContactReply('${contact.id}')" style="background-color: var(--red); color: white; border: none; padding: 10px 20px; border-radius: 6px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 8px;">
                         <i class="fa-light fa-paper-plane-top"></i> Gửi phản hồi
                     </button>
                 </div>

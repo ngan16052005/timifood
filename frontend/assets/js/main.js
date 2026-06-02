@@ -1098,6 +1098,7 @@ function logOut() {
     }
     localStorage.removeItem('currentuser');
     localStorage.removeItem('token');
+    fetch('/api/logout', { method: 'POST' });
     window.location = "/";
 }
 
@@ -1339,7 +1340,7 @@ async function renderOrderProduct() {
                     `;
                 } else if (item.trangthai === 1) {
                     controlButtons += `
-                        <button class="btn-order-detail" style="color: #1890ff; border-color: #1890ff" onclick="trackOrderUser('${item.id}')"><i class="fa-solid fa-motorcycle"></i> Theo dõi Shipper (Live)</button>
+                        <button class="btn-order-detail" style="color: #1890ff; border-color: #1890ff" onclick="trackOrderUser('${item.id}', this.getAttribute('data-address'))" data-address="${(item.diachinhan || '').replace(/"/g, '&quot;')}"><i class="fa-solid fa-motorcycle"></i> Theo dõi Shipper (Live)</button>
                     `;
                 }
 
@@ -2547,7 +2548,12 @@ if (fbCompleteBtn) {
 let globalNewsList = [];
 
 async function showNewsSection() {
-    document.getElementById('trangchu').style.display = 'none';
+    const trangchu = document.getElementById('trangchu');
+    if (!trangchu) {
+        window.location.href = 'index.html?view=news';
+        return;
+    }
+    trangchu.style.display = 'none';
     const wishlistSection = document.getElementById('wishlist-section');
     if (wishlistSection) wishlistSection.style.display = 'none';
     
@@ -2659,7 +2665,7 @@ if(typeof io !== 'undefined') {
     }); 
 }
 
-window.trackOrderUser = async function(id) {
+window.trackOrderUser = async function(id, address) {
     try {
         let trackingModal = document.querySelector('.modal.tracking-order');
         if (!trackingModal) {
@@ -2710,6 +2716,49 @@ window.trackOrderUser = async function(id) {
             window.shipperMarker = L.marker([10.762622, 106.660172], {icon: shipperIcon}).addTo(window.shipperMap);
             window.shipperMarker.bindPopup("<b>Shipper đang giao hàng</b>").openPopup();
             
+            // Hàm vẽ marker của người dùng/điểm đến
+            const drawUserMarker = (lat, lng, popupText = "<b>Điểm giao hàng của bạn</b>") => {
+                const userIcon = L.icon({
+                    iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-blue.png',
+                    shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
+                    iconSize: [25, 41],
+                    iconAnchor: [12, 41],
+                    popupAnchor: [1, -34],
+                    shadowSize: [41, 41]
+                });
+                if (window.userMarker) {
+                    window.shipperMap.removeLayer(window.userMarker);
+                }
+                window.userMarker = L.marker([lat, lng], { icon: userIcon }).addTo(window.shipperMap);
+                window.userMarker.bindPopup(popupText).openPopup();
+                
+                // Tự động zoom để thấy cả shipper và bạn
+                if (window.shipperMarker) {
+                    const bounds = L.latLngBounds([
+                        window.shipperMarker.getLatLng(),
+                        [lat, lng]
+                    ]);
+                    window.shipperMap.fitBounds(bounds, { padding: [50, 50] });
+                }
+            };
+
+            // Luôn dùng GPS của thiết bị để xác định vị trí thực tế của khách hàng
+            if (navigator.geolocation) {
+                document.getElementById('map-address-text') && (document.getElementById('map-address-text').textContent = "Đang tải vị trí GPS...");
+                navigator.geolocation.getCurrentPosition(
+                    (position) => {
+                        const lat = position.coords.latitude;
+                        const lng = position.coords.longitude;
+                        drawUserMarker(lat, lng, "<b>Vị trí hiện tại của bạn</b>");
+                    },
+                    (error) => {
+                        console.log("GPS Error:", error);
+                        // Fallback nếu không có GPS
+                    },
+                    { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+                );
+            }
+
             window.trackingOrderId = id;
             
             // force map resize

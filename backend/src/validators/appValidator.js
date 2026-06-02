@@ -19,13 +19,13 @@ const reviewSchema = z.object({
 
 const orderSchema = z.object({
     body: z.object({
-        receiverName: z.string().min(2, "Tên người nhận phải có ít nhất 2 ký tự"),
-        receiverPhone: z.string().regex(/^[0-9]{10}$/, "Số điện thoại phải có đúng 10 chữ số"),
-        receiverAddress: z.string().min(5, "Địa chỉ quá ngắn"),
-        deliveryType: z.enum(['Giao hàng tận nơi', 'Nhận tại cửa hàng']),
-        paymentMethod: z.enum(['COD', 'Thẻ tín dụng', 'Momo', 'VNPay']),
-        note: z.string().max(200).optional(),
-        voucherCode: z.string().optional(),
+        tenguoinhan: z.string().min(2, "Tên người nhận phải có ít nhất 2 ký tự"),
+        sdtnhan: z.string().regex(/^[0-9]{10}$/, "Số điện thoại phải có đúng 10 chữ số"),
+        diachinhan: z.string().min(5, "Địa chỉ quá ngắn"),
+        hinhthucgiao: z.enum(['Giao tận nơi', 'Tự đến lấy']),
+        paymentMethod: z.enum(['cash', 'momo', 'vnpay']),
+        ghichu: z.string().max(200).optional().nullable(),
+        voucherCode: z.string().optional().nullable(),
         chitiet: z.array(z.object({
             id: z.string().uuid("Product ID không hợp lệ"),
             soluong: z.number().int().positive(),

@@ -11,11 +11,14 @@
                         </form>
                     </div>
                     <div class="admin-control-right">
+                        <button class="btn-reset-order" onclick="clearLogsAdmin()" title="Xóa tất cả nhật ký" style="margin-right: 10px; color: var(--red); border-color: var(--red);">
+                            <i class="fa-light fa-trash"></i>
+                        </button>
                         <button class="btn-reset-order" onclick="showLogs()"><i
                                 class="fa-light fa-arrow-rotate-right"></i></button>
                     </div>
                 </div>
-                <div class="table">
+                <div class="table" style="min-height: calc(100vh - 200px); display: flex; flex-direction: column;">
                     <table width="100%">
                         <thead>
                             <tr>
@@ -24,10 +27,14 @@
                                 <td>Hành động</td>
                                 <td>Chi tiết</td>
                                 <td>Thời gian</td>
+                                <td></td>
                             </tr>
                         </thead>
                         <tbody id="show-logs">
                         </tbody>
                     </table>
+                    <div class="page-nav" style="margin-top: auto; padding-top: 20px;">
+                        <ul id="log-pagination" class="page-nav-list"></ul>
+                    </div>
                 </div>
             </div>

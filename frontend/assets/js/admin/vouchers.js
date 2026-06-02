@@ -4,7 +4,7 @@ function showVoucherArr(arr) {
         html = `<tr><td colspan="7" style="text-align:center;">Không có mã giảm giá nào</td></tr>`;
     } else {
         arr.forEach((v) => {
-            let type = v.discountType == 0 ? "%" : "VND";
+            let type = v.discountType == 0 ? "%" : (v.discountType == 2 ? "Phí ship" : (v.discountType == 3 ? "Freeship" : "VND"));
             let status = v.status == 1 ? `<span class="status-complete">Hoạt động</span>` : `<span class="status-no-complete">Tạm dừng</span>`;
             let expiry = formatDate(v.expiryDate);
 

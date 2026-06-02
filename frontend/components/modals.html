@@ -326,22 +326,23 @@
         </div>
     </div>
     <div class="modal location-picker-modal" id="location-picker-modal">
-        <div class="modal-container" style="max-width: 800px; width: 90%; background-color: #fff; border-radius: 8px; position: relative;">
-            <h3 class="modal-container-title" style="padding: 15px 20px; border-bottom: 1px solid #e2e8f0; margin: 0; font-size: 1.25rem;"><i class="fa-light fa-map-location-dot" style="margin-right: 8px; color: #ef4444;"></i> CHỌN VỊ TRÍ TRÊN BẢN ĐỒ</h3>
-            <button type="button" class="btn-close" onclick="closeLocationPicker()" style="position: absolute; top: 15px; right: 20px; background: none; border: none; font-size: 1.5rem; color: #64748b; cursor: pointer;"><i class="fa-regular fa-xmark"></i></button>
-            <div class="modal-content" style="padding: 20px;">
-                <div style="display: flex; gap: 10px; margin-bottom: 15px;">
-                    <input type="text" id="map-search-input" class="form-control" placeholder="Tìm kiếm địa điểm..." style="flex: 1; padding: 10px; border: 1px solid #cbd5e1; border-radius: 4px;">
-                    <button type="button" onclick="searchLocationMap()" style="padding: 0 20px; background-color: #ef4444; color: white; border: none; border-radius: 4px; cursor: pointer;"><i class="fa-regular fa-search" style="margin-right: 5px;"></i>Tìm</button>
+        <div class="modal-container mdl-cnt" style="max-width: 800px; width: 95%; background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.5); box-shadow: 0 20px 40px rgba(0,0,0,0.15); border-radius: 20px; position: relative; overflow: hidden;">
+            <h3 class="modal-container-title" style="padding: 25px 25px 15px 25px; border-bottom: none; margin: 0; font-size: 20px; font-weight: 700; color: #2d3436; text-transform: uppercase; letter-spacing: 0.5px; background: transparent;"><i class="fa-light fa-map-location-dot" style="margin-right: 8px; color: #ef4444;"></i> CHỌN VỊ TRÍ TRÊN BẢN ĐỒ</h3>
+            <button type="button" class="modal-close" onclick="closeLocationPicker()" style="position: absolute; top: 15px; right: 15px; background: #f1f5f9; border: none; width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; color: #64748b;"><i class="fa-solid fa-xmark" style="font-size: 18px;"></i></button>
+            <div class="modal-content" style="padding: 0 25px 25px 25px; display: flex; flex-direction: column; max-height: 85vh; overflow-y: auto;">
+                <div style="display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap;">
+                    <input type="text" id="map-search-input" class="form-control" placeholder="Tìm kiếm địa điểm..." style="flex: 1; min-width: 200px; padding: 12px 20px; border: 1px solid #e0e0e0; background: rgba(245, 245, 245, 0.8); border-radius: 12px; outline: none; font-size: 14px;  font-family: inherit;">
+                    <button type="button" onclick="searchLocationMap()" style="padding: 0 25px; height: 46px; background: var(--red); color: white; border: none; border-radius: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: transform 0.2s, box-shadow 0.2s; box-shadow: 0 4px 10px rgba(238, 77, 45, 0.25);"><i class="fa-regular fa-search" style="margin-right: 8px;"></i>Tìm</button>
+                    <button type="button" onclick="getCurrentMapLocation()" title="Vị trí của tôi" style="padding: 0 20px; height: 46px; background: var(--red); color: white; border: none; border-radius: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: transform 0.2s, box-shadow 0.2s; box-shadow: 0 4px 10px rgba(238, 77, 45, 0.25);"><i class="fa-solid fa-crosshairs"></i> Vị trí của tôi</button>
                 </div>
-                <div id="map" style="height: 400px; width: 100%; border-radius: 4px; border: 1px solid #e2e8f0; margin-bottom: 15px; background-color: #f8fafc; z-index: 1;"></div>
-                <div style="padding: 10px 15px; background-color: #f1f5f9; border-radius: 4px; color: #334155; font-size: 0.95rem; display: flex; align-items: flex-start; gap: 10px;">
-                    <i class="fa-solid fa-location-dot" style="color: #ef4444; margin-top: 4px;"></i>
-                    <span id="map-address-text" style="flex: 1;">Chưa chọn vị trí</span>
+                <div id="map" style="flex: 1; min-height: 400px; height: 50vh; width: 100%; border-radius: 16px; border: 1px solid #eee; margin-bottom: 20px; background-color: #f8fafc; z-index: 1; overflow: hidden; box-shadow: inset 0 0 10px rgba(0,0,0,0.05);"></div>
+                <div style="padding: 15px 20px; background: rgba(241, 245, 249, 0.7); border-radius: 12px; color: #334155; font-size: 0.95rem; display: flex; align-items: flex-start; gap: 12px; border: 1px solid rgba(226, 232, 240, 0.8);">
+                    <i class="fa-solid fa-location-dot" style="color: #ef4444; margin-top: 3px; font-size: 1.1rem;"></i>
+                    <span id="map-address-text" style="flex: 1; line-height: 1.4; font-weight: 500;">Chưa chọn vị trí</span>
                 </div>
-                <div class="modal-content-bottom" style="display: flex; justify-content: flex-end; margin-top: 20px; gap: 10px;">
-                    <button type="button" style="padding: 10px 20px; background-color: #cbd5e1; color: #334155; border: none; border-radius: 4px; cursor: pointer; font-weight: 500;" onclick="closeLocationPicker()">Hủy</button>
-                    <button type="button" id="btn-confirm-location" style="padding: 10px 20px; background-color: #ef4444; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: 500;" onclick="confirmLocation()" disabled>Xác nhận</button>
+                <div class="modal-content-bottom" style="display: flex; justify-content: flex-end; margin-top: 25px; gap: 12px;">
+                    <button type="button" style="padding: 12px 25px; background-color: #f1f5f9; color: #475569; border: 1px solid #cbd5e1; border-radius: 10px; cursor: pointer; font-weight: 600; transition: all 0.2s; font-family: inherit;" onclick="closeLocationPicker()">Hủy</button>
+                    <button type="button" id="btn-confirm-location" style="padding: 12px 25px; background: var(--red); color: white; border: none; border-radius: 10px; cursor: pointer; font-weight: 600; box-shadow: 0 4px 12px rgba(238, 77, 45, 0.25);  font-family: inherit;" onclick="confirmLocation()" disabled>Xác nhận</button>
                 </div>
             </div>
         </div>

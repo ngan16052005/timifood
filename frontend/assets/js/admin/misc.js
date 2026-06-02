@@ -256,28 +256,43 @@ window.onload = async () => {
     await loadCategoriesToSelect();
 };
 // --- System Logs Functions ---
-async function showLogs() {
+async function showLogs(page = 1) {
     const searchInput = document.getElementById("form-search-log");
-    const searchVal = searchInput ? searchInput.value.toLowerCase() : "";
+    const searchVal = searchInput ? searchInput.value.trim() : "";
     try {
-        const logs = await window.api.getLogs();
-        if (!Array.isArray(logs)) return;
-
-        const filteredLogs = logs.filter(log =>
-            log.action.toLowerCase().includes(searchVal) ||
-            log.userPhone.toLowerCase().includes(searchVal) ||
-            log.details.toLowerCase().includes(searchVal)
-        );
-        showLogsArr(filteredLogs);
+        const response = await window.api.getLogs(page, searchVal);
+        const limit = 15;
+        const startIndex = (page - 1) * limit;
+        if (response && response.data) {
+            showLogsArr(response.data, startIndex);
+            setupLogPagination(response.total, response.totalPages, response.page);
+        } else {
+            showLogsArr([], 0);
+            setupLogPagination(0, 1, 1);
+        }
     } catch (error) {
         console.error("Error showing logs:", error);
     }
 }
 
-function showLogsArr(arr) {
+function setupLogPagination(total, totalPages, currentPage) {
+    let paginationHtml = '';
+    if (totalPages > 1) {
+        for (let i = 1; i <= totalPages; i++) {
+            paginationHtml += `<li class="page-nav-item ${i === currentPage ? 'active' : ''}"><a href="#" onclick="event.preventDefault(); showLogs(${i})">${i}</a></li>`;
+        }
+    }
+    
+    const paginationEl = document.getElementById('log-pagination');
+    if (paginationEl) {
+        paginationEl.innerHTML = paginationHtml;
+    }
+}
+
+function showLogsArr(arr, startIndex = 0) {
     let html = '';
     if (!arr || arr.length === 0) {
-        html = '<tr><td colspan="5">Không có dữ liệu nhật ký</td></tr>';
+        html = '<tr><td colspan="6" style="text-align: center; padding: 20px;">Không có dữ liệu nhật ký</td></tr>';
     } else {
         arr.forEach((log, index) => {
             let actionLabel = log.action;
@@ -288,16 +303,51 @@ function showLogsArr(arr) {
 
             html += `
                 <tr>
-                    <td>${index + 1}</td>
+                    <td>${startIndex + index + 1}</td>
                     <td><b>${log.userPhone}</b></td>
                     <td><span class="${actionClass}" style="padding: 2px 8px; border-radius: 4px; font-size: 0.8rem;">${actionLabel}</span></td>
                     <td style="max-width: 300px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${log.details}">${log.details}</td>
                     <td>${new Date(log.createdAt).toLocaleString('vi-VN')}</td>
+                    <td class="control">
+                        <button class="btn-delete" onclick="deleteLogAdmin('${log.id}')">
+                            <i class="fa-regular fa-trash"></i>
+                        </button>
+                    </td>
                 </tr>
             `;
         });
     }
     document.getElementById("show-logs").innerHTML = html;
+}
+
+async function deleteLogAdmin(id) {
+    if (confirm("Bạn có chắc chắn muốn xóa nhật ký này? Thao tác này không thể hoàn tác.")) {
+        try {
+            const result = await window.api.deleteLog(id);
+            if (result.success) {
+                toast({ title: 'Thành công', message: 'Đã xóa nhật ký!', type: 'success', duration: 3000 });
+                await showLogs();
+            }
+        } catch (error) {
+            console.error("Delete log error:", error);
+            toast({ title: 'Thất bại', message: 'Không thể xóa nhật ký!', type: 'error', duration: 3000 });
+        }
+    }
+}
+
+async function clearLogsAdmin() {
+    if (confirm("Bạn có chắc chắn muốn xóa TẤT CẢ nhật ký? Thao tác này KHÔNG THỂ hoàn tác.")) {
+        try {
+            const result = await window.api.clearLogs();
+            if (result.success) {
+                toast({ title: 'Thành công', message: 'Đã dọn dẹp toàn bộ nhật ký!', type: 'success', duration: 3000 });
+                await showLogs();
+            }
+        } catch (error) {
+            console.error("Clear logs error:", error);
+            toast({ title: 'Thất bại', message: 'Không thể xóa nhật ký!', type: 'error', duration: 3000 });
+        }
+    }
 }
 
 // --- 💬 Admin Live Chat Support System ---

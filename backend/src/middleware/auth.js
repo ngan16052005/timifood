@@ -1,9 +1,32 @@
 const jwt = require('jsonwebtoken');
 const SECRET_KEY = process.env.JWT_SECRET || 'TiMiFood_Secret_Key_2026';
 
+const parseCookies = (request) => {
+    const list = {};
+    const cookieHeader = request.headers?.cookie;
+    if (!cookieHeader) return list;
+
+    cookieHeader.split(';').forEach(function(cookie) {
+        let [ name, ...rest] = cookie.split('=');
+        name = name?.trim();
+        if (!name) return;
+        const value = rest.join('=').trim();
+        if (!value) return;
+        list[name] = decodeURIComponent(value);
+    });
+    return list;
+}
+
 const authenticateToken = (req, res, next) => {
-    const authHeader = req.headers['authorization'];
-    const token = authHeader && authHeader.split(' ')[1];
+    let token = null;
+    const cookies = parseCookies(req);
+    
+    if (cookies.token) {
+        token = cookies.token;
+    } else {
+        const authHeader = req.headers['authorization'];
+        token = authHeader && authHeader.split(' ')[1];
+    }
 
     if (!token) return res.status(401).json({ message: 'Bạn cần đăng nhập để thực hiện thao tác này' });
 
@@ -30,4 +53,20 @@ const isStaffOrAdmin = (req, res, next) => {
     }
 };
 
-module.exports = { authenticateToken, isAdmin, isStaffOrAdmin, SECRET_KEY };
+const isShipper = (req, res, next) => {
+    if (req.user && req.user.userType === 3) {
+        next();
+    } else {
+        res.status(403).json({ message: 'Access denied. Shipper only.' });
+    }
+};
+
+const isStaffAdminOrShipper = (req, res, next) => {
+    if (req.user && (req.user.userType === 1 || req.user.userType === 2 || req.user.userType === 3)) {
+        next();
+    } else {
+        res.status(403).json({ message: 'Access denied. Staff, Admin or Shipper only.' });
+    }
+};
+
+module.exports = { authenticateToken, isAdmin, isStaffOrAdmin, isShipper, isStaffAdminOrShipper, SECRET_KEY };

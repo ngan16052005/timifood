@@ -1,32 +1,166 @@
             <div class="section">
                 <div class="admin-control">
                     <div class="admin-control-left">
-                        <h3 class="title-section">Quản lý nhập kho</h3>
+                        <h3 class="title-section">Quản lý Kho & Chuỗi cung ứng</h3>
                     </div>
-                    <div class="admin-control-right">
-                        <button class="btn-control-large" onclick="openStockInModal()">
-                            <i class="fa-light fa-plus"></i> <span>Nhập hàng mới</span>
+                    <div class="admin-control-right" style="display: flex; gap: 10px;">
+                        <button class="btn-control-large" onclick="openSupplierModal()">
+                            <i class="fa-light fa-truck-field"></i> <span>Thêm nhà cung cấp</span>
+                        </button>
+                        <button class="btn-control-large" onclick="openPurchaseOrderModal()">
+                            <i class="fa-light fa-file-invoice"></i> <span>Tạo phiếu nhập mới</span>
                         </button>
                     </div>
                 </div>
-                <div class="chart-container" style="margin-bottom: 20px; height: 350px;">
-                    <h3><i class="fa-light fa-chart-line"></i> Biểu đồ biến động kho (Tốc độ tiêu thụ 7 ngày qua)</h3>
-                    <canvas id="inventoryChart"></canvas>
+
+                <div class="admin-tabs" style="margin-bottom: 20px;">
+                    <button class="tab-btn active" onclick="switchInventoryTab('purchase-orders')">Lịch sử Phiếu Nhập</button>
+                    <button class="tab-btn" onclick="switchInventoryTab('suppliers')">Nhà cung cấp</button>
+                    <button class="tab-btn" onclick="switchInventoryTab('history')">Chi tiết lô nhập</button>
                 </div>
-                <div class="table">
-                    <table width="100%">
-                        <thead>
-                            <tr>
-                                <td>Mã nhập</td>
-                                <td>Sản phẩm</td>
-                                <td>Số lượng</td>
-                                <td>Ngày nhập</td>
-                                <td>Ghi chú</td>
-                            </tr>
-                        </thead>
-                        <tbody id="show-stock-history">
-                            <!-- Stock history will be loaded here -->
-                        </tbody>
-                    </table>
+
+                <!-- Tab: Lịch sử Phiếu nhập -->
+                <div id="tab-purchase-orders" class="inventory-tab-content">
+                    <div class="table">
+                        <table width="100%">
+                            <thead>
+                                <tr>
+                                    <td>Mã PO</td>
+                                    <td>Nhà cung cấp</td>
+                                    <td>Tổng tiền</td>
+                                    <td>Người nhập</td>
+                                    <td>Ngày nhập</td>
+                                    <td>Ghi chú</td>
+                                    <td>Thao tác</td>
+                                </tr>
+                            </thead>
+                            <tbody id="show-purchase-orders">
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Tab: Nhà cung cấp -->
+                <div id="tab-suppliers" class="inventory-tab-content" style="display: none;">
+                    <div class="table">
+                        <table width="100%">
+                            <thead>
+                                <tr>
+                                    <td>Tên NCC</td>
+                                    <td>Số điện thoại</td>
+                                    <td>Email</td>
+                                    <td>Địa chỉ</td>
+                                    <td>Thao tác</td>
+                                </tr>
+                            </thead>
+                            <tbody id="show-suppliers">
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Tab: Chi tiết lô nhập (Lịch sử nhập từng SP) -->
+                <div id="tab-history" class="inventory-tab-content" style="display: none;">
+                    <div class="table">
+                        <table width="100%">
+                            <thead>
+                                <tr>
+                                    <td>Mã PO</td>
+                                    <td>Sản phẩm</td>
+                                    <td>Số lượng</td>
+                                    <td>Đơn giá nhập</td>
+                                    <td>Tổng tiền</td>
+                                    <td>Ngày nhập</td>
+                                </tr>
+                            </thead>
+                            <tbody id="show-stock-history">
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Supplier Modal -->
+            <div class="modal add-product-modal" id="supplier-modal">
+                <div class="modal-container" style="width: 500px; padding-bottom: 20px;">
+                    <h3 class="modal-container-title">THÊM NHÀ CUNG CẤP</h3>
+                    <button class="modal-close" onclick="closeSupplierModal()"><i class="fa-regular fa-xmark"></i></button>
+                    <div class="modal-content" style="padding: 0 25px;">
+                        <form id="supplier-form" onsubmit="event.preventDefault(); submitSupplier();" style="flex-direction: column; width: 100%;">
+                            <input type="hidden" id="supplier-id">
+                            <div class="form-group">
+                                <label class="form-label">Tên nhà cung cấp (*)</label>
+                                <input type="text" id="supplier-name" class="form-control" required>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Số điện thoại (*)</label>
+                                <input type="text" id="supplier-phone" class="form-control" required>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Email</label>
+                                <input type="email" id="supplier-email" class="form-control">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Địa chỉ</label>
+                                <input type="text" id="supplier-address" class="form-control">
+                            </div>
+                            <div class="modal-footer-control" style="margin-top: 25px; display: flex; justify-content: flex-end; gap: 15px;">
+                                <button class="btn-control-large" type="button" onclick="closeSupplierModal()" style="background-color: #e2e8f0; color: #475569; border: none; cursor: pointer;">Huỷ bỏ</button>
+                                <button class="btn-control-large" type="submit" style="border: none; cursor: pointer;"><i class="fa-light fa-check"></i> Lưu</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Purchase Order Modal -->
+            <div class="modal add-product-modal" id="po-modal">
+                <div class="modal-container" style="width: 800px; padding-bottom: 20px;">
+                    <h3 class="modal-container-title">TẠO PHIẾU NHẬP KHO</h3>
+                    <button class="modal-close" onclick="closePurchaseOrderModal()"><i class="fa-regular fa-xmark"></i></button>
+                    <div class="modal-content" style="padding: 0 25px;">
+                        <form id="po-form" onsubmit="event.preventDefault(); submitPurchaseOrder();" style="flex-direction: column; width: 100%;">
+                            <div style="display: flex; gap: 20px;">
+                                <div class="form-group" style="flex: 1;">
+                                    <label class="form-label">Nhà cung cấp (*)</label>
+                                    <select id="po-supplier" class="form-control" required>
+                                        <option value="">Chọn nhà cung cấp...</option>
+                                    </select>
+                                </div>
+                                <div class="form-group" style="flex: 1;">
+                                    <label class="form-label">Ghi chú</label>
+                                    <input type="text" id="po-note" class="form-control">
+                                </div>
+                            </div>
+                            
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 15px;">
+                                <label class="form-label" style="margin: 0; font-size: 16px; font-weight: bold;">Danh sách sản phẩm nhập</label>
+                                <button type="button" class="btn-control-large" onclick="addPOItemRow()" style="padding: 5px 15px; font-size: 14px; border: none; cursor: pointer;"><i class="fa-light fa-plus"></i> Thêm dòng</button>
+                            </div>
+                            <div class="table" style="margin-top: 15px; max-height: 300px; overflow-y: auto; border: 1px solid #eee; border-radius: 8px;">
+                                <table width="100%">
+                                    <thead>
+                                        <tr>
+                                            <td>Sản phẩm</td>
+                                            <td width="100px">Số lượng</td>
+                                            <td width="150px">Giá nhập</td>
+                                            <td width="50px"></td>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="po-items-body">
+                                    </tbody>
+                                </table>
+                            </div>
+                            
+                            <div style="text-align: right; margin-top: 20px; font-weight: bold; font-size: 20px; padding-top: 15px; border-top: 1px dashed #ccc;">
+                                Tổng tiền: <span id="po-total-amount" style="color: var(--red);">0₫</span>
+                            </div>
+                            
+                            <div class="modal-footer-control" style="margin-top: 30px; display: flex; justify-content: flex-end; gap: 15px;">
+                                <button class="btn-control-large" type="button" onclick="closePurchaseOrderModal()" style="background-color: #e2e8f0; color: #475569; border: none; cursor: pointer;">Huỷ bỏ</button>
+                                <button class="btn-control-large" type="submit" style="border: none; cursor: pointer;"><i class="fa-light fa-check"></i> Hoàn tất Nhập Kho</button>
+                            </div>
+                        </form>
+                    </div>
                 </div>
             </div>

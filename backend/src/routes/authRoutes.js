@@ -18,5 +18,6 @@ router.post('/verify-otp-sms', authController.verify_otp_sms);
 router.post('/reset-password-by-phone', resetPasswordLimiter, authController.reset_password_by_phone);
 router.post('/register', registerLimiter, validate(registerSchema), authController.register);
 router.post('/change-password', authenticateToken, changePasswordLimiter, authController.change_password);
+router.post('/logout', authController.logout);
 
 module.exports = router;

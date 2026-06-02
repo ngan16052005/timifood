@@ -27,7 +27,7 @@ exports.getAllProducts = async (req, res) => {
             request.input('search', sql.NVarChar, `%${search}%`);
         }
 
-        query += ' GROUP BY p.id, p.title, p.price, p.img, p.category, p.status, p.description, p.stock, p.minStock';
+        query += ' GROUP BY p.id, p.title, p.price, p.img, p.category, p.status, p.description, p.stock, p.minStock, p.movingAverageCost';
 
         const result = await request.query(query);
         const products = result.recordset.map(p => ({
@@ -40,6 +40,67 @@ exports.getAllProducts = async (req, res) => {
     } catch (err) {
         console.error(err);
         res.status(500).json({ message: 'Error fetching products', error: err.message });
+    }
+};
+
+exports.getPaginatedProducts = async (req, res) => {
+    try {
+        const pool = await connectDB();
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 10;
+        const offset = (page - 1) * limit;
+        const search = req.query.search || '';
+        const category = req.query.category || 'Tất cả';
+
+        let whereClause = '1=1';
+        let request = pool.request();
+
+        if (search) {
+            whereClause += ' AND (title LIKE @search OR description LIKE @search)';
+            request.input('search', sql.NVarChar, `%${search}%`);
+        }
+
+        if (category === 'Đã ẩn') {
+            whereClause += ' AND status = 0';
+        } else if (category !== 'Tất cả') {
+            whereClause += ' AND category = @category AND status = 1';
+            request.input('category', sql.NVarChar, category);
+        } else {
+            // 'Tất cả' shows only status = 1 normally, but let's match the old logic:
+            // "Tất cả" => status = 1
+            whereClause += ' AND status = 1';
+        }
+
+        // Get total count
+        const countQuery = `SELECT COUNT(*) as totalCount FROM Products WHERE ${whereClause}`;
+        const countResult = await request.query(countQuery);
+        const totalCount = countResult.recordset[0].totalCount;
+
+        // Get paginated data
+        const dataQuery = `
+            SELECT * FROM Products 
+            WHERE ${whereClause}
+            ORDER BY title ASC
+            OFFSET ${offset} ROWS FETCH NEXT ${limit} ROWS ONLY
+        `;
+        const dataResult = await request.query(dataQuery);
+        
+        const products = dataResult.recordset.map(p => ({
+            ...p,
+            desc: p.description
+        }));
+
+        res.json({
+            data: products,
+            totalCount,
+            page,
+            limit,
+            totalPages: Math.ceil(totalCount / limit)
+        });
+
+    } catch (err) {
+        console.error('Error fetching paginated products:', err);
+        res.status(500).json({ message: 'Error fetching paginated products', error: err.message });
     }
 };
 

@@ -129,6 +129,15 @@ async function thanhtoanpage(option, product) {
                 updateCheckoutTotal((product.soluong * product.price));
                 break;
         }
+
+        if (currentVoucher) {
+            const codeInput = document.getElementById('voucher-code');
+            if (!codeInput.value) codeInput.value = currentVoucher.code;
+            await applyVoucher();
+        } else {
+            // Apply current discount just in case (should be 0)
+            updateCheckoutTotal(currentTotalBill - currentDiscount);
+        }
     })
 
     giaotannoi.addEventListener('click', async () => {
@@ -153,6 +162,14 @@ async function thanhtoanpage(option, product) {
             case 2:
                 updateCheckoutTotal((product.soluong * product.price) + PHIVANCHUYEN);
                 break;
+        }
+
+        if (currentVoucher) {
+            const codeInput = document.getElementById('voucher-code');
+            if (!codeInput.value) codeInput.value = currentVoucher.code;
+            await applyVoucher();
+        } else {
+            updateCheckoutTotal(currentTotalBill - currentDiscount);
         }
     })
 
@@ -266,7 +283,14 @@ window.changeQtyCheckout = async function (index, delta) {
 
     // Update the price display
     document.getElementById('checkout-cart-total').innerText = vnd(cartTotal);
-    updateCheckoutTotal((cartTotal + shippingFee) - currentDiscount);
+    
+    if (currentVoucher) {
+        const codeInput = document.getElementById('voucher-code');
+        if (!codeInput.value) codeInput.value = currentVoucher.code;
+        await applyVoucher();
+    } else {
+        updateCheckoutTotal((cartTotal + shippingFee) - currentDiscount);
+    }
 }
 
 function showProductBuyNow(product) {
@@ -306,7 +330,13 @@ window.changeQtyBuyNow = function (delta) {
     const giaotannoi = document.querySelector("#giaotannoi");
     const shippingFee = (giaotannoi && giaotannoi.classList.contains("active")) ? PHIVANCHUYEN : 0;
 
-    updateCheckoutTotal((itemTotal + shippingFee) - currentDiscount);
+    if (currentVoucher) {
+        const codeInput = document.getElementById('voucher-code');
+        if (!codeInput.value) codeInput.value = currentVoucher.code;
+        applyVoucher(); // applyVoucher is async but we don't await here since changeQtyBuyNow is not async
+    } else {
+        updateCheckoutTotal((itemTotal + shippingFee) - currentDiscount);
+    }
 }
 
 function updateCheckoutTotal(total) {
@@ -423,19 +453,42 @@ async function applyVoucher() {
                 return;
             }
 
-            // discountType: 0 = Percent, 1 = Fixed
+            const giaotannoi = document.querySelector("#giaotannoi");
+            const shippingFee = (giaotannoi && giaotannoi.classList.contains("active")) ? PHIVANCHUYEN : 0;
+
+            // discountType: 0 = Percent, 1 = Fixed, 2 = Shipping
             if (currentVoucher.discountType == 0) {
                 currentDiscount = (baseTotal * currentVoucher.discountValue) / 100;
                 // Limit to maxDiscount if set
                 if (currentVoucher.maxDiscount > 0 && currentDiscount > currentVoucher.maxDiscount) {
                     currentDiscount = currentVoucher.maxDiscount;
                 }
-            } else {
+                if (currentDiscount > baseTotal) currentDiscount = baseTotal;
+            } else if (currentVoucher.discountType == 1) {
                 currentDiscount = currentVoucher.discountValue;
+                if (currentDiscount > baseTotal) currentDiscount = baseTotal;
+            } else if (currentVoucher.discountType == 2) {
+                currentDiscount = currentVoucher.discountValue;
+                if (currentDiscount > shippingFee) currentDiscount = shippingFee;
+                if (shippingFee === 0) {
+                    currentVoucher = null;
+                    currentDiscount = 0;
+                    discountRow.style.display = "none";
+                    msgBox.innerHTML = `<span style="color: #ef4444; font-size: 13px;">Đơn hàng không có phí vận chuyển</span>`;
+                    updateCheckoutTotal(baseTotal + shippingFee);
+                    return;
+                }
+            } else if (currentVoucher.discountType == 3) {
+                currentDiscount = shippingFee;
+                if (shippingFee === 0) {
+                    currentVoucher = null;
+                    currentDiscount = 0;
+                    discountRow.style.display = "none";
+                    msgBox.innerHTML = `<span style="color: #ef4444; font-size: 13px;">Đơn hàng không có phí vận chuyển</span>`;
+                    updateCheckoutTotal(baseTotal + shippingFee);
+                    return;
+                }
             }
-
-            // Limit discount to baseTotal
-            if (currentDiscount > baseTotal) currentDiscount = baseTotal;
 
             // Update UI
             discountRow.style.display = "flex";
@@ -443,8 +496,6 @@ async function applyVoucher() {
             msgBox.innerHTML = `<span style="color: #00b894; font-size: 13px;">Đã áp dụng mã: ${currentVoucher.code}</span>`;
 
             // Recalculate Final Total
-            const giaotannoi = document.querySelector("#giaotannoi");
-            const shippingFee = (giaotannoi && giaotannoi.classList.contains("active")) ? PHIVANCHUYEN : 0;
             updateCheckoutTotal((baseTotal + shippingFee) - currentDiscount);
 
             toast({ title: 'Thành công', message: 'Áp dụng mã giảm giá thành công!', type: 'success', duration: 3000 });
@@ -689,6 +740,26 @@ async function xulyDathang(product) {
     const shippingFee = isGiaoTanNoi ? PHIVANCHUYEN : 0;
     const finalTotal = (tongtien + shippingFee) - currentDiscount;
 
+    // Tự động tìm tọa độ GPS nếu khách chỉ nhập chữ (không chọn trên bản đồ)
+    let finalLat = selectedLatLng ? selectedLatLng.lat : null;
+    let finalLng = selectedLatLng ? selectedLatLng.lng : null;
+
+    if (!finalLat && !finalLng && isGiaoTanNoi && diachinhan) {
+        try {
+            document.querySelector('.complete-checkout-btn').innerText = "Đang quét tọa độ...";
+            const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(diachinhan)}&limit=1&countrycodes=vn`);
+            const data = await response.json();
+            if (data && data.length > 0) {
+                finalLat = parseFloat(data[0].lat);
+                finalLng = parseFloat(data[0].lon);
+            }
+        } catch (e) {
+            console.error("Auto geocode error:", e);
+        } finally {
+            document.querySelector('.complete-checkout-btn').innerText = "HOÀN TẤT ĐẶT HÀNG";
+        }
+    }
+
     // Phuong thuc thanh toan
     let paymentActive = document.querySelector('.payment-item.active');
     let paymentMethod = paymentActive ? paymentActive.getAttribute('data-payment') : 'cash';
@@ -702,6 +773,8 @@ async function xulyDathang(product) {
         tenguoinhan: tenNguoiNhan,
         sdtnhan: sdtNhan,
         diachinhan: diachinhan,
+        lat: finalLat,
+        lng: finalLng,
         tongtien: finalTotal,
         discountAmount: currentDiscount,
         voucherCode: currentVoucher ? currentVoucher.code : null,
@@ -812,6 +885,7 @@ document.addEventListener('click', (e) => {
 let map = null;
 let mapMarker = null;
 let selectedAddress = "";
+let selectedLatLng = null;
 
 // Custom Red Marker Icon
 const redIcon = L.icon({
@@ -874,9 +948,10 @@ window.openMapModal = function () {
     if (!map) {
         // Default center: Ho Chi Minh City
         map = L.map('map-container', {
-            zoomControl: true,
+            zoomControl: false,
             scrollWheelZoom: true
         }).setView([10.762622, 106.660172], 13);
+        L.control.zoom({ position: 'bottomright' }).addTo(map);
 
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '© OpenStreetMap contributors'
@@ -899,18 +974,6 @@ window.openMapModal = function () {
             toast({ title: 'Lỗi định vị', message: 'Không thể lấy vị trí. Vui lòng cấp quyền Vị trí trên trình duyệt hoặc bật Cài đặt vị trí của Windows!', type: 'error', duration: 4000 });
         });
 
-        // Add a manual locate button
-        const locateControl = L.control({ position: 'topleft' });
-        locateControl.onAdd = function () {
-            const div = L.DomUtil.create('div', 'leaflet-bar leaflet-control');
-            div.innerHTML = '<a href="javascript:;" title="Vị trí của tôi" style="background-color: #fff; width: 30px; height: 30px; line-height: 30px; display: block; text-align: center; color: #333; border-radius: 4px;"><i class="fa-solid fa-crosshairs"></i></a>';
-            div.onclick = function (ev) {
-                ev.stopPropagation();
-                map.locate({ setView: false, enableHighAccuracy: true });
-            };
-            return div;
-        };
-        locateControl.addTo(map);
     }
 
     // Try to auto-locate on open
@@ -931,6 +994,7 @@ window.confirmMapAddress = function () {
 
         // Calculate distance and update shipping fee
         if (mapMarker) {
+            selectedLatLng = mapMarker.getLatLng();
             const storePoint = L.latLng(STORE_LATLNG[0], STORE_LATLNG[1]);
             const userPoint = mapMarker.getLatLng();
             const distanceMeters = storePoint.distanceTo(userPoint);

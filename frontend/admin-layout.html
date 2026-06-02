@@ -363,6 +363,7 @@
                             <option value="0">Khách hàng</option>
                             <option value="2">Nhân viên</option>
                             <option value="1">Quản trị viên</option>
+                            <option value="3">Vận chuyển (Shipper)</option>
                         </select>
                     </div>
                     <div class="form-group">
@@ -416,6 +417,8 @@
                         <select id="v-type" class="form-control">
                             <option value="0">Phần trăm (%)</option>
                             <option value="1">Số tiền (VND)</option>
+                            <option value="2">Giảm phí ship (VND)</option>
+                            <option value="3">Miễn phí vận chuyển (Freeship)</option>
                         </select>
                     </div>
                     <div class="form-group">
@@ -447,7 +450,7 @@
     <div id="toast"></div>
     <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-    <script src="./assets/js/api.js"></script>
+    <script src="./assets/js/api.js?v=2"></script>
     <script src="./assets/js/admin-noti.js"></script>
     <script src="./assets/js/admin/core.js"></script>
     <script src="./assets/js/admin/products.js"></script>
@@ -456,6 +459,7 @@
     <script src="./assets/js/admin/users.js"></script>
     <script src="./assets/js/admin/exports.js"></script>
     <script src="./assets/js/admin/vouchers.js"></script>
+    <script src="./assets/js/admin/stock.js?v=5"></script>
     <script src="./assets/js/admin/misc.js"></script>
     <script src="./assets/js/admin/chat.js"></script>
     <script src="./assets/js/admin/contacts.js"></script>
@@ -463,30 +467,76 @@
     <script src="./assets/js/admin-news.js"></script>
     <script src="./assets/js/toast-message.js"></script>
 
-    <div class="modal stock-in">
-        <div class="modal-container">
-            <h3 class="modal-container-title">NHẬP HÀNG MỚI</h3>
-            <button class="modal-close" onclick="closeStockInModal()"><i class="fa-regular fa-xmark"></i></button>
+    <div class="modal stock-in purchase-order-modal">
+        <div class="modal-container" style="max-width: 900px; width: 90%;">
+            <h3 class="modal-container-title">TẠO PHIẾU NHẬP KHO (PO)</h3>
+            <button class="modal-close" onclick="closePurchaseOrderModal()"><i class="fa-regular fa-xmark"></i></button>
             <div class="modal-content">
-                <form id="stock-in-form">
+                <form id="purchase-order-form">
                     <div class="form-group">
-                        <label for="stock-product-select" class="form-label">Chọn món ăn</label>
-                        <select id="stock-product-select" class="form-control">
-                            <!-- Options will be loaded here -->
+                        <label for="po-supplier" class="form-label">Nhà cung cấp</label>
+                        <select id="po-supplier" class="form-control">
+                            <!-- Suppliers loaded via JS -->
                         </select>
                     </div>
+                    
+                    <div class="po-items-container" style="margin: 20px 0; border: 1.5px solid #e2e8f0; border-radius: 12px; padding: 20px; background: #f8fafc;">
+                        <h4 style="margin-bottom: 20px; color: #1e293b; font-size: 1.1rem; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #e2e8f0; padding-bottom: 15px;">
+                            <span>Danh sách sản phẩm nhập</span>
+                            <button type="button" style="padding: 8px 16px; font-size: 0.9rem; background: var(--red); color: white; border: none; border-radius: 8px; cursor: pointer; transition: all 0.2s; font-weight: 500; display: flex; gap: 8px; align-items: center; box-shadow: 0 2px 8px rgba(255,71,87,0.2);" onclick="addPOItemRow()" onmouseover="this.style.transform='translateY(-1px)'" onmouseout="this.style.transform='none'">
+                                <i class="fa-regular fa-plus"></i> Thêm dòng
+                            </button>
+                        </h4>
+                        
+                        <div id="po-items-list">
+                            <!-- Dynamic rows added here -->
+                        </div>
+                        
+                        <div style="margin-top: 20px; padding-top: 15px; border-top: 1px solid #e2e8f0; text-align: right; font-weight: 700; font-size: 1.25rem; color: var(--red);">
+                            Tổng cộng: <span id="po-total-amount" style="font-size: 1.4rem; color: #1e293b; margin-left: 10px;">0đ</span>
+                        </div>
+                    </div>
+
                     <div class="form-group">
-                        <label for="stock-quantity" class="form-label">Số lượng nhập</label>
-                        <input id="stock-quantity" type="number" placeholder="Nhập số lượng" class="form-control"
-                            min="1">
+                        <label for="po-note" class="form-label">Ghi chú phiếu nhập</label>
+                        <textarea id="po-note" placeholder="Nhập ghi chú..." class="form-control" style="height: 80px;"></textarea>
+                    </div>
+                    
+                    <button type="button" class="form-submit" onclick="submitPurchaseOrder()" style="margin-top: 20px;">
+                        <i class="fa-light fa-check"></i> <span>HOÀN TẤT PHIẾU NHẬP</span>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Supplier Modal -->
+    <div class="modal stock-in supplier-modal">
+        <div class="modal-container">
+            <h3 class="modal-container-title" id="supplier-modal-title">THÊM NHÀ CUNG CẤP</h3>
+            <button class="modal-close" onclick="closeSupplierModal()"><i class="fa-regular fa-xmark"></i></button>
+            <div class="modal-content">
+                <form id="supplier-form">
+                    <input type="hidden" id="supplier-id">
+                    <div class="form-group">
+                        <label for="supplier-name" class="form-label">Tên nhà cung cấp *</label>
+                        <input id="supplier-name" type="text" placeholder="Nhập tên NCC" class="form-control" required>
                     </div>
                     <div class="form-group">
-                        <label for="stock-note" class="form-label">Ghi chú</label>
-                        <textarea id="stock-note" placeholder="Nhập ghi chú (VD: Nhà cung cấp...)"
-                            class="form-control"></textarea>
+                        <label for="supplier-phone" class="form-label">Số điện thoại</label>
+                        <input id="supplier-phone" type="text" placeholder="Số điện thoại" class="form-control">
                     </div>
-                    <button type="button" class="form-submit" onclick="submitStockIn()">
-                        <i class="fa-light fa-plus"></i> <span>XÁC NHẬN NHẬP KHO</span>
+                    <div class="form-group">
+                        <label for="supplier-email" class="form-label">Email</label>
+                        <input id="supplier-email" type="email" placeholder="Email" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label for="supplier-address" class="form-label">Địa chỉ</label>
+                        <textarea id="supplier-address" placeholder="Địa chỉ NCC..." class="form-control" style="height: 80px;"></textarea>
+                    </div>
+                    
+                    <button type="button" class="form-submit" onclick="submitSupplier()">
+                        <i class="fa-light fa-check"></i> <span id="supplier-submit-text">LƯU NHÀ CUNG CẤP</span>
                     </button>
                 </form>
             </div>

@@ -1,4 +1,5 @@
 const { sql, connectDB } = require('../config/db');
+const bcrypt = require('bcryptjs');
 let pool;
 connectDB().then(p => pool = p).catch(console.error);
 
@@ -25,7 +26,7 @@ exports.updateUser = async (req, res) => {
         const { fullname, email, address, password, status, userType } = req.body;
         
         // Security check: Only Admin can update other users or change status/userType
-        if (req.user.userType !== 1 && req.user.id !== phone) {
+        if (req.user.userType !== 1 && req.user.phone !== phone) {
             return res.status(403).json({ message: 'Bạn không có quyền cập nhật thông tin này' });
         }
 

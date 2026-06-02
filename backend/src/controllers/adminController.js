@@ -90,7 +90,7 @@ exports.deleteAdmin_reviews_id = async (req, res) => {
         const { id } = req.params;
         // Using global pool
         await pool.request()
-            .input('id', sql.Int, id)
+            .input('id', sql.UniqueIdentifier, id)
             .query('DELETE FROM Reviews WHERE id = @id');
         res.json({ success: true, message: 'Xóa đánh giá thành công' });
     } catch (error) {
@@ -118,12 +118,68 @@ exports.getAdmin_stock_history = async (req, res) => {
 exports.getAdmin_logs = async (req, res) => {
     try {
         if (!pool) return res.status(500).json({ message: 'Database pool not initialized' });
-        const result = await pool.request()
-            .query('SELECT * FROM SystemLogs ORDER BY createdAt DESC');
-        res.json(result.recordset);
+        
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 15;
+        const offset = (page - 1) * limit;
+        const search = req.query.search || '';
+        
+        let baseCountQuery = "SELECT COUNT(*) as total FROM SystemLogs sl LEFT JOIN Users u ON sl.userId = u.id";
+        let baseDataQuery = "SELECT sl.*, COALESCE(u.phone, N'Hệ thống') as userPhone FROM SystemLogs sl LEFT JOIN Users u ON sl.userId = u.id";
+        
+        const reqPool = pool.request();
+        
+        if (search) {
+            const whereClause = " WHERE sl.action LIKE @search OR sl.details LIKE @search OR u.phone LIKE @search";
+            baseCountQuery += whereClause;
+            baseDataQuery += whereClause;
+            reqPool.input('search', sql.NVarChar, `%${search}%`);
+        }
+        
+        reqPool.input('offset', sql.Int, offset);
+        reqPool.input('limit', sql.Int, limit);
+        
+        baseDataQuery += " ORDER BY sl.createdAt DESC OFFSET @offset ROWS FETCH NEXT @limit ROWS ONLY";
+        
+        const countResult = await reqPool.query(baseCountQuery);
+        const dataResult = await reqPool.query(baseDataQuery);
+        
+        const total = countResult.recordset[0].total;
+        
+        res.json({
+            data: dataResult.recordset,
+            total,
+            page,
+            totalPages: Math.ceil(total / limit)
+        });
     } catch (err) {
         console.error("Get logs error:", err);
         res.status(500).json({ message: 'Error fetching system logs' });
+    }
+};
+
+exports.deleteAdmin_log = async (req, res) => {
+    try {
+        if (!pool) return res.status(500).json({ message: 'Database pool not initialized' });
+        const { id } = req.params;
+        await pool.request()
+            .input('id', sql.UniqueIdentifier, id)
+            .query('DELETE FROM SystemLogs WHERE id = @id');
+        res.json({ success: true, message: 'Log deleted successfully' });
+    } catch (err) {
+        console.error("Delete log error:", err);
+        res.status(500).json({ message: 'Error deleting system log' });
+    }
+};
+
+exports.clearAdmin_logs = async (req, res) => {
+    try {
+        if (!pool) return res.status(500).json({ message: 'Database pool not initialized' });
+        await pool.request().query('TRUNCATE TABLE SystemLogs');
+        res.json({ success: true, message: 'All logs cleared successfully' });
+    } catch (err) {
+        console.error("Clear logs error:", err);
+        res.status(500).json({ message: 'Error clearing system logs' });
     }
 };
 
@@ -161,6 +217,116 @@ exports.createAdmin_stock_in = async (req, res) => {
     } catch (err) {
         console.error("Stock in error:", err);
         res.status(500).json({ message: 'Lỗi khi cập nhật kho hàng' });
+    }
+};
+
+exports.getAdmin_suppliers = async (req, res) => {
+    try {
+        const pool = await connectDB();
+        const result = await pool.request().query('SELECT * FROM Suppliers ORDER BY createdAt DESC');
+        res.json({ success: true, data: result.recordset });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ success: false, message: 'Lỗi server' });
+    }
+};
+
+exports.createAdmin_supplier = async (req, res) => {
+    try {
+        const { name, phone, email, address } = req.body;
+        const pool = await connectDB();
+        await pool.request()
+            .input('name', sql.NVarChar, name)
+            .input('phone', sql.NVarChar, phone)
+            .input('email', sql.NVarChar, email)
+            .input('address', sql.NVarChar, address)
+            .query('INSERT INTO Suppliers (name, phone, email, address, status, createdAt) VALUES (@name, @phone, @email, @address, 1, GETDATE())');
+        res.status(201).json({ success: true, message: 'Thêm nhà cung cấp thành công' });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ success: false, message: 'Lỗi server' });
+    }
+};
+
+exports.getAdmin_purchase_orders = async (req, res) => {
+    try {
+        const pool = await connectDB();
+        const result = await pool.request().query(`
+            SELECT p.*, s.name as supplierName, u.fullName as staffName 
+            FROM PurchaseOrders p
+            LEFT JOIN Suppliers s ON p.supplierId = s.id
+            LEFT JOIN Users u ON p.staffId = u.id
+            ORDER BY p.importDate DESC
+        `);
+        res.json({ success: true, data: result.recordset });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ success: false, message: 'Lỗi server' });
+    }
+};
+
+exports.createAdmin_purchase_order = async (req, res) => {
+    try {
+        const { supplierId, note, totalAmount, items } = req.body;
+        const pool = await connectDB();
+        const transaction = new sql.Transaction(pool);
+        await transaction.begin();
+
+        try {
+            // 1. Insert PurchaseOrder
+            const poResult = await transaction.request()
+                .input('supplierId', sql.UniqueIdentifier, supplierId)
+                .input('staffId', sql.UniqueIdentifier, req.user.id)
+                .input('totalAmount', sql.Float, totalAmount)
+                .input('note', sql.NVarChar, note)
+                .query(`
+                    INSERT INTO PurchaseOrders (supplierId, staffId, totalAmount, note, status, importDate)
+                    OUTPUT INSERTED.id
+                    VALUES (@supplierId, @staffId, @totalAmount, @note, 1, GETDATE())
+                `);
+            const poId = poResult.recordset[0].id;
+
+            // 2. Insert items and update products
+            for (let item of items) {
+                // a. Insert StockImports
+                await transaction.request()
+                    .input('purchaseOrderId', sql.UniqueIdentifier, poId)
+                    .input('productId', sql.UniqueIdentifier, item.productId)
+                    .input('quantity', sql.Int, item.quantity)
+                    .input('importPrice', sql.Float, item.importPrice)
+                    .input('totalPrice', sql.Float, item.quantity * item.importPrice)
+                    .input('note', sql.NVarChar, note)
+                    .input('importedBy', sql.UniqueIdentifier, req.user.id)
+                    .query(`
+                        INSERT INTO StockImports (purchaseOrderId, productId, quantity, importPrice, totalPrice, note, importedBy, importDate)
+                        VALUES (@purchaseOrderId, @productId, @quantity, @importPrice, @totalPrice, @note, @importedBy, GETDATE())
+                    `);
+
+                // b. Insert StockHistory
+                await transaction.request()
+                    .input('productId', sql.UniqueIdentifier, item.productId)
+                    .input('action', sql.VarChar, 'IMPORT_PO')
+                    .input('quantity', sql.Int, item.quantity)
+                    .input('note', sql.NVarChar, 'Nhập từ phiếu nhập')
+                    .input('createdBy', sql.UniqueIdentifier, req.user.id)
+                    .query('INSERT INTO StockHistory (productId, action, quantity, note, createdBy, createdAt) VALUES (@productId, @action, @quantity, @note, @createdBy, GETDATE())');
+
+                // c. Update Products stock
+                await transaction.request()
+                    .input('productId', sql.UniqueIdentifier, item.productId)
+                    .input('quantity', sql.Int, item.quantity)
+                    .query('UPDATE Products SET stock = ISNULL(stock, 0) + @quantity WHERE id = @productId');
+            }
+
+            await transaction.commit();
+            res.status(201).json({ success: true, message: 'Tạo phiếu nhập thành công' });
+        } catch (err) {
+            await transaction.rollback();
+            throw err;
+        }
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ success: false, message: 'Lỗi khi tạo phiếu nhập' });
     }
 };
 
@@ -205,4 +371,6 @@ ${(topProducts || []).map((p, i) => `${i+1}. ${p.title} (Bán: ${p.qty} - Thu: $
         res.status(500).json({ success: false, message: 'Lỗi phân tích AI' });
     }
 };
+
+
 

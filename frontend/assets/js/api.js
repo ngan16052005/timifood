@@ -641,15 +641,48 @@ window.api = {
         }
     },
 
-    getLogs: async () => {
+    getLogs: async (page = 1, search = '') => {
         showLoader();
         try {
-            const response = await fetch(`${BASE_URL}/admin/logs`, {
+            const queryParams = new URLSearchParams({ page, search });
+            const response = await fetch(`${BASE_URL}/admin/logs?${queryParams.toString()}`, {
                 headers: getHeaders()
             });
             return await response.json();
         } catch (error) {
             console.error("Failed to fetch logs:", error);
+            throw error;
+        } finally {
+            hideLoader();
+        }
+    },
+
+    clearLogs: async () => {
+        showLoader();
+        try {
+            const response = await fetch(`${BASE_URL}/admin/logs`, {
+                method: 'DELETE',
+                headers: getHeaders()
+            });
+            return await response.json();
+        } catch (error) {
+            console.error("Failed to clear logs:", error);
+            throw error;
+        } finally {
+            hideLoader();
+        }
+    },
+
+    deleteLog: async (id) => {
+        showLoader();
+        try {
+            const response = await fetch(`${BASE_URL}/admin/logs/${id}`, {
+                method: 'DELETE',
+                headers: getHeaders()
+            });
+            return await response.json();
+        } catch (error) {
+            console.error("Failed to delete log:", error);
             throw error;
         } finally {
             hideLoader();
@@ -973,6 +1006,56 @@ window.api = {
             throw error;
         } finally {
             hideLoader();
+        }
+    },
+
+    getSuppliers: async () => {
+        try {
+            const response = await fetch(`${BASE_URL}/admin/suppliers`, { headers: getHeaders() });
+            if (!response.ok) throw new Error('Network response was not ok');
+            return await response.json();
+        } catch (error) {
+            console.error('API Error:', error);
+            throw error;
+        }
+    },
+    
+    addSupplier: async (data) => {
+        try {
+            const response = await fetch(`${BASE_URL}/admin/suppliers`, {
+                method: 'POST',
+                headers: getHeaders(),
+                body: JSON.stringify(data)
+            });
+            return await response.json();
+        } catch (error) {
+            console.error('API Error:', error);
+            throw error;
+        }
+    },
+
+    getPurchaseOrders: async () => {
+        try {
+            const response = await fetch(`${BASE_URL}/admin/purchase-orders`, { headers: getHeaders() });
+            if (!response.ok) throw new Error('Network response was not ok');
+            return await response.json();
+        } catch (error) {
+            console.error('API Error:', error);
+            throw error;
+        }
+    },
+
+    createPurchaseOrder: async (data) => {
+        try {
+            const response = await fetch(`${BASE_URL}/admin/purchase-orders`, {
+                method: 'POST',
+                headers: getHeaders(),
+                body: JSON.stringify(data)
+            });
+            return await response.json();
+        } catch (error) {
+            console.error('API Error:', error);
+            throw error;
         }
     }
 };

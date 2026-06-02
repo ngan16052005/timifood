@@ -6,7 +6,7 @@
                 </div>
                 <div class="admin-control">
                     <div class="admin-control-left">
-                        <select name="the-loai" id="the-loai" onchange="showProduct()">
+                        <select name="the-loai" id="the-loai" onchange="currentPage=1; showProduct()">
                             <option>Tất cả</option>
                             <option>Món chay</option>
                             <option>Món mặn</option>
@@ -21,7 +21,7 @@
                         <form action="" class="form-search">
                             <span class="search-btn"><i class="fa-light fa-magnifying-glass"></i></span>
                             <input id="form-search-product" type="text" class="form-search-input"
-                                placeholder="Tìm kiếm tên món..." oninput="showProduct()">
+                                placeholder="Tìm kiếm tên món..." oninput="currentPage=1; showProduct()">
                         </form>
                     </div>
                     <div class="admin-control-right">

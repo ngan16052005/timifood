@@ -61,7 +61,16 @@ exports.login = async (req, res) => {
                 const { password: _, cartData: __, ...safeUser } = user;
                 safeUser.join = user.joinDate;
                 safeUser.cart = cartResult.recordset;
-                res.json({ success: true, user: safeUser, token });
+                
+                // Set HttpOnly cookie
+                res.cookie('token', token, {
+                    httpOnly: true,
+                    secure: process.env.NODE_ENV === 'production',
+                    sameSite: 'strict',
+                    maxAge: 24 * 60 * 60 * 1000 // 24 hours
+                });
+                
+                res.json({ success: true, user: safeUser, token }); // Kept token in JSON for backward compatibility with mobile app
             } else {
                 res.status(401).json({ success: false, message: 'Số điện thoại hoặc mật khẩu không đúng' });
             }
@@ -110,6 +119,15 @@ exports.auth_google = async (req, res) => {
             const { password: _, cartData: __, ...safeUser } = user;
             safeUser.join = user.joinDate;
             safeUser.cart = cartResult.recordset;
+            
+            // Set HttpOnly cookie
+            res.cookie('token', token, {
+                httpOnly: true,
+                secure: process.env.NODE_ENV === 'production',
+                sameSite: 'strict',
+                maxAge: 24 * 60 * 60 * 1000 // 24 hours
+            });
+            
             res.json({ success: true, user: safeUser, token });
         } else {
             // User does not exist, ask for phone number to complete registration
@@ -159,7 +177,7 @@ exports.auth_google_complete_registration = async (req, res) => {
             .input('email', sql.NVarChar, email)
             .input('status', sql.Int, 1)
             .input('userType', sql.Int, 0)
-            .query('INSERT INTO Users (fullname, phone, password, address, email, status, userType) OUTPUT inserted.id VALUES (@fullname, @phone, @password, @address, @email, @status, @userType)');
+            .query('INSERT INTO Users (id, fullname, phone, password, address, email, status, userType) OUTPUT inserted.id VALUES (NEWID(), @fullname, @phone, @password, @address, @email, @status, @userType)');
 
         const newUserId = insertResult.recordset[0].id;
 
@@ -168,6 +186,14 @@ exports.auth_google_complete_registration = async (req, res) => {
             SECRET_KEY,
             { expiresIn: '24h' }
         );
+
+        // Set HttpOnly cookie
+        res.cookie('token', token, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'strict',
+            maxAge: 24 * 60 * 60 * 1000
+        });
 
         res.status(201).json({
             success: true,
@@ -215,6 +241,15 @@ exports.auth_facebook = async (req, res) => {
             const { password: _, cartData: __, ...safeUser } = user;
             safeUser.join = user.joinDate;
             safeUser.cart = cartResult.recordset;
+            
+            // Set HttpOnly cookie
+            res.cookie('token', token, {
+                httpOnly: true,
+                secure: process.env.NODE_ENV === 'production',
+                sameSite: 'strict',
+                maxAge: 24 * 60 * 60 * 1000 // 24 hours
+            });
+            
             res.json({ success: true, user: safeUser, token });
         } else {
             // User does not exist, ask for phone number to complete registration
@@ -271,6 +306,14 @@ exports.auth_facebook_complete_registration = async (req, res) => {
             SECRET_KEY,
             { expiresIn: '24h' }
         );
+
+        // Set HttpOnly cookie
+        res.cookie('token', token, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'strict',
+            maxAge: 24 * 60 * 60 * 1000
+        });
 
         res.status(201).json({
             success: true,
@@ -491,7 +534,7 @@ exports.register = async (req, res) => {
             .input('email', sql.NVarChar, newUser.email || '')
             .input('status', sql.Int, 1)
             .input('userType', sql.Int, 0)
-            .query('INSERT INTO Users (fullname, phone, password, address, email, status, userType) OUTPUT inserted.id VALUES (@fullname, @phone, @password, @address, @email, @status, @userType)');
+            .query('INSERT INTO Users (id, fullname, phone, password, address, email, status, userType) OUTPUT inserted.id VALUES (NEWID(), @fullname, @phone, @password, @address, @email, @status, @userType)');
 
         newUser.id = insertResult.recordset[0].id;
 
@@ -500,6 +543,14 @@ exports.register = async (req, res) => {
             SECRET_KEY,
             { expiresIn: '24h' }
         );
+
+        // Set HttpOnly cookie
+        res.cookie('token', token, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'strict',
+            maxAge: 24 * 60 * 60 * 1000
+        });
 
         // Return user info WITHOUT password, and include an empty cart
         const { password, ...userWithoutPassword } = newUser;
@@ -558,3 +609,10 @@ exports.change_password = async (req, res) => {
     }
 };
 
+exports.logout = async (req, res) => {
+    res.cookie('token', '', { 
+        httpOnly: true, 
+        expires: new Date(0) 
+    });
+    res.json({ success: true, message: 'Đăng xuất thành công' });
+};

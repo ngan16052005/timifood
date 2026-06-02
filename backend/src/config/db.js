@@ -16,18 +16,25 @@ const config = {
 
 let poolPromise;
 
-async function connectDB() {
+async function connectDB(retries = 5, delay = 5000) {
     if (poolPromise) return poolPromise;
 
     poolPromise = new sql.ConnectionPool(config).connect()
         .then(pool => {
-            console.log('Connected to SQL Server');
+            console.log('✅ Connected to SQL Server successfully');
             return pool;
         })
-        .catch(err => {
+        .catch(async (err) => {
             poolPromise = null;
-            console.error('Database Connection Failed! ', err);
-            throw err;
+            console.error(`❌ Database Connection Failed! Retries left: ${retries}`);
+            if (retries > 0) {
+                console.log(`⏳ Retrying in ${delay / 1000} seconds...`);
+                await new Promise(res => setTimeout(res, delay));
+                return connectDB(retries - 1, delay);
+            } else {
+                console.error('🚨 Could not connect to database after maximum retries. Shutting down gracefully.');
+                process.exit(1);
+            }
         });
 
     return poolPromise;

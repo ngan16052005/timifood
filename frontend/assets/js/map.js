@@ -14,13 +14,15 @@ function openLocationPicker(targetInputId) {
 
     // Initialize map if not already done
     if (!locationPickerMap) {
-        locationPickerMap = L.map('map').setView([21.028511, 105.804817], 13); // Default Hanoi
+        locationPickerMap = L.map('map', { zoomControl: false }).setView([21.028511, 105.804817], 13); // Default Hanoi
+        L.control.zoom({ position: 'bottomright' }).addTo(locationPickerMap);
         
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '&copy; OpenStreetMap contributors'
         }).addTo(locationPickerMap);
 
         locationPickerMap.on('click', function(e) {
+            locationPickerMap.flyTo(e.latlng, locationPickerMap.getZoom());
             setMapMarker(e.latlng.lat, e.latlng.lng);
         });
     }
@@ -29,26 +31,35 @@ function openLocationPicker(targetInputId) {
     setTimeout(() => {
         locationPickerMap.invalidateSize();
         
-        // Try to get user's current location if marker is not set yet
-        if (!locationPickerMarker && navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition(
-                (position) => {
-                    const lat = position.coords.latitude;
-                    const lng = position.coords.longitude;
-                    locationPickerMap.setView([lat, lng], 15);
-                    setMapMarker(lat, lng);
-                },
-                () => {
-                    // Fallback to default
-                    document.getElementById('map-address-text').textContent = "Hãy chọn vị trí trên bản đồ";
-                }
-            );
-        } else if (locationPickerMarker) {
-             locationPickerMap.setView(locationPickerMarker.getLatLng(), 15);
+        if (!locationPickerMarker) {
+            getCurrentMapLocation();
         } else {
-             document.getElementById('map-address-text').textContent = "Hãy chọn vị trí trên bản đồ";
+             locationPickerMap.flyTo(locationPickerMarker.getLatLng(), 15);
+             // Trigger reverse geocoding to update text
+             setMapMarker(locationPickerMarker.getLatLng().lat, locationPickerMarker.getLatLng().lng);
         }
     }, 200);
+}
+
+function getCurrentMapLocation() {
+    if (navigator.geolocation) {
+        document.getElementById('map-address-text').textContent = "Đang tải vị trí GPS...";
+        navigator.geolocation.getCurrentPosition(
+            (position) => {
+                const lat = position.coords.latitude;
+                const lng = position.coords.longitude;
+                locationPickerMap.flyTo([lat, lng], 16);
+                setMapMarker(lat, lng);
+            },
+            (error) => {
+                console.log("GPS Error:", error);
+                document.getElementById('map-address-text').textContent = "Hãy chọn vị trí trên bản đồ";
+            },
+            { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
+        );
+    } else {
+        document.getElementById('map-address-text').textContent = "Hãy chọn vị trí trên bản đồ";
+    }
 }
 
 function closeLocationPicker() {
@@ -77,13 +88,26 @@ function setMapMarker(lat, lng) {
     document.getElementById('map-address-text').textContent = "Đang lấy địa chỉ...";
     document.getElementById('btn-confirm-location').disabled = true;
     
-    // Reverse geocoding using Nominatim
-    fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lng}`)
+    // Reverse geocoding using Nominatim with language=vi and zoom level 18 (street/building level)
+    fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lng}&accept-language=vi&addressdetails=1&zoom=18`)
         .then(response => response.json())
         .then(data => {
-            if (data && data.display_name) {
-                // Let's use display_name
-                document.getElementById('map-address-text').textContent = data.display_name;
+            if (data && data.address) {
+                // Lọc và sắp xếp địa chỉ đẹp, chuẩn Việt Nam (Bỏ postcode, country...)
+                const addr = data.address;
+                const parts = [];
+                if (addr.house_number || addr.street_number) parts.push(addr.house_number || addr.street_number);
+                if (addr.road || addr.street) parts.push(addr.road || addr.street);
+                if (addr.suburb || addr.quarter || addr.neighbourhood) parts.push(addr.suburb || addr.quarter || addr.neighbourhood);
+                if (addr.city_district || addr.district || addr.county) parts.push(addr.city_district || addr.district || addr.county);
+                if (addr.city || addr.town || addr.province || addr.state) parts.push(addr.city || addr.town || addr.province || addr.state);
+                
+                const finalAddress = parts.length > 0 ? parts.join(', ') : data.display_name.replace(/, Việt Nam|, Vietnam/g, '');
+                
+                document.getElementById('map-address-text').textContent = finalAddress;
+                document.getElementById('btn-confirm-location').disabled = false;
+            } else if (data && data.display_name) {
+                document.getElementById('map-address-text').textContent = data.display_name.replace(/, Việt Nam|, Vietnam/g, '');
                 document.getElementById('btn-confirm-location').disabled = false;
             } else {
                 document.getElementById('map-address-text').textContent = "Không tìm thấy địa chỉ tại vị trí này";
@@ -101,13 +125,14 @@ function searchLocationMap() {
     
     document.getElementById('map-address-text').textContent = "Đang tìm kiếm...";
     
-    fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=1`)
+    // Giới hạn tìm kiếm chỉ trong lãnh thổ Việt Nam và ưu tiên tiếng Việt
+    fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=1&countrycodes=vn&accept-language=vi`)
         .then(response => response.json())
         .then(data => {
             if (data && data.length > 0) {
                 const lat = parseFloat(data[0].lat);
                 const lon = parseFloat(data[0].lon);
-                locationPickerMap.setView([lat, lon], 15);
+                locationPickerMap.flyTo([lat, lon], 16);
                 setMapMarker(lat, lon);
             } else {
                 document.getElementById('map-address-text').textContent = "Không tìm thấy địa điểm";

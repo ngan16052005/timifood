@@ -11,6 +11,8 @@ router.get('/', cacheMiddleware(300), productController.getAllProducts);
 router.get('/:id', cacheMiddleware(300), productController.getProductById);
 
 // Protected routes (Admin only)
+router.get('/admin/paginated', authenticateToken, isAdmin, productController.getPaginatedProducts);
+
 router.post('/', authenticateToken, isAdmin, validate(productSchema), (req, res, next) => {
     clearCache('/api/products');
     next();

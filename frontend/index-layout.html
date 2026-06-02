@@ -6,14 +6,17 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TiMi Food — Đặt món ngon, giao tận nơi tại Hải Phòng</title>
-    <meta name="description" content="TiMi Food - Nền tảng đặt đồ ăn trực tuyến hàng đầu tại Hải Phòng. Đa dạng thực đơn: món chay, món mặn, lẩu, đồ ăn vặt, tráng miệng & nước uống. Giao nhanh 30 phút, thanh toán tiện lợi.">
-    <meta name="keywords" content="TiMi Food, đặt đồ ăn online, giao đồ ăn Hải Phòng, đồ ăn ngon, ship đồ ăn, món ăn trực tuyến, đặt món online">
+    <meta name="description"
+        content="TiMi Food - Nền tảng đặt đồ ăn trực tuyến hàng đầu tại Hải Phòng. Đa dạng thực đơn: món chay, món mặn, lẩu, đồ ăn vặt, tráng miệng & nước uống. Giao nhanh 30 phút, thanh toán tiện lợi.">
+    <meta name="keywords"
+        content="TiMi Food, đặt đồ ăn online, giao đồ ăn Hải Phòng, đồ ăn ngon, ship đồ ăn, món ăn trực tuyến, đặt món online">
     <meta name="author" content="TiMi Food">
     <meta name="robots" content="index, follow">
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website">
     <meta property="og:title" content="TiMi Food — Đặt món ngon, giao tận nơi tại Hải Phòng">
-    <meta property="og:description" content="Đặt đồ ăn trực tuyến nhanh chóng, đa dạng thực đơn, giao hàng tận nơi chỉ 30 phút. Thanh toán COD, MoMo, VNPAY.">
+    <meta property="og:description"
+        content="Đặt đồ ăn trực tuyến nhanh chóng, đa dạng thực đơn, giao hàng tận nơi chỉ 30 phút. Thanh toán COD, MoMo, VNPAY.">
     <meta property="og:image" content="./assets/img/logos/timifood.png">
     <meta property="og:url" content="https://timifood.vn">
     <meta property="og:site_name" content="TiMi Food">
@@ -21,7 +24,8 @@
     <!-- Twitter Card -->
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="TiMi Food — Đặt món ngon, giao tận nơi tại Hải Phòng">
-    <meta name="twitter:description" content="Đặt đồ ăn trực tuyến nhanh chóng, đa dạng thực đơn, giao hàng tận nơi chỉ 30 phút.">
+    <meta name="twitter:description"
+        content="Đặt đồ ăn trực tuyến nhanh chóng, đa dạng thực đơn, giao hàng tận nơi chỉ 30 phút.">
     <meta name="twitter:image" content="./assets/img/logos/timifood.png">
     <!-- Favicon đa kích thước -->
     <link rel="icon" type="image/png" sizes="16x16" href="./assets/img/icons/favicon-16x16.png">
@@ -32,19 +36,20 @@
     <link rel="stylesheet" href="./assets/css/home-responsive.css">
     <link rel="stylesheet" href="./assets/css/toast-message.css">
     <link rel="stylesheet" href="./assets/font/font-awesome-pro-v6-6.2.0/css/all.min.css" />
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
-    
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+        integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+
     <script src="https://accounts.google.com/gsi/client" async defer></script>
     <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
     <script>
-        window.fbAsyncInit = function() {
+        window.fbAsyncInit = function () {
             FB.init({
-                appId      : '1685926412545108',
-                cookie     : true,
-                xfbml      : true,
-                version    : 'v19.0'
+                appId: '1685926412545108',
+                cookie: true,
+                xfbml: true,
+                version: 'v19.0'
             });
         };
     </script>
@@ -63,7 +68,7 @@
 </head>
 
 <body>
-        <header>
+    <header>
         <div class="header-top">
             <div class="container">
                 <div class="header-top-left">
@@ -105,15 +110,22 @@
                             <i class="fa-light fa-globe"></i>
                             <div class="auth-container">
                                 <span class="text-dndk">Ngôn ngữ</span>
-                                <span class="text-tk current-lang-text">Tiếng Việt <i class="fa-sharp fa-solid fa-caret-down"></i></span>
+                                <span class="text-tk current-lang-text">Tiếng Việt <i
+                                        class="fa-sharp fa-solid fa-caret-down"></i></span>
                             </div>
                             <ul class="header-middle-right-menu">
-                                <li><a href="javascript:;" onclick="changeLang('vi', 'Tiếng Việt')"><i class="fa-light fa-check"></i> Tiếng Việt</a></li>
-                                <li><a href="javascript:;" onclick="changeLang('en', 'English')"><i class="fa-light fa-earth-americas"></i> English</a></li>
-                                <li><a href="javascript:;" onclick="changeLang('zh-CN', 'Trung Quốc')"><i class="fa-light fa-earth-asia"></i> Trung (Giản thể)</a></li>
-                                <li><a href="javascript:;" onclick="changeLang('ko', '한국어')"><i class="fa-light fa-language"></i> 한국어 (Hàn)</a></li>
-                                <li><a href="javascript:;" onclick="changeLang('ja', '日本語')"><i class="fa-light fa-language"></i> 日本語 (Nhật)</a></li>
-                                <li><a href="javascript:;" onclick="changeLang('fr', 'Français')"><i class="fa-light fa-earth-europe"></i> Français (Pháp)</a></li>
+                                <li><a href="javascript:;" onclick="changeLang('vi', 'Tiếng Việt')"><i
+                                            class="fa-light fa-check"></i> Tiếng Việt</a></li>
+                                <li><a href="javascript:;" onclick="changeLang('en', 'English')"><i
+                                            class="fa-light fa-earth-americas"></i> English</a></li>
+                                <li><a href="javascript:;" onclick="changeLang('zh-CN', 'Trung Quốc')"><i
+                                            class="fa-light fa-earth-asia"></i> Trung (Giản thể)</a></li>
+                                <li><a href="javascript:;" onclick="changeLang('ko', '한국어')"><i
+                                            class="fa-light fa-language"></i> 한국어 (Hàn)</a></li>
+                                <li><a href="javascript:;" onclick="changeLang('ja', '日本語')"><i
+                                            class="fa-light fa-language"></i> 日本語 (Nhật)</a></li>
+                                <li><a href="javascript:;" onclick="changeLang('fr', 'Français')"><i
+                                            class="fa-light fa-earth-europe"></i> Français (Pháp)</a></li>
                             </ul>
                             <div id="google_translate_element" style="display: none;"></div>
                         </li>
@@ -175,8 +187,9 @@
                 <!-- Dynamic categories will be loaded here -->
             </ul>
         </div>
-    </nav>
-        <div class="advanced-search">
+    </nav>
+
+    <div class="advanced-search">
         <div class="container">
             <div class="advanced-search-category">
                 <span>Phân loại </span>
@@ -202,9 +215,10 @@
                 <button onclick="closeSearchAdvanced()"><i class="fa-light fa-xmark"></i></button>
             </div>
         </div>
-    </div>
+    </div>
+
     <main class="main-wrapper">
-                <div class="container" id="trangchu">
+        <div class="container" id="trangchu">
             <h1 class="sr-only">TiMi Food — Đặt món ăn ngon, giao tận nơi tại Hải Phòng</h1>
             <div class="home-slider">
                 <div class="slider-wrapper">
@@ -283,8 +297,9 @@
                 <ul class="page-nav-list">
                 </ul>
             </div>
-        </div>
-                <div class="container" id="account-user">
+        </div>
+
+        <div class="container" id="account-user">
             <div class="main-account">
                 <div class="main-account-header">
                     <h3>Thông tin tài khoản của bạn</h3>
@@ -312,8 +327,12 @@
                                 <label for="infoaddress" class="form-label">Địa chỉ</label>
                                 <div style="position: relative; display: flex; align-items: center;">
                                     <input class="form-control" type="text" name="infoaddress" id="infoaddress"
-                                        placeholder="Thêm địa chỉ giao hàng của bạn" style="width: 100%; padding-right: 40px;">
-                                    <button type="button" class="btn-location-picker" id="btn-location-picker" title="Chọn vị trí trên bản đồ" onclick="openLocationPicker('infoaddress')" style="position: absolute; right: 5px; background: none; border: none; padding: 5px; color: #ef4444; cursor: pointer; font-size: 1.2rem; display: flex; align-items: center; justify-content: center;"><i class="fa-light fa-map-location-dot"></i></button>
+                                        placeholder="Thêm địa chỉ giao hàng của bạn"
+                                        style="width: 100%; padding-right: 40px;">
+                                    <button type="button" class="btn-location-picker" id="btn-location-picker"
+                                        title="Chọn vị trí trên bản đồ" onclick="openLocationPicker('infoaddress')"
+                                        style="position: absolute; right: 5px; background: none; border: none; padding: 5px; color: #ef4444; cursor: pointer; font-size: 1.2rem; display: flex; align-items: center; justify-content: center;"><i
+                                            class="fa-light fa-map-location-dot"></i></button>
                                 </div>
                             </div>
                         </form>
@@ -322,21 +341,24 @@
                         <form action="" class="change-password">
                             <div class="form-group">
                                 <label for="password-cur-info" class="form-label w60">Mật khẩu hiện tại</label>
-                                <input class="form-control" type="password" name="current-password" id="password-cur-info"
-                                    autocomplete="current-password" placeholder="Nhập mật khẩu hiện tại">
+                                <input class="form-control" type="password" name="current-password"
+                                    id="password-cur-info" autocomplete="current-password"
+                                    placeholder="Nhập mật khẩu hiện tại">
                                 <span class="password-cur-info-error form-message"></span>
                             </div>
                             <div class="form-group">
                                 <label for="password-after-info" class="form-label w60">Mật khẩu mới </label>
                                 <input class="form-control" type="password" name="new-password" id="password-after-info"
                                     autocomplete="new-password" placeholder="Nhập mật khẩu mới">
-                                <small class="form-text text-muted" style="font-size: 0.8rem; color: #666;">Tối thiểu 8 ký tự, gồm chữ hoa, chữ thường và số</small>
+                                <small class="form-text text-muted" style="font-size: 0.8rem; color: #666;">Tối thiểu 8
+                                    ký tự, gồm chữ hoa, chữ thường và số</small>
                                 <span class="password-after-info-error form-message"></span>
                             </div>
                             <div class="form-group">
                                 <label for="password-comfirm-info" class="form-label w60">Xác nhận mật khẩu mới</label>
-                                <input class="form-control" type="password" name="confirm-password" id="password-comfirm-info"
-                                    autocomplete="new-password" placeholder="Nhập lại mật khẩu mới">
+                                <input class="form-control" type="password" name="confirm-password"
+                                    id="password-comfirm-info" autocomplete="new-password"
+                                    placeholder="Nhập lại mật khẩu mới">
                                 <span class="password-after-comfirm-error form-message"></span>
                             </div>
                         </form>
@@ -353,66 +375,98 @@
                     </div>
                 </div>
             </div>
-        </div>
-                <div class="container" id="order-history">
+        </div>
+
+        <div class="container" id="order-history">
             <div class="main-account">
                 <div class="main-account-header">
                     <h3>Quản lý đơn hàng của bạn</h3>
                     <p>Xem chi tiết, trạng thái của những đơn hàng đã đặt.</p>
                 </div>
                 <div class="main-account-body">
-                    <div class="order-history-controls" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 15px;">
-                        <div class="order-history-stats" style="background: rgba(255, 94, 58, 0.1); padding: 10px 20px; border-radius: 8px; color: var(--red); font-weight: 600; display: flex; align-items: center; gap: 8px;">
-                            <i class="fa-light fa-sack-dollar"></i> Tổng chi tiêu: <span id="total-spent-amount">0đ</span>
+                    <div class="order-history-controls"
+                        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 15px;">
+                        <div class="order-history-stats"
+                            style="background: rgba(255, 94, 58, 0.1); padding: 10px 20px; border-radius: 8px; color: var(--red); font-weight: 600; display: flex; align-items: center; gap: 8px;">
+                            <i class="fa-light fa-sack-dollar"></i> Tổng chi tiêu: <span
+                                id="total-spent-amount">0đ</span>
                         </div>
                         <div class="order-history-search" style="position: relative; max-width: 300px; width: 100%;">
-                            <input type="text" id="order-search-input" placeholder="Tìm mã đơn hàng (VD: DH001)..." style="width: 100%; padding: 10px 15px 10px 40px; border: 1px solid #ddd; border-radius: 8px; outline: none; transition: border-color 0.3s;" oninput="filterOrders(null)">
-                            <i class="fa-light fa-magnifying-glass" style="position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: #888;"></i>
+                            <input type="text" id="order-search-input" placeholder="Tìm mã đơn hàng (VD: DH001)..."
+                                style="width: 100%; padding: 10px 15px 10px 40px; border: 1px solid #ddd; border-radius: 8px; outline: none; transition: border-color 0.3s;"
+                                oninput="filterOrders(null)">
+                            <i class="fa-light fa-magnifying-glass"
+                                style="position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: #888;"></i>
                         </div>
                     </div>
-                    <div class="order-history-tabs" style="display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 1px solid #eee; overflow-x: auto; padding-bottom: 10px;">
-                        <button class="order-tab-btn active" data-status="all" onclick="filterOrders('all', this)">Tất cả</button>
+                    <div class="order-history-tabs"
+                        style="display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 1px solid #eee; overflow-x: auto; padding-bottom: 10px;">
+                        <button class="order-tab-btn active" data-status="all" onclick="filterOrders('all', this)">Tất
+                            cả</button>
                         <button class="order-tab-btn" data-status="0" onclick="filterOrders(0, this)">Chờ xử lý</button>
                         <button class="order-tab-btn" data-status="1" onclick="filterOrders(1, this)">Đang giao</button>
-                        <button class="order-tab-btn" data-status="2" onclick="filterOrders(2, this)">Hoàn thành</button>
+                        <button class="order-tab-btn" data-status="2" onclick="filterOrders(2, this)">Hoàn
+                            thành</button>
                         <button class="order-tab-btn" data-status="3" onclick="filterOrders(3, this)">Đã hủy</button>
                     </div>
                     <style>
                         .order-tab-btn {
-                            background: transparent; border: none; padding: 8px 16px; border-radius: 20px; cursor: pointer; color: #666; font-weight: 500; white-space: nowrap; transition: all 0.3s;
+                            background: transparent;
+                            border: none;
+                            padding: 8px 16px;
+                            border-radius: 20px;
+                            cursor: pointer;
+                            color: #666;
+                            font-weight: 500;
+                            white-space: nowrap;
                         }
-                        .order-tab-btn:hover { background: #f1f5f9; color: var(--red); }
-                        .order-tab-btn.active { background: var(--red); color: white; }
+
+                        .order-tab-btn:hover {
+                            background: #f1f5f9;
+                            color: var(--red);
+                        }
+
+                        .order-tab-btn.active {
+                            background: var(--red);
+                            color: white;
+                        }
                     </style>
                     <div class="order-history-section">
                     </div>
                 </div>
             </div>
-        </div>
-                <div class="container" id="wishlist-section">
+        </div>
+
+        <div class="container" id="wishlist-section">
             <div class="home-title-block" id="wishlist-title">
                 <h2 class="home-title">Sản phẩm yêu thích của bạn</h2>
             </div>
-            <div id="wishlist-products" class="home-products" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 20px; padding: 20px 0;">
+            <div id="wishlist-products" class="home-products"
+                style="display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 20px; padding: 20px 0;">
             </div>
-        </div>
-                <div class="container" id="news-section" style="display: none;">
+        </div>
+
+        <div class="container" id="news-section" style="display: none;">
             <div class="home-title-block" id="news-title">
                 <h2 class="home-title">Tin tức & Bài viết</h2>
             </div>
-            <div id="news-list" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 30px; padding: 20px 0;">
+            <div id="news-list"
+                style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 30px; padding: 20px 0;">
                 <!-- News cards injected here -->
             </div>
         </div>
 
         <div class="container" id="news-detail-section" style="display: none; padding: 40px 0;">
-            <button onclick="showNewsSection()" class="btn-back-news" style="margin-bottom: 20px;"><i class="fa-light fa-arrow-left"></i> Quay lại</button>
-            <div id="news-detail-content" style="background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05);">
+            <button onclick="showNewsSection()" class="btn-back-news" style="margin-bottom: 20px;"><i
+                    class="fa-light fa-arrow-left"></i> Quay lại</button>
+            <div id="news-detail-content"
+                style="background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05);">
                 <!-- Full News article injected here -->
             </div>
-        </div>
+        </div>
+
     </main>
-        <div class="modal product-detail">
+    <div class="modal product-detail">
         <button class="modal-close close-popup"><i class="fa-thin fa-xmark"></i></button>
         <div class="modal-container mdl-cnt" id="product-detail-content">
         </div>
@@ -430,27 +484,28 @@
                     <form action="" class="signup-form">
                         <div class="form-group">
                             <label for="fullname" class="form-label">Tên đầy đủ</label>
-                            <input id="fullname" name="fullname" type="text" autocomplete="name" placeholder="VD: Nguyễn Văn A"
-                                class="form-control">
+                            <input id="fullname" name="fullname" type="text" autocomplete="name"
+                                placeholder="VD: Nguyễn Văn A" class="form-control">
                             <span class="form-message-name form-message"></span>
                         </div>
                         <div class="form-group">
                             <label for="phone" class="form-label">Số điện thoại</label>
-                            <input id="phone" name="phone" type="text" autocomplete="tel" placeholder="Nhập số điện thoại"
-                                class="form-control">
+                            <input id="phone" name="phone" type="text" autocomplete="tel"
+                                placeholder="Nhập số điện thoại" class="form-control">
                             <span class="form-message-phone form-message"></span>
                         </div>
                         <div class="form-group">
                             <label for="email-signup" class="form-label">Email</label>
-                            <input id="email-signup" name="email" type="email" autocomplete="email" placeholder="Nhập email"
-                                class="form-control">
+                            <input id="email-signup" name="email" type="email" autocomplete="email"
+                                placeholder="Nhập email" class="form-control">
                             <span class="form-message-email form-message"></span>
                         </div>
                         <div class="form-group">
                             <label for="password" class="form-label">Mật khẩu</label>
-                            <input id="password" name="password" type="password" autocomplete="new-password" placeholder="Nhập mật khẩu"
-                                class="form-control">
-                            <small class="form-text text-muted" style="font-size: 0.8rem; color: #666;">Tối thiểu 8 ký tự, gồm chữ hoa, chữ thường và số</small>
+                            <input id="password" name="password" type="password" autocomplete="new-password"
+                                placeholder="Nhập mật khẩu" class="form-control">
+                            <small class="form-text text-muted" style="font-size: 0.8rem; color: #666;">Tối thiểu 8 ký
+                                tự, gồm chữ hoa, chữ thường và số</small>
                             <span class="form-message-password form-message"></span>
                         </div>
                         <div class="form-group">
@@ -461,12 +516,14 @@
                         </div>
                         <div class="form-group">
                             <input class="checkbox" name="checkbox" required="" type="checkbox" id="checkbox-signup">
-                            <label for="checkbox-signup" class="form-checkbox">Tôi đồng ý với <a href="javascript:;" onclick="openPolicyModal(event)"
-                                    title="chính sách trang web">chính sách trang web</a></label>
+                            <label for="checkbox-signup" class="form-checkbox">Tôi đồng ý với <a href="javascript:;"
+                                    onclick="openPolicyModal(event)" title="chính sách trang web">chính sách trang
+                                    web</a></label>
                             <p class="form-message-checkbox form-message"></p>
                         </div>
                         <button class="form-submit" id="signup-button">Đăng ký</button>
-                        <div class="form-divider" style="display: flex; align-items: center; text-align: center; margin: 20px 0; color: #888;">
+                        <div class="form-divider"
+                            style="display: flex; align-items: center; text-align: center; margin: 20px 0; color: #888;">
                             <div style="flex: 1; border-bottom: 1px solid #ddd;"></div>
                             <span style="padding: 0 10px; font-size: 14px;">Hoặc tiếp tục với</span>
                             <div style="flex: 1; border-bottom: 1px solid #ddd;"></div>
@@ -474,7 +531,8 @@
                         <div style="display: flex; gap: 10px; align-items: center; justify-content: space-between;">
                             <div id="google-signup-btn-container" style="flex: 1;"></div>
                             <button type="button" class="btn-facebook" onclick="loginWithFacebook()">
-                                <img src="https://upload.wikimedia.org/wikipedia/commons/5/51/Facebook_f_logo_%282019%29.svg" alt="Facebook" style="width: 18px; height: 18px;">
+                                <img src="https://upload.wikimedia.org/wikipedia/commons/5/51/Facebook_f_logo_%282019%29.svg"
+                                    alt="Facebook" style="width: 18px; height: 18px;">
                                 Facebook
                             </button>
                         </div>
@@ -489,21 +547,23 @@
                     <form action="" class="login-form">
                         <div class="form-group">
                             <label for="phone-login" class="form-label">Số điện thoại</label>
-                            <input id="phone-login" name="phone" type="text" autocomplete="tel" placeholder="Nhập số điện thoại"
-                                class="form-control">
+                            <input id="phone-login" name="phone" type="text" autocomplete="tel"
+                                placeholder="Nhập số điện thoại" class="form-control">
                             <span class="form-message phonelog"></span>
                         </div>
                         <div class="form-group">
                             <label for="password-login" class="form-label">Mật khẩu</label>
-                            <input id="password-login" name="password" type="password" autocomplete="current-password" placeholder="Nhập mật khẩu"
-                                class="form-control">
+                            <input id="password-login" name="password" type="password" autocomplete="current-password"
+                                placeholder="Nhập mật khẩu" class="form-control">
                             <span class="form-message-check-login form-message"></span>
                         </div>
                         <div style="text-align: right; margin-bottom: 15px;">
-                            <a href="javascript:;" class="forgot-password-link" style="color: var(--red); font-size: 13px;">Quên mật khẩu?</a>
+                            <a href="javascript:;" class="forgot-password-link"
+                                style="color: var(--red); font-size: 13px;">Quên mật khẩu?</a>
                         </div>
                         <button class="form-submit" id="login-button">Đăng nhập</button>
-                        <div class="form-divider" style="display: flex; align-items: center; text-align: center; margin: 20px 0; color: #888;">
+                        <div class="form-divider"
+                            style="display: flex; align-items: center; text-align: center; margin: 20px 0; color: #888;">
                             <div style="flex: 1; border-bottom: 1px solid #ddd;"></div>
                             <span style="padding: 0 10px; font-size: 14px;">Hoặc tiếp tục với</span>
                             <div style="flex: 1; border-bottom: 1px solid #ddd;"></div>
@@ -511,7 +571,8 @@
                         <div style="display: flex; gap: 10px; align-items: center; justify-content: space-between;">
                             <div id="google-login-btn-container" style="flex: 1;"></div>
                             <button type="button" class="btn-facebook" onclick="loginWithFacebook()">
-                                <img src="https://upload.wikimedia.org/wikipedia/commons/5/51/Facebook_f_logo_%282019%29.svg" alt="Facebook" style="width: 18px; height: 18px;">
+                                <img src="https://upload.wikimedia.org/wikipedia/commons/5/51/Facebook_f_logo_%282019%29.svg"
+                                    alt="Facebook" style="width: 18px; height: 18px;">
                                 Facebook
                             </button>
                         </div>
@@ -528,11 +589,13 @@
                             <div class="recovery-method-toggle">
                                 <label class="recovery-option">
                                     <input type="radio" name="recovery-method" value="email" checked>
-                                    <span class="recovery-text"><i class="fa-light fa-envelope" style="margin-right: 5px;"></i> Qua Email</span>
+                                    <span class="recovery-text"><i class="fa-light fa-envelope"
+                                            style="margin-right: 5px;"></i> Qua Email</span>
                                 </label>
                                 <label class="recovery-option">
                                     <input type="radio" name="recovery-method" value="sms">
-                                    <span class="recovery-text"><i class="fa-light fa-comment-sms" style="margin-right: 5px;"></i> Qua SMS</span>
+                                    <span class="recovery-text"><i class="fa-light fa-comment-sms"
+                                            style="margin-right: 5px;"></i> Qua SMS</span>
                                 </label>
                             </div>
 
@@ -543,17 +606,20 @@
                                     border-radius: 10px;
                                     padding: 5px;
                                     margin-bottom: 25px;
-                                    box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);
+                                    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.05);
                                 }
+
                                 .recovery-option {
                                     flex: 1;
                                     text-align: center;
                                     cursor: pointer;
                                     margin: 0;
                                 }
+
                                 .recovery-option input {
                                     display: none;
                                 }
+
                                 .recovery-text {
                                     display: block;
                                     padding: 10px 15px;
@@ -563,7 +629,8 @@
                                     color: #6c757d;
                                     transition: all 0.3s ease;
                                 }
-                                .recovery-option input:checked + .recovery-text {
+
+                                .recovery-option input:checked+.recovery-text {
                                     background-color: var(--primary-color, #c82333);
                                     color: white;
                                     box-shadow: 0 4px 10px rgba(200, 35, 51, 0.3);
@@ -573,32 +640,35 @@
                             <div class="form-group" id="recovery-input-group">
                                 <label for="recovery-input" class="form-label recovery-label">Email tài khoản</label>
                                 <div style="display: flex; gap: 10px;">
-                                    <input id="recovery-input" name="recovery-input" type="text" placeholder="Nhập email để nhận mã"
-                                        class="form-control" style="flex: 1;">
-                                    <button type="button" id="send-otp-btn" class="form-submit" 
-                                        style="width: auto; margin-top: 0; padding: 0 15px; font-size: 14px; white-space: nowrap;">Gửi mã</button>
+                                    <input id="recovery-input" name="recovery-input" type="text"
+                                        placeholder="Nhập email để nhận mã" class="form-control" style="flex: 1;">
+                                    <button type="button" id="send-otp-btn" class="form-submit"
+                                        style="width: auto; margin-top: 0; padding: 0 15px; font-size: 14px; white-space: nowrap;">Gửi
+                                        mã</button>
                                 </div>
                                 <div id="recaptcha-container" style="margin-top: 10px;"></div>
                                 <span class="form-message recovery-error"></span>
                             </div>
                             <div class="form-group">
                                 <label for="otp-forgot" class="form-label">Mã xác thực (OTP)</label>
-                                <input id="otp-forgot" name="otp" type="text" autocomplete="one-time-code" placeholder="Nhập mã 6 chữ số"
-                                    class="form-control">
+                                <input id="otp-forgot" name="otp" type="text" autocomplete="one-time-code"
+                                    placeholder="Nhập mã 6 chữ số" class="form-control">
                                 <span class="form-message otpforgot-error"></span>
                             </div>
                         </div>
                         <div id="password-reset-step" style="display: none;">
                             <div class="form-group">
                                 <label for="new-password-forgot" class="form-label">Mật khẩu mới</label>
-                                <input id="new-password-forgot" name="new-password" type="password" autocomplete="new-password" placeholder="Nhập mật khẩu mới"
-                                    class="form-control">
-                                <small class="form-text text-muted" style="font-size: 0.8rem; color: #666;">Tối thiểu 8 ký tự, gồm chữ hoa, chữ thường và số</small>
+                                <input id="new-password-forgot" name="new-password" type="password"
+                                    autocomplete="new-password" placeholder="Nhập mật khẩu mới" class="form-control">
+                                <small class="form-text text-muted" style="font-size: 0.8rem; color: #666;">Tối thiểu 8
+                                    ký tự, gồm chữ hoa, chữ thường và số</small>
                                 <span class="form-message new-password-error"></span>
                             </div>
                             <div class="form-group">
                                 <label for="confirm-password-forgot" class="form-label">Xác nhận mật khẩu</label>
-                                <input id="confirm-password-forgot" name="confirm-password" type="password" autocomplete="new-password" placeholder="Nhập lại mật khẩu mới"
+                                <input id="confirm-password-forgot" name="confirm-password" type="password"
+                                    autocomplete="new-password" placeholder="Nhập lại mật khẩu mới"
                                     class="form-control">
                                 <span class="form-message confirm-password-error"></span>
                             </div>
@@ -607,47 +677,55 @@
                     </form>
                     <p class="change-login"><a href="javascript:;" class="back-to-login">Quay lại đăng nhập</a></p>
                 </div>
-                
+
                 <!-- Google Registration Complete Form -->
                 <div class="form-content google-complete" style="display: none;">
                     <h3 class="form-title">Hoàn tất đăng ký</h3>
-                    <p class="form-description">Vui lòng cung cấp số điện thoại để hoàn tất việc đăng nhập bằng Google</p>
+                    <p class="form-description">Vui lòng cung cấp số điện thoại để hoàn tất việc đăng nhập bằng Google
+                    </p>
                     <form action="" class="form" id="google-complete-form">
                         <div class="form-group" style="text-align: center; margin-bottom: 20px;">
-                            <img id="google-user-avatar" src="" alt="Avatar" style="width: 60px; height: 60px; border-radius: 50%; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
+                            <img id="google-user-avatar" src="" alt="Avatar"
+                                style="width: 60px; height: 60px; border-radius: 50%; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
                             <p id="google-user-name" style="font-weight: 600; margin-top: 10px; color: #333;"></p>
                             <p id="google-user-email" style="font-size: 13px; color: #777;"></p>
                         </div>
                         <div class="form-group">
                             <label for="google-phone" class="form-label">Số điện thoại</label>
-                            <input id="google-phone" name="phone" type="text" autocomplete="tel" placeholder="Nhập số điện thoại của bạn"
-                                class="form-control">
+                            <input id="google-phone" name="phone" type="text" autocomplete="tel"
+                                placeholder="Nhập số điện thoại của bạn" class="form-control">
                             <span class="form-message google-phone-error"></span>
                         </div>
                         <button class="form-submit" id="google-complete-button">Xác nhận & Đăng nhập</button>
                     </form>
-                    <p class="change-login"><a href="javascript:;" class="back-to-login" onclick="document.querySelector('.google-complete').style.display='none'; document.querySelector('.login').style.display='';">Hủy bỏ</a></p>
+                    <p class="change-login"><a href="javascript:;" class="back-to-login"
+                            onclick="document.querySelector('.google-complete').style.display='none'; document.querySelector('.login').style.display='';">Hủy
+                            bỏ</a></p>
                 </div>
-                
+
                 <!-- Facebook Registration Complete Form -->
                 <div class="form-content facebook-complete" style="display: none;">
                     <h3 class="form-title">Hoàn tất đăng ký</h3>
-                    <p class="form-description">Vui lòng cung cấp số điện thoại để hoàn tất việc đăng nhập bằng Facebook</p>
+                    <p class="form-description">Vui lòng cung cấp số điện thoại để hoàn tất việc đăng nhập bằng Facebook
+                    </p>
                     <form action="" class="form" id="facebook-complete-form">
                         <div class="form-group" style="text-align: center; margin-bottom: 20px;">
-                            <img id="fb-user-avatar" src="" alt="Avatar" style="width: 60px; height: 60px; border-radius: 50%; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
+                            <img id="fb-user-avatar" src="" alt="Avatar"
+                                style="width: 60px; height: 60px; border-radius: 50%; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
                             <p id="fb-user-name" style="font-weight: 600; margin-top: 10px; color: #333;"></p>
                             <p id="fb-user-email" style="font-size: 13px; color: #777;"></p>
                         </div>
                         <div class="form-group">
                             <label for="fb-phone" class="form-label">Số điện thoại</label>
-                            <input id="fb-phone" name="phone" type="text" autocomplete="tel" placeholder="Nhập số điện thoại của bạn"
-                                class="form-control">
+                            <input id="fb-phone" name="phone" type="text" autocomplete="tel"
+                                placeholder="Nhập số điện thoại của bạn" class="form-control">
                             <span class="form-message fb-phone-error"></span>
                         </div>
                         <button class="form-submit" id="fb-complete-button">Xác nhận & Đăng nhập</button>
                     </form>
-                    <p class="change-login"><a href="javascript:;" class="back-to-login" onclick="document.querySelector('.facebook-complete').style.display='none'; document.querySelector('.login').style.display='';">Hủy bỏ</a></p>
+                    <p class="change-login"><a href="javascript:;" class="back-to-login"
+                            onclick="document.querySelector('.facebook-complete').style.display='none'; document.querySelector('.login').style.display='';">Hủy
+                            bỏ</a></p>
                 </div>
             </div>
         </div>
@@ -662,15 +740,18 @@
                 <button class="form-close" onclick="closePolicyModal()"><i class="fa-regular fa-xmark"></i></button>
             </div>
             <div class="policy-body">
-                
+
                 <!-- Section 1 -->
                 <div class="policy-section">
                     <h4>1. Chính Sách Bảo Mật Thông Tin</h4>
                     <p>TiMi Food cam kết bảo vệ tuyệt đối dữ liệu cá nhân của quý khách:</p>
                     <ul>
-                        <li><strong>Dữ liệu thu thập:</strong> Họ tên, số điện thoại, email và địa chỉ giao hàng chỉ được sử dụng cho mục đích xác nhận và thực hiện đơn hàng.</li>
-                        <li><strong>Bảo mật mật khẩu:</strong> Mật khẩu của bạn được mã hóa an toàn bằng công nghệ băm Bcrypt phía máy chủ, đảm bảo không thể bị rò rỉ hay truy cập trái phép.</li>
-                        <li><strong>Cam kết:</strong> Không chia sẻ, bán hoặc cung cấp thông tin cá nhân của quý khách cho bên thứ ba vì bất cứ mục đích thương mại nào.</li>
+                        <li><strong>Dữ liệu thu thập:</strong> Họ tên, số điện thoại, email và địa chỉ giao hàng chỉ
+                            được sử dụng cho mục đích xác nhận và thực hiện đơn hàng.</li>
+                        <li><strong>Bảo mật mật khẩu:</strong> Mật khẩu của bạn được mã hóa an toàn bằng công nghệ băm
+                            Bcrypt phía máy chủ, đảm bảo không thể bị rò rỉ hay truy cập trái phép.</li>
+                        <li><strong>Cam kết:</strong> Không chia sẻ, bán hoặc cung cấp thông tin cá nhân của quý khách
+                            cho bên thứ ba vì bất cứ mục đích thương mại nào.</li>
                     </ul>
                 </div>
 
@@ -678,9 +759,13 @@
                 <div class="policy-section">
                     <h4>2. Điều Khoản Dịch Vụ & Đặt Hàng</h4>
                     <ul>
-                        <li><strong>Tài khoản mua hàng:</strong> Mỗi khách hàng chỉ đăng ký một tài khoản duy nhất tương ứng với một số điện thoại chính chủ để tránh tranh chấp hoặc đặt nhầm.</li>
-                        <li><strong>Thời gian phục vụ:</strong> Cửa hàng tiếp nhận đơn và giao hàng từ 08:00 đến 22:00 hàng ngày (bao gồm cả thứ Bảy, Chủ nhật và các ngày lễ Tết).</li>
-                        <li><strong>Quy định hủy đơn:</strong> Quý khách chỉ có thể hủy đơn hàng khi trạng thái đơn còn là "Đang chờ xử lý". Một khi cửa hàng đã bắt đầu chế biến món ăn ("Đang chuẩn bị"), đơn hàng không thể hủy.</li>
+                        <li><strong>Tài khoản mua hàng:</strong> Mỗi khách hàng chỉ đăng ký một tài khoản duy nhất tương
+                            ứng với một số điện thoại chính chủ để tránh tranh chấp hoặc đặt nhầm.</li>
+                        <li><strong>Thời gian phục vụ:</strong> Cửa hàng tiếp nhận đơn và giao hàng từ 08:00 đến 22:00
+                            hàng ngày (bao gồm cả thứ Bảy, Chủ nhật và các ngày lễ Tết).</li>
+                        <li><strong>Quy định hủy đơn:</strong> Quý khách chỉ có thể hủy đơn hàng khi trạng thái đơn còn
+                            là "Đang chờ xử lý". Một khi cửa hàng đã bắt đầu chế biến món ăn ("Đang chuẩn bị"), đơn hàng
+                            không thể hủy.</li>
                     </ul>
                 </div>
 
@@ -688,16 +773,21 @@
                 <div class="policy-section">
                     <h4>3. Chính Sách Giao Nhận & Thanh Toán</h4>
                     <ul>
-                        <li><strong>Hình thức giao nhận:</strong> Hỗ trợ giao tận nơi (Shipper giao tận nơi trong vòng 15-45 phút tùy khoảng cách) hoặc tự đến lấy trực tiếp tại chi nhánh đã chọn.</li>
-                        <li><strong>Hình thức thanh toán:</strong> Hỗ trợ trả tiền mặt khi nhận hàng (COD), ví điện tử MoMo, hoặc thanh toán qua cổng VNPAY quét mã QR nhanh chóng.</li>
-                        <li><strong>Chính sách đổi trả:</strong> Cam kết hoàn tiền 100% hoặc đổi mới món ăn miễn phí nếu giao sai món, thiếu món, hoặc phát sinh lỗi do nhà sản xuất (món ăn không đạt chuẩn vệ sinh, bị nguội hoặc dập nát do vận chuyển).</li>
+                        <li><strong>Hình thức giao nhận:</strong> Hỗ trợ giao tận nơi (Shipper giao tận nơi trong vòng
+                            15-45 phút tùy khoảng cách) hoặc tự đến lấy trực tiếp tại chi nhánh đã chọn.</li>
+                        <li><strong>Hình thức thanh toán:</strong> Hỗ trợ trả tiền mặt khi nhận hàng (COD), ví điện tử
+                            MoMo, hoặc thanh toán qua cổng VNPAY quét mã QR nhanh chóng.</li>
+                        <li><strong>Chính sách đổi trả:</strong> Cam kết hoàn tiền 100% hoặc đổi mới món ăn miễn phí nếu
+                            giao sai món, thiếu món, hoặc phát sinh lỗi do nhà sản xuất (món ăn không đạt chuẩn vệ sinh,
+                            bị nguội hoặc dập nát do vận chuyển).</li>
                     </ul>
                 </div>
 
                 <!-- Section 4 -->
                 <div class="policy-section">
                     <h4>4. Chính Sách Khuyến Mãi & Voucher</h4>
-                    <p>Mỗi đơn hàng chỉ được áp dụng tối đa một mã giảm giá (Voucher). Các điều kiện ràng buộc như giá trị đơn tối thiểu, mức giảm tối đa và hạn sử dụng sẽ được áp dụng tự động bởi hệ thống.</p>
+                    <p>Mỗi đơn hàng chỉ được áp dụng tối đa một mã giảm giá (Voucher). Các điều kiện ràng buộc như giá
+                        trị đơn tối thiểu, mức giảm tối đa và hạn sử dụng sẽ được áp dụng tự động bởi hệ thống.</p>
                 </div>
             </div>
             <div class="policy-footer">
@@ -739,29 +829,89 @@
             </div>
         </div>
     </div>
+    <!-- Modal Chọn vị trí -->
+    <!-- Modal Chọn vị trí -->
     <div class="modal location-picker-modal" id="location-picker-modal">
-        <div class="modal-container" style="max-width: 800px; width: 90%; background-color: #fff; border-radius: 8px; position: relative;">
-            <h3 class="modal-container-title" style="padding: 15px 20px; border-bottom: 1px solid #e2e8f0; margin: 0; font-size: 1.25rem;"><i class="fa-light fa-map-location-dot" style="margin-right: 8px; color: #ef4444;"></i> CHỌN VỊ TRÍ TRÊN BẢN ĐỒ</h3>
-            <button type="button" class="btn-close" onclick="closeLocationPicker()" style="position: absolute; top: 15px; right: 20px; background: none; border: none; font-size: 1.5rem; color: #64748b; cursor: pointer;"><i class="fa-regular fa-xmark"></i></button>
-            <div class="modal-content" style="padding: 20px;">
-                <div style="display: flex; gap: 10px; margin-bottom: 15px;">
-                    <input type="text" id="map-search-input" class="form-control" placeholder="Tìm kiếm địa điểm..." style="flex: 1; padding: 10px; border: 1px solid #cbd5e1; border-radius: 4px;">
-                    <button type="button" onclick="searchLocationMap()" style="padding: 0 20px; background-color: #ef4444; color: white; border: none; border-radius: 4px; cursor: pointer;"><i class="fa-regular fa-search" style="margin-right: 5px;"></i>Tìm</button>
+        <div class="modal-container" onclick="event.stopPropagation()"
+            style="width: 900px; max-width: 95vw; height: 80vh; max-height: 750px; background: #fff; border-radius: 16px; position: relative; display: flex; flex-direction: column; overflow: hidden; padding: 0; box-shadow: 0 20px 60px rgba(0,0,0,0.2);">
+
+            <!-- Header -->
+            <div
+                style="display: flex; justify-content: space-between; align-items: center; padding: 16px 24px; background: #fff; border-bottom: 1px solid #f1f5f9; z-index: 10;">
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <div
+                        style="width: 40px; height: 40px; background: rgba(238, 77, 45, 0.1); border-radius: 10px; display: flex; align-items: center; justify-content: center;">
+                        <i class="fa-solid fa-map-location-dot" style="color: var(--red); font-size: 18px;"></i>
+                    </div>
+                    <h3 style="margin: 0; font-size: 18px; font-weight: 700; color: #1e293b;">Chọn vị trí trên bản đồ
+                    </h3>
                 </div>
-                <div id="map" style="height: 400px; width: 100%; border-radius: 4px; border: 1px solid #e2e8f0; margin-bottom: 15px; background-color: #f8fafc; z-index: 1;"></div>
-                <div style="padding: 10px 15px; background-color: #f1f5f9; border-radius: 4px; color: #334155; font-size: 0.95rem; display: flex; align-items: flex-start; gap: 10px;">
-                    <i class="fa-solid fa-location-dot" style="color: #ef4444; margin-top: 4px;"></i>
-                    <span id="map-address-text" style="flex: 1;">Chưa chọn vị trí</span>
+                <button type="button" class="modal-close" onclick="closeLocationPicker()"
+                    style="background: #f1f5f9; border: none; width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; color: #64748b; ">
+                    <i class="fa-solid fa-xmark" style="font-size: 18px;"></i>
+                </button>
+            </div>
+
+            <!-- Search Bar Area -->
+            <div
+                style="padding: 16px 24px; background: #fff; display: flex; gap: 12px; z-index: 10; border-bottom: 1px solid #f1f5f9;">
+                <div style="flex: 1; position: relative; display: flex; align-items: center;">
+                    <i class="fa-regular fa-magnifying-glass"
+                        style="position: absolute; left: 16px; color: #94a3b8; font-size: 16px;"></i>
+                    <input type="text" id="map-search-input" placeholder="Nhập địa chỉ, tên đường hoặc địa danh..."
+                        style="width: 100%; height: 44px; padding: 0 16px 0 44px; border: 1px solid #e2e8f0; border-radius: 8px; outline: none; font-size: 15px; color: #334155; transition: border-color 0.2s;">
                 </div>
-                <div class="modal-content-bottom" style="display: flex; justify-content: flex-end; margin-top: 20px; gap: 10px;">
-                    <button type="button" style="padding: 10px 20px; background-color: #cbd5e1; color: #334155; border: none; border-radius: 4px; cursor: pointer; font-weight: 500;" onclick="closeLocationPicker()">Hủy</button>
-                    <button type="button" id="btn-confirm-location" style="padding: 10px 20px; background-color: #ef4444; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: 500;" onclick="confirmLocation()" disabled>Xác nhận</button>
+                <button type="button" onclick="searchLocationMap()"
+                    style="padding: 0 24px; height: 44px; background: var(--red); color: #fff; border: none; border-radius: 8px; font-weight: 600; font-size: 15px; cursor: pointer;  box-shadow: 0 4px 10px rgba(238,77,45,0.2);">
+                    Tìm kiếm
+                </button>
+                <button type="button" onclick="getCurrentMapLocation()" title="Vị trí của tôi"
+                    style="width: 44px; height: 44px; background: rgba(238, 77, 45, 0.1); border: 1px solid rgba(238, 77, 45, 0.2); border-radius: 8px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--red); ">
+                    <i class="fa-solid fa-crosshairs" style="font-size: 18px;"></i>
+                </button>
+            </div>
+
+            <!-- Map and Footer Container -->
+            <div style="display: flex; flex: 1; flex-direction: column; position: relative;">
+                <!-- Map -->
+                <div id="map" style="flex: 1; width: 100%; background: #f8fafc; z-index: 1;"></div>
+
+                <!-- Bottom Footer -->
+                <div
+                    style="padding: 20px 24px; background: #fff; border-top: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center; z-index: 10; box-shadow: 0 -4px 15px rgba(0,0,0,0.02);">
+                    <div
+                        style="display: flex; align-items: center; gap: 16px; flex: 1; padding-right: 24px; overflow: hidden;">
+                        <div
+                            style="width: 44px; height: 44px; background: rgba(238, 77, 45, 0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                            <i class="fa-solid fa-location-dot" style="color: var(--red); font-size: 20px;"></i>
+                        </div>
+                        <div style="display: flex; flex-direction: column; overflow: hidden;">
+                            <span
+                                style="font-size: 12px; color: #64748b; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Vị
+                                trí đã chọn</span>
+                            <p id="map-address-text"
+                                style="margin: 2px 0 0 0; font-size: 15px; color: #0f172a; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                                Đang tải vị trí...</p>
+                        </div>
+                    </div>
+                    <div style="display: flex; gap: 12px; flex-shrink: 0;">
+                        <button type="button" onclick="closeLocationPicker()"
+                            style="padding: 0 20px; height: 44px; background: #fff; color: #475569; border: 1px solid #cbd5e1; border-radius: 8px; font-weight: 600; font-size: 15px; cursor: pointer; ">
+                            Hủy
+                        </button>
+                        <button type="button" id="btn-confirm-location" onclick="confirmLocation()" disabled
+                            style="padding: 0 28px; height: 44px; background: var(--red); color: #fff; border: none; border-radius: 8px; font-weight: 600; font-size: 15px; cursor: pointer; box-shadow: 0 4px 10px rgba(238,77,45,0.2); transition: opacity 0.2s;">
+                            Xác nhận vị trí
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
+    </div>
+    </div>
 
-        <footer class="footer">
+    <footer class="footer">
         <div class="container">
             <div class="footer-top">
                 <div class="footer-top-content">
@@ -892,7 +1042,8 @@
                 </div>
             </div>
         </div>
-    </footer>
+    </footer>
+
     <div class="copyright-wrap">
         <div class="container">
             <div class="copyright-content">
@@ -1040,7 +1191,8 @@
                                 <div class="form-group form-group-address chk-ship">
                                     <input id="diachinhan" name="diachinhan" type="text" placeholder="Địa chỉ nhận hàng"
                                         class="form-control chk-ship">
-                                    <button type="button" class="btn-open-map chk-ship" onclick="openMapModal()" title="Chọn từ bản đồ">
+                                    <button type="button" class="btn-open-map chk-ship" onclick="openMapModal()"
+                                        title="Chọn từ bản đồ">
                                         <i class="fa-solid fa-map-location-dot"></i>
                                     </button>
                                     <span class="form-message"></span>
@@ -1078,13 +1230,15 @@
                                             </div>
                                             <div class="qr-info-item">
                                                 <span class="qr-info-label">Số tài khoản</span>
-                                                <span class="qr-info-value" style="color: var(--red);">24888816052005</span>
+                                                <span class="qr-info-value"
+                                                    style="color: var(--red);">24888816052005</span>
                                             </div>
                                             <div class="qr-info-item">
                                                 <span class="qr-info-label">Chủ tài khoản</span>
                                                 <span class="qr-info-value">NGUYEN VAN NGAN</span>
                                             </div>
-                                            <p class="qr-info-note"><i class="fa-solid fa-qrcode"></i> Quét mã để thanh toán nhanh</p>
+                                            <p class="qr-info-note"><i class="fa-solid fa-qrcode"></i> Quét mã để thanh
+                                                toán nhanh</p>
                                         </div>
                                     </div>
                                 </div>
@@ -1109,7 +1263,8 @@
                                                 <span class="qr-info-label">Chủ tài khoản</span>
                                                 <span class="qr-info-value">NGUYEN VAN NGAN</span>
                                             </div>
-                                            <p class="qr-info-note"><i class="fa-solid fa-qrcode"></i> Quét mã để thanh toán nhanh</p>
+                                            <p class="qr-info-note"><i class="fa-solid fa-qrcode"></i> Quét mã để thanh
+                                                toán nhanh</p>
                                         </div>
                                     </div>
                                 </div>
@@ -1150,7 +1305,7 @@
             </div>
         </main>
     </div>
-    
+
     <!-- Modal Thanh toán Online Mô phỏng -->
     <div class="modal modal-payment-sim">
         <div class="modal-container">
@@ -1159,7 +1314,8 @@
                 <button class="form-close" onclick="closePaymentSim()"><i class="fa-regular fa-xmark"></i></button>
             </div>
             <div class="payment-sim-body">
-                <div id="payment-sim-warning" class="payment-sim-warning" style="display: none;">Chế độ mô phỏng (Chưa cấu hình PayOS)</div>
+                <div id="payment-sim-warning" class="payment-sim-warning" style="display: none;">Chế độ mô phỏng (Chưa
+                    cấu hình PayOS)</div>
                 <div class="payment-gate-info">
                     <img id="payment-gate-img" src="" alt="">
                     <p>Đang xử lý giao dịch...</p>
@@ -1168,7 +1324,8 @@
                     <img id="payment-qr-img" src="" alt="QR Code">
                     <p>Quét mã QR để thanh toán</p>
                 </div>
-                <a id="payment-payos-link" class="btn-payos-link" href="#" target="_blank" style="display: none;">Mở cổng thanh toán PayOS</a>
+                <a id="payment-payos-link" class="btn-payos-link" href="#" target="_blank" style="display: none;">Mở
+                    cổng thanh toán PayOS</a>
                 <div class="payment-amount">
                     <span>Số tiền cần thanh toán:</span>
                     <h4 id="payment-amount-value">0đ</h4>
@@ -1207,43 +1364,96 @@
         </div>
     </div>
     <!-- Modal Bản đồ -->
+    <!-- Modal Bản đồ -->
+    <!-- Modal Bản đồ -->
     <div class="modal modal-map" onclick="closeMapModal()">
-        <div class="modal-container" onclick="event.stopPropagation()" style="position: relative;">
-            <div class="modal-close" onclick="closeMapModal()" style="position: absolute; top: 15px; right: 15px; z-index: 10; width: 35px; height: 35px; background: rgba(0,0,0,0.1); display: flex; align-items: center; justify-content: center; border-radius: 50%; cursor: pointer; transition: all 0.3s;">
-                <i class="fa-regular fa-xmark" style="font-size: 18px; color: #333;"></i>
-            </div>
-            <header class="modal-header" style="flex-direction: column; height: auto; padding: 15px; align-items: flex-start; gap: 15px; padding-right: 60px;">
-                <div style="display: flex; justify-content: space-between; width: 100%; align-items: center;">
-                    <div class="modal-header-title" style="margin: 0;">Chọn vị trí giao hàng</div>
+        <div class="modal-container" onclick="event.stopPropagation()"
+            style="width: 900px; max-width: 95vw; height: 80vh; max-height: 750px; background: #fff; border-radius: 16px; position: relative; display: flex; flex-direction: column; overflow: hidden; padding: 0; box-shadow: 0 20px 60px rgba(0,0,0,0.2);">
+
+            <!-- Header -->
+            <div
+                style="display: flex; justify-content: space-between; align-items: center; padding: 16px 24px; background: #fff; border-bottom: 1px solid #f1f5f9; z-index: 10;">
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <div
+                        style="width: 40px; height: 40px; background: rgba(238, 77, 45, 0.1); border-radius: 10px; display: flex; align-items: center; justify-content: center;">
+                        <i class="fa-solid fa-map-location-dot" style="color: var(--red); font-size: 18px;"></i>
+                    </div>
+                    <h3 style="margin: 0; font-size: 18px; font-weight: 700; color: #1e293b;">Chọn vị trí giao hàng</h3>
                 </div>
-                <div class="modal-search-map" style="width: 100%; display: flex; gap: 8px;">
-                    <input type="text" id="search-map-input" placeholder="Nhập địa chỉ, tên đường hoặc địa danh..." 
-                           style="flex: 1; padding: 10px 15px; border: 1px solid #ddd; border-radius: 6px; outline: none; font-size: 14px; box-shadow: inset 0 1px 3px rgba(0,0,0,0.05);">
-                    <button type="button" onclick="event.stopPropagation(); searchAddressOnMap();" style="background: var(--red); color: #fff; border: none; padding: 0 20px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.3s;">
-                        <i class="fa-solid fa-magnifying-glass"></i>
-                    </button>
-                </div>
-            </header>
-            <div class="modal-body" id="map-container" style="height: 400px;">
-                <!-- Bản đồ sẽ hiển thị ở đây -->
+                <button type="button" class="modal-close" onclick="closeMapModal()"
+                    style="background: #f1f5f9; border: none; width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; color: #64748b; ">
+                    <i class="fa-solid fa-xmark" style="font-size: 18px;"></i>
+                </button>
             </div>
-            <footer class="modal-footer" style="padding: 15px; display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #eee;">
-                <p id="selected-address-preview" style="font-size: 13px; color: #666; margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 60%;">Vui lòng chọn vị trí trên bản đồ</p>
-                <button class="btn-confirm-address" onclick="confirmMapAddress()" style="background: var(--red); color: #fff; border: none; padding: 10px 20px; border-radius: 5px; font-weight: 600; cursor: pointer;">Xác nhận vị trí</button>
-            </footer>
+
+            <!-- Search Bar Area -->
+            <div
+                style="padding: 16px 24px; background: #fff; display: flex; gap: 12px; z-index: 10; border-bottom: 1px solid #f1f5f9;">
+                <div style="flex: 1; position: relative; display: flex; align-items: center;">
+                    <i class="fa-regular fa-magnifying-glass"
+                        style="position: absolute; left: 16px; color: #94a3b8; font-size: 16px;"></i>
+                    <input type="text" id="search-map-input" placeholder="Nhập địa chỉ, tên đường hoặc địa danh..."
+                        style="width: 100%; height: 44px; padding: 0 16px 0 44px; border: 1px solid #e2e8f0; border-radius: 8px; outline: none; font-size: 15px; color: #334155; transition: border-color 0.2s;">
+                </div>
+                <button type="button" onclick="event.stopPropagation(); searchAddressOnMap();"
+                    style="padding: 0 24px; height: 44px; background: var(--red); color: #fff; border: none; border-radius: 8px; font-weight: 600; font-size: 15px; cursor: pointer;  box-shadow: 0 4px 10px rgba(238,77,45,0.2);">
+                    Tìm kiếm
+                </button>
+                <button type="button" onclick="map.locate({setView: true, maxZoom: 16});" title="Vị trí của tôi"
+                    style="width: 44px; height: 44px; background: rgba(238, 77, 45, 0.1); border: 1px solid rgba(238, 77, 45, 0.2); border-radius: 8px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--red); ">
+                    <i class="fa-solid fa-crosshairs" style="font-size: 18px;"></i>
+                </button>
+            </div>
+
+            <!-- Map and Footer Container -->
+            <div style="display: flex; flex: 1; flex-direction: column; position: relative;">
+                <!-- Map -->
+                <div id="map-container" style="flex: 1; width: 100%; background: #f8fafc; z-index: 1;"></div>
+
+                <!-- Bottom Footer -->
+                <div
+                    style="padding: 20px 24px; background: #fff; border-top: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center; z-index: 10; box-shadow: 0 -4px 15px rgba(0,0,0,0.02);">
+                    <div
+                        style="display: flex; align-items: center; gap: 16px; flex: 1; padding-right: 24px; overflow: hidden;">
+                        <div
+                            style="width: 44px; height: 44px; background: rgba(238, 77, 45, 0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                            <i class="fa-solid fa-location-dot" style="color: var(--red); font-size: 20px;"></i>
+                        </div>
+                        <div style="display: flex; flex-direction: column; overflow: hidden;">
+                            <span
+                                style="font-size: 12px; color: #64748b; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Vị
+                                trí đã chọn</span>
+                            <p id="selected-address-preview"
+                                style="margin: 2px 0 0 0; font-size: 15px; color: #0f172a; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                                Vui lòng chọn vị trí...</p>
+                        </div>
+                    </div>
+                    <div style="display: flex; gap: 12px; flex-shrink: 0;">
+                        <button type="button" onclick="closeMapModal()"
+                            style="padding: 0 20px; height: 44px; background: #fff; color: #475569; border: 1px solid #cbd5e1; border-radius: 8px; font-weight: 600; font-size: 15px; cursor: pointer; ">
+                            Hủy
+                        </button>
+                        <button type="button" onclick="confirmMapAddress()"
+                            style="padding: 0 28px; height: 44px; background: var(--red); color: #fff; border: none; border-radius: 8px; font-weight: 600; font-size: 15px; cursor: pointer; box-shadow: 0 4px 10px rgba(238,77,45,0.2); transition: opacity 0.2s;">
+                            Xác nhận vị trí
+                        </button>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
-    
+
     <!-- Smart AI Chatbot Widget -->
     <div class="chatbot-toggle" id="chatbot-toggle-btn">
         <i class="fa-solid fa-comments"></i>
         <span class="chatbot-pulse"></span>
     </div>
-    
+
     <div class="chatbot-container" id="chatbot-container">
         <div class="chatbot-header">
             <div class="chatbot-header-info">
-                <img src="./assets/img/logos/timifood.png" alt="TiMiFood Bot" class="chatbot-avatar" onerror="this.src='./assets/img/blank-image.png'">
+                <img src="./assets/img/logos/timifood.png" alt="TiMiFood Bot" class="chatbot-avatar"
+                    onerror="this.src='./assets/img/blank-image.png'">
                 <div>
                     <span class="chatbot-name">Trợ lý TiMiFood</span>
                     <span class="chatbot-status"><span class="status-dot"></span>Đang trực tuyến</span>
@@ -1262,7 +1472,8 @@
     </div>
 
     <div id="toast"></div>
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
     <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
     <script src="./assets/js/api.js?v=2"></script>
     <script src="./assets/js/main.js?v=2"></script>
@@ -1281,8 +1492,10 @@
             }, 'google_translate_element');
         }
     </script>
-    <script type="text/javascript" src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+    <script type="text/javascript"
+        src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="./assets/js/map.js"></script>
 </body>
+
 </html>

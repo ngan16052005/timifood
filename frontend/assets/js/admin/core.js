@@ -224,7 +224,11 @@ for (let i = 0; i < sidebars.length; i++) {
 
         // Nếu là tab Nhập kho (Index 5)
         if (i === 5) {
-            await showStockHistory();
+            await loadPurchaseOrders();
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.inventory-tab-content').forEach(content => content.style.display = 'none');
+            document.querySelector('.tab-btn[onclick="switchInventoryTab(\\\'purchase-orders\\\')"]').classList.add('active');
+            document.getElementById('tab-purchase-orders').style.display = 'block';
         }
 
         // Nếu là tab Thống kê (Index 7)
@@ -306,36 +310,30 @@ let currentPage = 1;
 let totalPage = 0;
 let perProducts = [];
 
-function displayList(productAll, perPage, currentPage) {
-    let start = (currentPage - 1) * perPage;
-    let end = (currentPage - 1) * perPage + perPage;
-    let productShow = productAll.slice(start, end);
+function displayList(productShow) {
     showProductArr(productShow);
 }
 
-function setupPagination(productAll, perPage) {
+function setupPagination(totalPages) {
     document.querySelector('.page-nav-list').innerHTML = '';
-    let page_count = Math.ceil(productAll.length / perPage);
-    for (let i = 1; i <= page_count; i++) {
-        let li = paginationChange(i, productAll, currentPage);
+    for (let i = 1; i <= totalPages; i++) {
+        let li = paginationChange(i);
         document.querySelector('.page-nav-list').appendChild(li);
     }
 }
 
-function paginationChange(page, productAll, currentPage) {
+function paginationChange(page) {
     let node = document.createElement(`li`);
     node.classList.add('page-nav-item');
     node.innerHTML = `<a href="#">${page}</a>`;
     if (currentPage == page) node.classList.add('active');
-    node.addEventListener('click', function () {
+    node.addEventListener('click', function (e) {
+        e.preventDefault();
         currentPage = page;
-        displayList(productAll, perPage, currentPage);
-        let t = document.querySelectorAll('.page-nav-item.active');
-        for (let i = 0; i < t.length; i++) {
-            t[i].classList.remove('active');
+        if (typeof showProduct === 'function') {
+            showProduct(); // Reload products from server with new page
         }
-        node.classList.add('active');
-    })
+    });
     return node;
 }
 let productsData = []; // Global products data storage
