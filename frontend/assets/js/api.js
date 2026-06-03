@@ -12,6 +12,7 @@ const getHeaders = () => {
     const token = localStorage.getItem('token');
     return {
         'Content-Type': 'application/json',
+        'ngrok-skip-browser-warning': 'true',
         ...(token ? { 'Authorization': `Bearer ${token}` } : {})
     };
 };
@@ -90,6 +91,7 @@ window.api = {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
+        'ngrok-skip-browser-warning': 'true',
                     'Authorization': `Bearer ${token}`
                 },
                 body: JSON.stringify({ subscription })
