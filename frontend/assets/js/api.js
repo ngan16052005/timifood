@@ -1,5 +1,10 @@
-const IS_LOCAL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-const BACKEND_URL = IS_LOCAL ? 'http://localhost:3500' : 'https://timifood.onrender.com';
+let BACKEND_URL;
+if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+    BACKEND_URL = 'http://localhost:3500'; // Hỗ trợ chạy qua Live Server
+} else {
+    BACKEND_URL = window.location.origin; // Hỗ trợ tự động nhận Ngrok, Render, hoặc Domain thật
+}
+
 const BASE_URL = `${BACKEND_URL}/api`;
 window.BACKEND_URL = BACKEND_URL;
 
