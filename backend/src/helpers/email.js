@@ -1,24 +1,39 @@
 const nodemailer = require('nodemailer');
 const dns = require('dns');
 
-// Force IPv4 for all DNS lookups to fix Render ENETUNREACH on IPv6
-dns.setDefaultResultOrder('ipv4first');
+// We will resolve smtp.gmail.com to an IPv4 address manually
+let transporter = null;
 
-const transporter = nodemailer.createTransport({
-    host: 'smtp.gmail.com',
-    port: 465,
-    secure: true,
-    family: 4, // Force IPv4 to bypass Render's ENETUNREACH on IPv6
-    auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS ? process.env.EMAIL_PASS.replace(/\s+/g, '') : undefined
-    },
-    connectionTimeout: 5000,
-    greetingTimeout: 5000,
-    socketTimeout: 5000
+dns.resolve4('smtp.gmail.com', (err, addresses) => {
+    if (err || !addresses || addresses.length === 0) {
+        console.error('Failed to resolve smtp.gmail.com IPv4', err);
+        return;
+    }
+    const ipv4 = addresses[0];
+    console.log(`[Email] Resolved smtp.gmail.com to IPv4: ${ipv4}`);
+    
+    transporter = nodemailer.createTransport({
+        host: ipv4, // Use explicit IPv4 address
+        port: 465,
+        secure: true,
+        tls: {
+            servername: 'smtp.gmail.com' // Crucial for TLS certificate validation
+        },
+        auth: {
+            user: process.env.EMAIL_USER,
+            pass: process.env.EMAIL_PASS ? process.env.EMAIL_PASS.replace(/\s+/g, '') : undefined
+        },
+        connectionTimeout: 5000,
+        greetingTimeout: 5000,
+        socketTimeout: 5000
+    });
 });
 
 async function sendOrderEmail(orderId, customerEmail, statusName, orderDetails, retries = 3) {
+    if (!transporter) {
+        console.error("[Email] Transporter not ready (DNS resolution failed)");
+        return;
+    }
     console.log(`[Email] Sending order update for #${orderId} to ${customerEmail}`);
     
     if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS || !customerEmail || customerEmail === 'your-email@gmail.com') {
@@ -131,6 +146,11 @@ async function sendReplyEmail(toEmail, originalSubject, replyMessage) {
     
     if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
         console.warn("[Email] Skipping reply email send: Missing credentials");
+        return;
+    }
+
+    if (!transporter) {
+        console.error("[Email] Transporter not ready (DNS resolution failed)");
         return;
     }
 
