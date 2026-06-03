@@ -3,7 +3,7 @@ let pool;
 connectDB().then(p => pool = p).catch(console.error);
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const nodemailer = require('nodemailer');
+const { transporter } = require('../helpers/email');
 const twilio = require('twilio');
 const axios = require('axios');
 const { OAuth2Client } = require('google-auth-library');
