@@ -1,4 +1,6 @@
 const { sql, connectDB } = require('../config/db');
+const { GoogleGenAI } = require('@google/genai');
+const ai = process.env.GEMINI_API_KEY ? new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY }) : null;
 let pool;
 connectDB().then(p => pool = p).catch(console.error);
 
