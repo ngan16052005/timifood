@@ -27,6 +27,18 @@ dns.resolve4('smtp.gmail.com', (err, addresses) => {
         greetingTimeout: 5000,
         socketTimeout: 5000
     });
+
+    if (process.env.EMAIL_USER && process.env.EMAIL_PASS) {
+        transporter.verify((error, success) => {
+            if (error) {
+                console.error("[Email] Nodemailer transporter verification failed:", error.message);
+            } else {
+                console.log("[Email] Nodemailer transporter connection established successfully and ready.");
+            }
+        });
+    } else {
+        console.warn("[Email] Nodemailer skipping validation: No credentials provided in environment.");
+    }
 });
 
 async function sendOrderEmail(orderId, customerEmail, statusName, orderDetails, retries = 3) {

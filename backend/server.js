@@ -112,17 +112,7 @@ async function startServer() {
             app.locals.createLog = createLog;
         }
 
-                if (process.env.EMAIL_USER && process.env.EMAIL_PASS) {
-            transporter.verify((error, success) => {
-                if (error) {
-                    console.error("[Email] Nodemailer transporter verification failed:", error.message);
-                } else {
-                    console.log("[Email] Nodemailer transporter connection established successfully and ready.");
-                }
-            });
-        } else {
-            console.warn("[Email] Nodemailer skipping validation: No credentials provided in environment.");
-        }
+                // Email verification has been moved to email.js
 
         if (require.main === module || process.env.NODE_ENV !== 'test') {
             server.listen(PORT, () => {
