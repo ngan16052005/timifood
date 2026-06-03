@@ -1,51 +1,31 @@
 const nodemailer = require('nodemailer');
-const dns = require('dns');
 
-// We will resolve smtp.gmail.com to an IPv4 address manually
-let transporter = null;
-
-dns.resolve4('smtp.gmail.com', (err, addresses) => {
-    if (err || !addresses || addresses.length === 0) {
-        console.error('Failed to resolve smtp.gmail.com IPv4', err);
-        return;
-    }
-    const ipv4 = addresses[0];
-    console.log(`[Email] Resolved smtp.gmail.com to IPv4: ${ipv4}`);
-    
-    transporter = nodemailer.createTransport({
-        host: ipv4, // Use explicit IPv4 address
-        port: 587,
-        secure: false, // true for 465, false for other ports (will use STARTTLS)
-        tls: {
-            servername: 'smtp.gmail.com' // Crucial for TLS certificate validation
-        },
-        auth: {
-            user: process.env.EMAIL_USER,
-            pass: process.env.EMAIL_PASS ? process.env.EMAIL_PASS.replace(/\s+/g, '') : undefined
-        },
-        connectionTimeout: 5000,
-        greetingTimeout: 5000,
-        socketTimeout: 5000
-    });
-
-    if (process.env.EMAIL_USER && process.env.EMAIL_PASS) {
-        transporter.verify((error, success) => {
-            if (error) {
-                console.error("[Email] Nodemailer transporter verification failed:", error.message);
-            } else {
-                console.log("[Email] Nodemailer transporter connection established successfully and ready.");
-            }
-        });
-    } else {
-        console.warn("[Email] Nodemailer skipping validation: No credentials provided in environment.");
-    }
+const transporter = nodemailer.createTransport({
+    host: 'smtp.gmail.com',
+    port: 587,
+    secure: false, // true for 465, false for other ports (will use STARTTLS)
+    auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS ? process.env.EMAIL_PASS.replace(/\s+/g, '') : undefined
+    },
+    connectionTimeout: 5000,
+    greetingTimeout: 5000,
+    socketTimeout: 5000
 });
 
+if (process.env.EMAIL_USER && process.env.EMAIL_PASS) {
+    transporter.verify((error, success) => {
+        if (error) {
+            console.error("[Email] Nodemailer transporter verification failed:", error.message);
+        } else {
+            console.log("[Email] Nodemailer transporter connection established successfully and ready.");
+        }
+    });
+} else {
+    console.warn("[Email] Nodemailer skipping validation: No credentials provided in environment.");
+}
+
 async function sendOrderEmail(orderId, customerEmail, statusName, orderDetails, retries = 3) {
-    if (!transporter) {
-        console.error("[Email] Transporter not ready (DNS resolution failed)");
-        return;
-    }
     console.log(`[Email] Sending order update for #${orderId} to ${customerEmail}`);
     
     if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS || !customerEmail || customerEmail === 'your-email@gmail.com') {
@@ -158,11 +138,6 @@ async function sendReplyEmail(toEmail, originalSubject, replyMessage) {
     
     if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
         console.warn("[Email] Skipping reply email send: Missing credentials");
-        return;
-    }
-
-    if (!transporter) {
-        console.error("[Email] Transporter not ready (DNS resolution failed)");
         return;
     }
 
