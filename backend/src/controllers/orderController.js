@@ -186,35 +186,35 @@ exports.getOrdersPaginated = async (req, res) => {
         
         const offset = (page - 1) * limit;
 
-        let baseQuery = 'FROM Orders WHERE 1=1';
+        let baseQuery = 'FROM Orders o LEFT JOIN Users u ON o.userId = u.id WHERE 1=1';
         const request = pool.request();
 
         // If not staff/admin, filter by user's phone
         if (req.user.userType === 0) {
-            baseQuery += ' AND userId = @userId';
+            baseQuery += ' AND o.userId = @userId';
             request.input('userId', sql.NVarChar, req.user.id);
         }
 
         // Apply filters
         if (!isNaN(status) && status !== 3) {
-            baseQuery += ' AND status = @status';
+            baseQuery += ' AND o.status = @status';
             request.input('status', sql.Int, status);
         }
 
         if (search) {
-            baseQuery += ' AND (userId LIKE @search OR id LIKE @search)';
+            baseQuery += ' AND (u.fullname LIKE @search OR o.orderCode LIKE @search OR o.receiverPhone LIKE @search OR o.id LIKE @search)';
             request.input('search', sql.NVarChar, `%${search}%`);
         }
 
         if (startDate) {
-            baseQuery += ' AND orderDate >= @startDate';
+            baseQuery += ' AND o.orderDate >= @startDate';
             request.input('startDate', sql.DateTime, new Date(startDate));
         }
 
         if (endDate) {
             let end = new Date(endDate);
             end.setHours(23, 59, 59, 999);
-            baseQuery += ' AND orderDate <= @endDate';
+            baseQuery += ' AND o.orderDate <= @endDate';
             request.input('endDate', sql.DateTime, end);
         }
 
@@ -224,8 +224,8 @@ exports.getOrdersPaginated = async (req, res) => {
 
         // Get paginated data
         const query = `
-            SELECT * ${baseQuery}
-            ORDER BY orderDate DESC
+            SELECT o.*, u.fullname as customerName ${baseQuery}
+            ORDER BY o.orderDate DESC
             OFFSET @offset ROWS
             FETCH NEXT @limit ROWS ONLY
         `;
@@ -254,7 +254,7 @@ exports.getOrdersPaginated = async (req, res) => {
                 id: o.orderCode || o.id, // Map orderCode to id for frontend
                 uuid: o.id,
                 thoigiandat: o.orderDate,
-                khachhang: o.userId,
+                khachhang: o.customerName || o.receiverName || o.userId,
                 tongtien: o.totalPrice,
                 trangthai: o.status,
                 hinhthucgiao: o.deliveryType,
@@ -283,12 +283,12 @@ exports.getOrdersPaginated = async (req, res) => {
 
 exports.getOrders = async (req, res) => {
     try {
-        let query = 'SELECT * FROM Orders';
+        let query = 'SELECT o.*, u.fullname as customerName FROM Orders o LEFT JOIN Users u ON o.userId = u.id WHERE 1=1';
         const request = pool.request();
 
         // If not staff/admin, filter by user's phone
         if (req.user.userType === 0) {
-            query += ' WHERE userId = @userId';
+            query += ' AND o.userId = @userId';
             request.input('userId', sql.NVarChar, req.user.id);
         }
 
@@ -312,7 +312,7 @@ exports.getOrders = async (req, res) => {
             id: o.orderCode || o.id, // Map orderCode to id for frontend
             uuid: o.id,
             thoigiandat: o.orderDate,
-            khachhang: o.userId,
+            khachhang: o.customerName || o.receiverName || o.userId,
             tongtien: o.totalPrice,
             trangthai: o.status,
             hinhthucgiao: o.deliveryType,
