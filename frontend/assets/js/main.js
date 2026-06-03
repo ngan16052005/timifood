@@ -714,7 +714,7 @@ document.getElementById('send-otp-btn').addEventListener('click', async () => {
         sendBtn.disabled = true;
 
         if (method === 'email') {
-            const response = await fetch('/api/send-otp', {
+            const response = await fetch(`${window.BACKEND_URL || ''}/api/send-otp`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ email: inputValue })
@@ -787,7 +787,7 @@ forgotPasswordBtn.addEventListener('click', async (e) => {
             forgotPasswordBtn.innerText = 'Đang xác thực...';
             
             if (method === 'email') {
-                const response = await fetch('/api/verify-otp', {
+                const response = await fetch(`${window.BACKEND_URL || ''}/api/verify-otp`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ email: inputValue, otp })
@@ -1098,7 +1098,7 @@ function logOut() {
     }
     localStorage.removeItem('currentuser');
     localStorage.removeItem('token');
-    fetch('/api/logout', { method: 'POST' });
+    fetch(`${window.BACKEND_URL || ''}/api/logout`, { method: 'POST' });
     window.location = "/";
 }
 
