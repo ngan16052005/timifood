@@ -1,4 +1,14 @@
-export const SERVER_URL = 'https://dejected-radio-myspace.ngrok-free.dev';
+// ==========================================
+// CẤU HÌNH KẾT NỐI MẠNG CHO SHIPPER APP
+// ==========================================
+// Bật TRUE nếu dùng Ngrok, FALSE nếu dùng Wifi Local
+const USE_NGROK = false; 
+
+const LOCAL_URL = 'http://192.168.1.70:3500'; // IP Local của máy tính
+const NGROK_URL = 'https://dejected-radio-myspace.ngrok-free.dev'; // Thay link ngrok mới vào đây nếu có
+const PRODUCTION_URL = 'https://timifood.onrender.com'; // Link Render (Dự phòng)
+
+export const SERVER_URL = USE_NGROK ? NGROK_URL : LOCAL_URL;
 
 export const COLORS = {
   primary: '#E53E3E',
