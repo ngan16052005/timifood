@@ -2050,8 +2050,8 @@ async function syncNotificationsFromServer() {
                     // Phát âm thanh
                     try {
                         const audioUrl = latest.type === 'cancel' || latest.title.toLowerCase().includes('hủy') 
-                            ? '/assets/audio/warning.mp3' 
-                            : '/assets/audio/success.mp3';
+                            ? './assets/audio/warning.mp3' 
+                            : './assets/audio/success.mp3';
                         const audio = new Audio(audioUrl);
                         audio.volume = 1.0;
                         audio.play().catch(e => console.log('Audio autoplay prevented. User must interact with the page first.', e));
@@ -2149,7 +2149,7 @@ async function clearAllNotifications(event) {
 let audioUnlocked = false;
 function unlockAudio() {
     if (audioUnlocked) return;
-    const audio = new Audio('/assets/audio/success.mp3');
+    const audio = new Audio('./assets/audio/success.mp3');
     audio.muted = true;
     audio.play().then(() => {
         audioUnlocked = true;

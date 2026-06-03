@@ -675,6 +675,19 @@ window.api = {
         }
     },
 
+    getProfitReport: async () => {
+        try {
+            const response = await fetch(`${BASE_URL}/inventory/profit-report`, {
+                headers: getHeaders()
+            });
+            if (!response.ok) throw new Error('Network response was not ok');
+            return await response.json();
+        } catch (error) {
+            console.error("Get profit report error:", error);
+            throw error;
+        }
+    },
+
     getLogs: async (page = 1, search = '') => {
         showLoader();
         try {

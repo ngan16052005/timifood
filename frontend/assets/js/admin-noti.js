@@ -74,9 +74,9 @@ socket.on('newNotification', (latest) => {
 
     // Play appropriate sound
     if (latest.title.toLowerCase().includes('đơn hàng mới') || latest.title.toLowerCase().includes('đặt hàng') || latest.type === 'order') {
-        playNotificationSound('/assets/audio/success.mp3');
+        playNotificationSound('./assets/audio/success.mp3');
     } else if (latest.title.toLowerCase().includes('hủy') || latest.type === 'cancel') {
-        playNotificationSound('/assets/audio/warning.mp3');
+        playNotificationSound('./assets/audio/warning.mp3');
     } else {
         playNotificationSound(); // Default sound
     }
@@ -213,7 +213,7 @@ let audioUnlocked = false;
 
 function unlockAudio() {
     if (audioUnlocked) return;
-    const audio = new Audio('/assets/audio/success.mp3');
+    const audio = new Audio('./assets/audio/success.mp3');
     audio.muted = true;
     audio.play().then(() => {
         audioUnlocked = true;
@@ -229,7 +229,7 @@ function unlockAudio() {
 document.addEventListener('click', unlockAudio);
 document.addEventListener('keydown', unlockAudio);
 
-function playNotificationSound(url = '/assets/audio/success.mp3') {
+function playNotificationSound(url = './assets/audio/success.mp3') {
     try {
         const audio = new Audio(url);
         audio.volume = 1.0;
