@@ -14,8 +14,8 @@ dns.resolve4('smtp.gmail.com', (err, addresses) => {
     
     transporter = nodemailer.createTransport({
         host: ipv4, // Use explicit IPv4 address
-        port: 465,
-        secure: true,
+        port: 587,
+        secure: false, // true for 465, false for other ports (will use STARTTLS)
         tls: {
             servername: 'smtp.gmail.com' // Crucial for TLS certificate validation
         },
