@@ -116,7 +116,6 @@ async function sendContactEmail(name, email, subject, message) {
         console.log(`[Email] Contact email sent successfully`);
     } catch (error) {
         console.error(`[Email] Failed to send contact email:`, error.message);
-        throw error;
     }
 }
 
@@ -155,7 +154,6 @@ async function sendReplyEmail(toEmail, originalSubject, replyMessage) {
         console.log(`[Email] Reply email sent successfully`);
     } catch (error) {
         console.error(`[Email] Failed to send reply email:`, error.message);
-        throw error;
     }
 }
 
