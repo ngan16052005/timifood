@@ -1,5 +1,5 @@
 const payosController = require('../controllers/payosController');
-const PayOS = require('@payos/node');
+const { PayOS } = require('@payos/node');
 const payos = (process.env.PAYOS_CLIENT_ID && process.env.PAYOS_API_KEY && process.env.PAYOS_CHECKSUM_KEY) ? new PayOS(process.env.PAYOS_CLIENT_ID, process.env.PAYOS_API_KEY, process.env.PAYOS_CHECKSUM_KEY) : null;
 const express = require('express');
 const router = express.Router();
@@ -22,10 +22,13 @@ router.use((req, res, next) => {
 // --- PAYOS INTEGRATION ---
 
 // Create PayOS payment link
-router.post('/api/payos/createPaymentLink', authenticateToken, payosController.postPayosCreatePaymentLink);;
+router.post('/api/payos/create-payment-link', authenticateToken, payosController.postPayosCreatePaymentLink);
+
+// PayOS Simulate Payment (for testing local without Ngrok)
+router.post('/api/payos/simulate-payment', authenticateToken, payosController.postPayosSimulatePayment);
 
 // PayOS Webhook to receive payment status updates
-router.post('/api/payos/webhook', payosController.postPayosWebhook);;
+router.post('/api/payos/webhook', payosController.postPayosWebhook);
 
 
 module.exports = router;

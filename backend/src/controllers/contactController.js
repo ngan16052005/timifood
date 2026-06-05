@@ -22,9 +22,8 @@ const contactController = {
             .input('message', sql.NVarChar, message)
             .query('INSERT INTO Contacts (name, email, subject, message) VALUES (@name, @email, @subject, @message)');
         
-        // Notify admin via socket/system notification
-        if (createNotification) {
-            await createNotification("ADMIN", "Liên hệ mới", `Có liên hệ mới từ ${name} (${email}) - ${subject}`, "system");
+        if (req.app.locals.createNotification) {
+            await req.app.locals.createNotification("ADMIN", "Liên hệ mới", `Có liên hệ mới từ ${name} (${email}) - ${subject}`, "contact");
         }
 
         res.json({ success: true, message: 'Tin nhắn đã được gửi thành công' });

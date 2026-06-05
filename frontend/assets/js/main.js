@@ -1289,7 +1289,7 @@ async function renderOrderProduct() {
     let orderHtml = `<div class="order-history-group">`;
     try {
         const orders = await window.api.getOrders();
-        let arrDonHang = orders.filter(o => o.khachhang === currentUser.id);
+        let arrDonHang = orders.filter(o => o.userId === currentUser.id);
         const products = await window.api.getProducts();
 
         // Tính tổng chi tiêu (trạng thái = 2 là Hoàn thành)

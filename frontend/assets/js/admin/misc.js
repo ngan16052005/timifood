@@ -71,30 +71,7 @@ async function deleteReviewAdmin(id) {
 }
 
 // --- STOCK MANAGEMENT LOGIC ---
-async function showStockHistory() {
-    try {
-        const history = await window.api.getStockHistory();
-        let html = "";
-        if (history.length === 0) {
-            html = `<tr><td colspan="5" style="text-align: center; padding: 20px;">Chưa có lịch sử nhập kho</td></tr>`;
-        } else {
-            history.forEach(item => {
-                html += `
-                <tr>
-                    <td>#${item.id}</td>
-                    <td>${item.productTitle}</td>
-                    <td style="color: #00b894; font-weight: bold;">+${item.quantity}</td>
-                    <td>${new Date(item.importDate).toLocaleString('vi-VN')}</td>
-                    <td>${item.note || '-'}</td>
-                </tr>`;
-            });
-        }
-        document.getElementById("show-stock-history").innerHTML = html;
-        await loadInventoryStats();
-    } catch (error) {
-        console.error("Show stock history error:", error);
-    }
-}
+// Removed old showStockHistory to avoid conflicts with loadStockHistory in stock.js
 
 async function openStockInModal() {
     try {
@@ -133,7 +110,8 @@ async function submitStockIn() {
         });
         toast({ title: "Thành công", message: "Nhập hàng thành công!", type: "success", duration: 3000 });
         closeStockInModal();
-        await showStockHistory();
+        if (typeof window.loadStockHistory === 'function') await window.loadStockHistory();
+        if (typeof window.loadInventoryStats === 'function') await window.loadInventoryStats();
         if (typeof showProduct === 'function') showProduct();
     } catch (error) {
         toast({ title: "Lỗi", message: error.message || "Không thể nhập hàng!", type: "error", duration: 3000 });

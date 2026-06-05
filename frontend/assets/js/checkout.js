@@ -575,7 +575,10 @@ async function openPaymentSim(method, amount, orderId) {
         const payosResult = await window.api.createPayOSPaymentLink(orderId, amount, description);
         if (payosResult && payosResult.success) {
             // Hiển thị QR của PayOS và nút thanh toán trực tiếp
-            qrImg.src = payosResult.qrCode || `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(payosResult.checkoutUrl)}`;
+            // PayOS trả về qrCode là chuỗi text EMVCo, cần dùng API để tạo ảnh QR
+            const qrDataStr = payosResult.qrCode || payosResult.checkoutUrl;
+            qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(qrDataStr)}`;
+            
             if (payosLink) {
                 payosLink.href = payosResult.checkoutUrl;
                 payosLink.style.display = 'inline-block';
@@ -613,8 +616,8 @@ function closePaymentSim() {
 async function confirmPaymentSim() {
     if (currentSimOrderId) {
         try {
-            // Giả lập thanh toán thành công: cập nhật trạng thái đơn hàng sang Đang giao (status = 1)
-            const result = await window.api.updateOrderStatus(currentSimOrderId, 1);
+            // Gọi API mô phỏng thanh toán PayOS
+            const result = await window.api.simulatePayosPayment(currentSimOrderId);
             if (result.success) {
                 toast({ title: 'Thành công', message: 'Xác nhận thanh toán thành công (Mô phỏng)!', type: 'success', duration: 3000 });
                 closePaymentSim();

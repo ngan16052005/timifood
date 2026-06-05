@@ -34,7 +34,10 @@ async function loadPurchaseOrders() {
                 <td>${item.staffName || 'Admin'}</td>
                 <td>${new Date(item.importDate).toLocaleString('vi-VN')}</td>
                 <td>${item.note || ''}</td>
-                <td><span style="color: green;">Hoàn tất</span></td>
+                <td>
+                    <span style="color: green; margin-right: 10px;">Hoàn tất</span>
+                    <button onclick="deletePurchaseOrder('${item.id}')" style="background:none; border:none; color:red; cursor:pointer;" title="Xoá phiếu nhập"><i class="fa-regular fa-trash"></i></button>
+                </td>
             </tr>`;
         });
         tbody.innerHTML = html;
@@ -61,7 +64,10 @@ async function loadSuppliers() {
                 <td>${item.phone}</td>
                 <td>${item.email || ''}</td>
                 <td>${item.address || ''}</td>
-                <td><span style="color: green;">Đang hợp tác</span></td>
+                <td>
+                    <span style="color: green; margin-right: 10px;">Đang hợp tác</span>
+                    <button onclick="deleteSupplier('${item.id}')" style="background:none; border:none; color:red; cursor:pointer;" title="Xoá nhà cung cấp"><i class="fa-regular fa-trash"></i></button>
+                </td>
             </tr>`;
         });
         tbody.innerHTML = html;
@@ -73,7 +79,7 @@ async function loadSuppliers() {
 async function loadStockHistory() {
     try {
         const response = await api.getStockHistory();
-        const history = response.data;
+        const history = response.data || response;
         const tbody = document.getElementById('show-stock-history');
         if (!tbody) return;
         
@@ -84,13 +90,26 @@ async function loadStockHistory() {
         
         let html = '';
         history.forEach(item => {
+            const poLabel = item.purchaseOrderId ? 'PO-' + item.purchaseOrderId.substring(0,8).toUpperCase() : item.id;
+            const importPriceStr = item.importPrice ? item.importPrice.toLocaleString('vi-VN') + '₫' : '-';
+            const totalPriceStr = item.totalPrice ? item.totalPrice.toLocaleString('vi-VN') + '₫' : '-';
+            
+            const isImport = item.action === 'IMPORT' || item.action === 'IMPORT_PO';
+            const sign = isImport ? '+' : '-';
+            
+            let actionHtml = '-';
+            if (item.action === 'IMPORT' || item.action === 'EXPORT' || item.action === 'DELETE_PO') {
+                actionHtml = `<button onclick="deleteStockHistory('${item.id}')" style="background:none; border:none; color:red; cursor:pointer;" title="Xoá"><i class="fa-regular fa-trash"></i></button>`;
+            }
+
             html += `<tr>
-                <td>${item.id}</td>
-                <td style="font-weight: bold;">${item.productName || item.productId}</td>
-                <td><span style="color: ${item.action === 'IMPORT' || item.action === 'IMPORT_PO' ? 'green' : 'red'};">+${item.quantity}</span></td>
-                <td>-</td>
-                <td>-</td>
+                <td>${poLabel}</td>
+                <td style="font-weight: bold;">${item.productTitle || item.productId}</td>
+                <td><span style="color: ${isImport ? 'green' : 'red'};">${sign}${item.quantity}</span></td>
+                <td>${importPriceStr}</td>
+                <td>${totalPriceStr}</td>
                 <td>${new Date(item.createdAt).toLocaleString('vi-VN')}</td>
+                <td>${actionHtml}</td>
             </tr>`;
         });
         tbody.innerHTML = html;
@@ -147,7 +166,7 @@ async function openPurchaseOrderModal() {
         // Cache products for row adding
         if (!window.cachedProducts) {
             const prodRes = await api.getProducts();
-            window.cachedProducts = prodRes.data;
+            window.cachedProducts = prodRes.data || prodRes;
         }
         
         // Add one initial row
@@ -235,6 +254,54 @@ async function submitPurchaseOrder() {
     }
 }
 
+async function deleteSupplier(id) {
+    if (!confirm('Bạn có chắc chắn muốn xoá nhà cung cấp này?')) return;
+    try {
+        const res = await api.deleteSupplier(id);
+        if (res.success) {
+            toast({ title: "Thành công", message: res.message, type: "success" });
+            loadSuppliers();
+        } else {
+            toast({ title: "Lỗi", message: res.message, type: "error" });
+        }
+    } catch (error) {
+        toast({ title: "Lỗi", message: "Lỗi khi xoá nhà cung cấp", type: "error" });
+    }
+}
+
+async function deletePurchaseOrder(id) {
+    if (!confirm('Bạn có chắc chắn muốn xoá phiếu nhập này? Tồn kho sẽ bị hoàn tác!')) return;
+    try {
+        const res = await api.deletePurchaseOrder(id);
+        if (res.success) {
+            toast({ title: "Thành công", message: res.message, type: "success" });
+            loadPurchaseOrders();
+            if (typeof loadStockHistory === 'function') loadStockHistory();
+            if (typeof loadInventoryStats === 'function') loadInventoryStats();
+        } else {
+            toast({ title: "Lỗi", message: res.message, type: "error" });
+        }
+    } catch (error) {
+        toast({ title: "Lỗi", message: "Lỗi khi xoá phiếu nhập", type: "error" });
+    }
+}
+
+async function deleteStockHistory(id) {
+    if (!confirm('Bạn có chắc chắn muốn xoá lịch sử này? Tồn kho sẽ bị hoàn tác!')) return;
+    try {
+        const res = await api.deleteStockHistory(id);
+        if (res.success) {
+            toast({ title: "Thành công", message: res.message, type: "success" });
+            loadStockHistory();
+            if (typeof loadInventoryStats === 'function') loadInventoryStats();
+        } else {
+            toast({ title: "Lỗi", message: res.message, type: "error" });
+        }
+    } catch (error) {
+        toast({ title: "Lỗi", message: "Lỗi khi xoá lịch sử", type: "error" });
+    }
+}
+
 // Attach to window
 window.switchInventoryTab = switchInventoryTab;
 window.loadPurchaseOrders = loadPurchaseOrders;
@@ -248,3 +315,6 @@ window.submitSupplier = submitSupplier;
 window.submitPurchaseOrder = submitPurchaseOrder;
 window.addPOItemRow = addPOItemRow;
 window.calculatePOTotal = calculatePOTotal;
+window.deleteSupplier = deleteSupplier;
+window.deletePurchaseOrder = deletePurchaseOrder;
+window.deleteStockHistory = deleteStockHistory;

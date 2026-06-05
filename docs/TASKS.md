@@ -384,5 +384,11 @@ Dưới đây là danh sách đầy đủ các hạng mục đã hoàn thiện t
 - [x] **Sử dụng In-memory Caching (Node-Cache):** Cache danh sách món ăn, danh mục giảm tải Server (Thay thế cho Redis để tối ưu triển khai).
 - [x] **Rate Limiting Nâng cao:** Ngăn chặn Spam và DDoS bảo vệ ứng dụng (Đã sử dụng express-rate-limit).
 
+### ✅ Giai đoạn 44: Quản lý Phiên Live Chat & Đồng bộ Đăng xuất (Session & Live Chat Management)
+
+- [x] **Đồng bộ Đăng xuất (Cross-Session Logout):** Tự động dọn dẹp bộ nhớ (localStorage, token), gửi yêu cầu xóa phiên máy chủ (Server Session) và ngắt kết nối WebSocket khi đăng xuất từ bất kỳ giao diện nào (Admin/User).
+- [x] **Ngăn chặn lỗi "Bóng ma" (Ghost Sessions):** Cập nhật bộ quản lý Socket (handlers.js) lưu ID nhân viên. Khi nhân viên hoặc khách hàng ngắt kết nối/đăng xuất, hệ thống tự động lưu trữ trạng thái vào cơ sở dữ liệu (`ChatSessions`), đồng thời phát tín hiệu kết thúc để giải phóng phòng chat và chuyển phiên về trợ lý AI một cách mượt mà.
+- [x] **Tối ưu UI Phân quyền Quản trị:** Lược bỏ phần cài đặt tài khoản dư thừa, chuẩn hóa nút đăng xuất thông qua ID đồng bộ (`logout-acc`), đảm bảo hiệu năng và tính nhất quán giữa frontend Admin và Khách hàng.
+
 ---
-*Cập nhật lần cuối: 28/05/2026 bởi thaingan & AI Assistant.*
+*Cập nhật lần cuối: 05/06/2026 bởi thaingan & AI Assistant.*

@@ -198,7 +198,7 @@ exports.auth_google_complete_registration = async (req, res) => {
         res.status(201).json({
             success: true,
             message: 'Đăng ký thành công bằng Google',
-            user: { fullname: name, phone, email, address: '', status: 1, userType: 0, cart: [] },
+            user: { id: newUserId, fullname: name, phone, email, address: '', status: 1, userType: 0, cart: [] },
             token
         });
     } catch (err) {
@@ -318,7 +318,7 @@ exports.auth_facebook_complete_registration = async (req, res) => {
         res.status(201).json({
             success: true,
             message: 'Đăng ký thành công bằng Facebook',
-            user: { fullname: name, phone, email: fbEmail, address: '', status: 1, userType: 0, cart: [] },
+            user: { id: newUserId, fullname: name, phone, email: fbEmail, address: '', status: 1, userType: 0, cart: [] },
             token
         });
     } catch (err) {

@@ -27,7 +27,7 @@ async function exportOrdersToExcel() {
         const maxWidths = Object.keys(data[0]).map(key =>
             Math.max(...data.map(obj => obj[key] ? obj[key].toString().length : 0), key.length)
         );
-        worksheet["!cols"] = maxWidths.map(w => ({ w: w + 2 }));
+        worksheet["!cols"] = maxWidths.map(w => ({ wch: w + 2 }));
 
         XLSX.writeFile(workbook, `TiMiFood_DonHang_${new Date().toLocaleDateString('vi-VN').replace(/\//g, '-')}.xlsx`);
         toast({ title: 'Thành công', message: 'Đã xuất file Excel đơn hàng!', type: 'success', duration: 3000 });

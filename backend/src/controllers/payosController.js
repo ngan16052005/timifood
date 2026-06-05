@@ -3,8 +3,12 @@ const { createNotification } = require('../helpers/notification');
 const { createLog } = require('../helpers/logger');
 const { sendOrderEmail, sendReplyEmail } = require('../helpers/email');
 const webpush = require('web-push');
-const PayOS = require('@payos/node');
-const payos = (process.env.PAYOS_CLIENT_ID && process.env.PAYOS_API_KEY && process.env.PAYOS_CHECKSUM_KEY) ? new PayOS(process.env.PAYOS_CLIENT_ID, process.env.PAYOS_API_KEY, process.env.PAYOS_CHECKSUM_KEY) : null;
+const { PayOS } = require('@payos/node');
+const getPayos = () => {
+    return (process.env.PAYOS_CLIENT_ID && process.env.PAYOS_API_KEY && process.env.PAYOS_CHECKSUM_KEY) 
+        ? new PayOS({ clientId: process.env.PAYOS_CLIENT_ID, apiKey: process.env.PAYOS_API_KEY, checksumKey: process.env.PAYOS_CHECKSUM_KEY }) 
+        : null;
+};
 
 let pool;
 connectDB().then(p => pool = p).catch(console.error);
@@ -40,6 +44,7 @@ const payosController = {
             returnUrl: `${clientOrigin}/checkoutSuccess.html?orderId=${orderId}`
         };
 
+        const payos = getPayos();
         if (!payos) {
             console.warn("[PayOS] SDK not initialized due to missing keys in .env. Returning warning.");
             return res.status(400).json({
@@ -49,7 +54,7 @@ const payosController = {
             });
         }
 
-        const paymentLinkResponse = await payos.createPaymentLink(paymentData);
+        const paymentLinkResponse = await payos.paymentRequests.create(paymentData);
         
         res.json({
             success: true,
@@ -67,6 +72,7 @@ const payosController = {
         const webhookData = req.body;
         console.log("[PayOS Webhook] Received webhook payload:", JSON.stringify(webhookData, null, 2));
 
+        const payos = getPayos();
         if (!payos) {
             console.warn("[PayOS Webhook] PayOS SDK not initialized. Webhook cannot verify signature.");
             return res.status(400).json({ success: false, message: 'PayOS not configured on server' });
@@ -75,11 +81,12 @@ const payosController = {
         // Verify webhook signature (PayOS SDK handles this)
         let verifiedData;
         try {
-            verifiedData = payos.verifyPaymentWebhookData(webhookData);
+            verifiedData = payos.webhooks.verify(webhookData);
             console.log("[PayOS Webhook] Signature verified successfully:", verifiedData);
         } catch (err) {
-            console.error("[PayOS Webhook] Signature verification failed:", err);
-            return res.status(400).json({ success: false, message: 'Invalid webhook signature' });
+            console.error("[PayOS Webhook] Signature verification failed (This is normal during Dashboard setup ping):", err.message);
+            // PayOS requires 200 OK even if signature fails (e.g. for dashboard test pings)
+            return res.status(200).json({ success: true, message: 'Webhook received but signature invalid' });
         }
 
         // PayOS verifiedData contains success and data attributes
@@ -156,7 +163,53 @@ const payosController = {
         console.error("PayOS Webhook processing error:", error);
         res.status(500).json({ success: false, message: error.message });
     }
-}
+},
+
+    postPayosSimulatePayment: async (req, res) => {
+        try {
+            const { orderId } = req.body;
+            if (!orderId) {
+                return res.status(400).json({ success: false, message: 'Missing orderId' });
+            }
+
+            console.log(`[PayOS Simulate] Processing manual simulated payment for order: ${orderId}`);
+
+            const request = pool.request();
+            const orderResult = await request
+                .input('orderIdStr', sql.NVarChar, orderId)
+                .query('SELECT * FROM Orders WHERE orderCode = @orderIdStr OR id = @orderIdStr');
+            
+            const order = orderResult.recordset[0];
+            
+            if (order) {
+                if (order.status === 0) {
+                    await pool.request()
+                        .input('orderId', sql.UniqueIdentifier, order.id)
+                        .input('status', sql.Int, 1)
+                        .query('UPDATE Orders SET status = @status WHERE id = @orderId');
+
+                    console.log(`[PayOS Simulate] Successfully updated order ${orderId} to status 1 (Đang giao)`);
+
+                    // Send notification to user
+                    if (req.app.locals.createNotification) {
+                        req.app.locals.createNotification(
+                            order.userId, 
+                            "Thanh toán thành công", 
+                            `Đơn hàng #${order.orderCode || orderId} của bạn đã được thanh toán thành công qua mã QR và đang được chuẩn bị!`, 
+                            "payment"
+                        );
+                    }
+                }
+            } else {
+                return res.status(404).json({ success: false, message: 'Order not found' });
+            }
+
+            res.json({ success: true, message: 'Payment simulated successfully' });
+        } catch (error) {
+            console.error("PayOS Simulate Error:", error);
+            res.status(500).json({ success: false, message: error.message });
+        }
+    }
 };
 
 module.exports = payosController;

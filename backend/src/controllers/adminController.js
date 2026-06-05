@@ -105,15 +105,79 @@ exports.getAdmin_stock_history = async (req, res) => {
     try {
         // Using global pool
         const result = await pool.request().query(`
-            SELECT sh.*, sh.createdAt as importDate, p.title as productTitle 
-            FROM StockHistory sh 
-            JOIN Products p ON sh.productId = p.id 
-            ORDER BY sh.createdAt DESC
+            SELECT 
+                COALESCE(CAST(sh.id AS VARCHAR(36)), CAST(si.id AS VARCHAR(36))) as id,
+                COALESCE(sh.productId, si.productId) as productId,
+                COALESCE(sh.action, 'IMPORT_PO') as action,
+                COALESCE(sh.quantity, si.quantity) as quantity,
+                COALESCE(sh.createdAt, si.importDate) as createdAt,
+                p.title as productTitle,
+                si.purchaseOrderId,
+                si.importPrice,
+                si.totalPrice
+            FROM StockHistory sh
+            FULL OUTER JOIN StockImports si ON sh.productId = si.productId AND sh.action = 'IMPORT_PO' AND ABS(DATEDIFF(second, sh.createdAt, si.importDate)) < 5
+            JOIN Products p ON COALESCE(sh.productId, si.productId) = p.id
+            ORDER BY createdAt DESC
         `);
         res.json(result.recordset);
     } catch (err) {
         console.error("Fetch stock history error:", err);
         res.status(500).json({ message: 'Error fetching stock history' });
+    }
+};
+
+exports.deleteAdmin_stock_history = async (req, res) => {
+    try {
+        const pool = await connectDB();
+        const transaction = new sql.Transaction(pool);
+        await transaction.begin();
+
+        try {
+            // Get the record
+            const record = await transaction.request()
+                .input('id', sql.Int, req.params.id)
+                .query('SELECT * FROM StockHistory WHERE id = @id');
+
+            if (!record.recordset || record.recordset.length === 0) {
+                await transaction.rollback();
+                return res.status(404).json({ success: false, message: 'Không tìm thấy lịch sử nhập/xuất' });
+            }
+
+            const item = record.recordset[0];
+            
+            if (item.action === 'IMPORT_PO') {
+                await transaction.rollback();
+                return res.status(400).json({ success: false, message: 'Lịch sử từ phiếu nhập không thể xoá trực tiếp tại đây! Vui lòng xoá phiếu nhập ở tab Lịch sử Phiếu Nhập.' });
+            }
+
+            // Reverse stock ONLY for IMPORT and EXPORT, not for DELETE_PO
+            if (item.action === 'IMPORT') {
+                await transaction.request()
+                    .input('productId', sql.UniqueIdentifier, item.productId)
+                    .input('quantity', sql.Int, item.quantity)
+                    .query('UPDATE Products SET stock = ISNULL(stock, 0) - @quantity WHERE id = @productId');
+            } else if (item.action === 'EXPORT') {
+                await transaction.request()
+                    .input('productId', sql.UniqueIdentifier, item.productId)
+                    .input('quantity', sql.Int, item.quantity)
+                    .query('UPDATE Products SET stock = ISNULL(stock, 0) + @quantity WHERE id = @productId');
+            }
+
+            // Delete the history record
+            await transaction.request()
+                .input('id', sql.Int, req.params.id)
+                .query('DELETE FROM StockHistory WHERE id = @id');
+
+            await transaction.commit();
+            res.json({ success: true, message: 'Xoá lịch sử và hoàn tác tồn kho thành công' });
+        } catch (err) {
+            await transaction.rollback();
+            throw err;
+        }
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ success: false, message: 'Lỗi server' });
     }
 };
 
@@ -329,6 +393,75 @@ exports.createAdmin_purchase_order = async (req, res) => {
     } catch (error) {
         console.error(error);
         res.status(500).json({ success: false, message: 'Lỗi khi tạo phiếu nhập' });
+    }
+};
+
+exports.deleteAdmin_supplier = async (req, res) => {
+    try {
+        const pool = await connectDB();
+        // Check if supplier has purchase orders
+        const check = await pool.request()
+            .input('id', sql.UniqueIdentifier, req.params.id)
+            .query('SELECT COUNT(*) as count FROM PurchaseOrders WHERE supplierId = @id');
+            
+        if (check.recordset[0].count > 0) {
+            return res.status(400).json({ success: false, message: 'Không thể xoá nhà cung cấp đã có phiếu nhập!' });
+        }
+        
+        await pool.request()
+            .input('id', sql.UniqueIdentifier, req.params.id)
+            .query('DELETE FROM Suppliers WHERE id = @id');
+            
+        res.json({ success: true, message: 'Xoá nhà cung cấp thành công' });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ success: false, message: 'Lỗi server' });
+    }
+};
+
+exports.deleteAdmin_purchase_order = async (req, res) => {
+    try {
+        const pool = await connectDB();
+        const transaction = new sql.Transaction(pool);
+        await transaction.begin();
+
+        try {
+            const items = await transaction.request()
+                .input('poId', sql.UniqueIdentifier, req.params.id)
+                .query('SELECT productId, quantity FROM StockImports WHERE purchaseOrderId = @poId');
+
+            for (let item of items.recordset) {
+                await transaction.request()
+                    .input('productId', sql.UniqueIdentifier, item.productId)
+                    .input('quantity', sql.Int, item.quantity)
+                    .query('UPDATE Products SET stock = ISNULL(stock, 0) - @quantity WHERE id = @productId');
+                    
+                await transaction.request()
+                    .input('productId', sql.UniqueIdentifier, item.productId)
+                    .input('action', sql.VarChar, 'DELETE_PO')
+                    .input('quantity', sql.Int, item.quantity)
+                    .input('note', sql.NVarChar, 'Xoá phiếu nhập')
+                    .input('createdBy', sql.UniqueIdentifier, req.user.id)
+                    .query('INSERT INTO StockHistory (productId, action, quantity, note, createdBy, createdAt) VALUES (@productId, @action, @quantity, @note, @createdBy, GETUTCDATE())');
+            }
+
+            await transaction.request()
+                .input('poId', sql.UniqueIdentifier, req.params.id)
+                .query('DELETE FROM StockImports WHERE purchaseOrderId = @poId');
+
+            await transaction.request()
+                .input('poId', sql.UniqueIdentifier, req.params.id)
+                .query('DELETE FROM PurchaseOrders WHERE id = @poId');
+
+            await transaction.commit();
+            res.json({ success: true, message: 'Xoá phiếu nhập và hoàn tác tồn kho thành công' });
+        } catch (err) {
+            await transaction.rollback();
+            throw err;
+        }
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ success: false, message: 'Lỗi server' });
     }
 };
 

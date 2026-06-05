@@ -77,7 +77,6 @@ async function initAdmin() {
 
         // Optimize performance using Promise.all to fetch data in parallel instead of sequentially (waterfall)
         const commonPromises = [
-            showProduct(),
             window.api.getOrders(true),
             (typeof loadPaginatedOrders === 'function') ? loadPaginatedOrders(1) : Promise.resolve(null)
         ];
@@ -85,6 +84,7 @@ async function initAdmin() {
         let adminPromises = [];
         if (isAdmin) {
             adminPromises = [
+                showProduct(),
                 window.api.getProducts(null, true),
                 window.api.getVouchers(true),
                 window.api.getUsers(true),
@@ -98,17 +98,18 @@ async function initAdmin() {
             Promise.all(adminPromises)
         ]);
 
-        const orders = commonResults[1];
+        const orders = commonResults[0];
 
         if (typeof loadPaginatedOrders !== 'function') {
             showOrder(orders);
         }
 
         if (isAdmin) {
-            const products = adminResults[0];
-            const vouchers = adminResults[1];
-            const users = adminResults[2];
-            const profitData = adminResults[3];
+            // adminResults[0] is showProduct() which doesn't return data directly used here
+            const products = adminResults[1];
+            const vouchers = adminResults[2];
+            const users = adminResults[3];
+            const profitData = adminResults[4];
 
             showVoucherArr(vouchers);
             

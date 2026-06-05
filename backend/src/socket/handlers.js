@@ -1,8 +1,31 @@
-// Factory function - nhận io từ server.js
-module.exports = function({ io, pool, sql }) {
+const { sql, connectDB } = require('../config/db');
+let localPool;
+connectDB().then(p => localPool = p).catch(console.error);
 
+// Factory function - nhận io từ server.js
+module.exports = function({ io, pool, sql: serverSql }) {
     // Active Live Chat sessions in memory (Key: customerPhone)
     let activeChats = {};
+
+    async function createAdminNotification(title, body, type) {
+        if (!localPool) return;
+        try {
+            const result = await localPool.request()
+                .input('userId', sql.VarChar, 'ADMIN')
+                .input('title', sql.NVarChar, title)
+                .input('body', sql.NVarChar, body)
+                .input('type', sql.VarChar, type)
+                .query(`INSERT INTO Notifications (userId, title, body, type, readStatus, createdAt) OUTPUT INSERTED.id VALUES (@userId, @title, @body, @type, 0, GETUTCDATE())`);
+            
+            const notiData = {
+                id: result.recordset[0].id,
+                title, message: body, body, type, createdAt: new Date().toISOString(), isRead: false, readStatus: false
+            };
+            io.to('adminRoom').emit('newNotification', notiData);
+        } catch (e) {
+            console.error('Error creating admin notification in handlers:', e);
+        }
+    }
 
     function getActiveChatsSummary() {
         return Object.values(activeChats).map(c => ({
@@ -41,9 +64,9 @@ module.exports = function({ io, pool, sql }) {
             console.log(`[LiveChat] Customer ${fullname} (${phone}) requested live support.`);
             
             let dbSessionId = null;
-            if (pool && sql) {
+            if (localPool && sql) {
                 try {
-                    const result = await pool.request()
+                    const result = await localPool.request()
                         .input('phone', sql.NVarChar, phone)
                         .input('name', sql.NVarChar, fullname || 'Khách vãng lai')
                         .input('status', sql.NVarChar, 'waiting')
@@ -75,6 +98,7 @@ module.exports = function({ io, pool, sql }) {
             socket.emit('live_chat_status', { status: 'waiting' });
 
             // Broadcast to all staff in adminRoom
+            createAdminNotification('Yêu cầu hỗ trợ trực tuyến', `Khách hàng ${activeChats[phone].fullname} đang yêu cầu hỗ trợ.`, 'chat');
             io.to('adminRoom').emit('new_chat_session', {
                 phone: phone,
                 fullname: activeChats[phone].fullname,
@@ -99,10 +123,11 @@ module.exports = function({ io, pool, sql }) {
             activeChats[customerPhone].status = 'chatting';
             activeChats[customerPhone].staffPhone = staffPhone;
             activeChats[customerPhone].staffName = staffName;
+            activeChats[customerPhone].staffSocketId = socket.id;
 
-            if (pool && sql && activeChats[customerPhone].dbSessionId) {
+            if (localPool && sql && activeChats[customerPhone].dbSessionId) {
                 try {
-                    await pool.request()
+                    await localPool.request()
                         .input('staffPhone', sql.NVarChar, staffPhone)
                         .input('staffName', sql.NVarChar, staffName)
                         .input('status', sql.NVarChar, 'chatting')
@@ -161,9 +186,9 @@ module.exports = function({ io, pool, sql }) {
             activeChats[phone].messages.push(msgObj);
 
             // Persist to DB
-            if (pool && sql && activeChats[phone].dbSessionId) {
+            if (localPool && sql && activeChats[phone].dbSessionId) {
                 try {
-                    await pool.request()
+                    await localPool.request()
                         .input('sessionId', sql.UniqueIdentifier, activeChats[phone].dbSessionId)
                         .input('sender', sql.NVarChar, sender)
                         .input('text', sql.NVarChar, text)
@@ -180,6 +205,7 @@ module.exports = function({ io, pool, sql }) {
 
             if (sender === 'customer') {
                 // Forward to admins in adminRoom
+                createAdminNotification('Tin nhắn hỗ trợ mới', `Khách hàng ${phone} vừa gửi một tin nhắn.`, 'chat');
                 io.to('adminRoom').emit('receive_chat_message', {
                     customerPhone: phone,
                     sender: 'customer',
@@ -202,15 +228,16 @@ module.exports = function({ io, pool, sql }) {
 
         // Terminate chat session
         socket.on('end_live_chat', async (data) => {
-            const { phone, sender } = data;
+            const phone = data.phone || data.customerPhone;
+            const sender = data.sender || 'unknown';
             if (!phone || !activeChats[phone]) return;
 
             console.log(`[LiveChat] Chat ended for client (${phone}) by ${sender}`);
 
             // Persist to DB
-            if (pool && sql && activeChats[phone].dbSessionId) {
+            if (localPool && sql && activeChats[phone].dbSessionId) {
                 try {
-                    await pool.request()
+                    await localPool.request()
                         .input('id', sql.UniqueIdentifier, activeChats[phone].dbSessionId)
                         .query(`UPDATE ChatSessions SET status = 'ended', endedAt = GETUTCDATE() WHERE id = @id`);
                 } catch (e) {
@@ -219,7 +246,7 @@ module.exports = function({ io, pool, sql }) {
             }
 
             // Notify client
-            io.to(`userRoom_${phone}`).emit('chat_session_ended', {
+            io.to(`userRoom_${phone}`).emit('end_live_chat', {
                 message: 'Cuộc trò chuyện đã kết thúc. Trợ lý ảo AI sẽ tiếp tục hỗ trợ bạn!'
             });
 
@@ -243,18 +270,22 @@ module.exports = function({ io, pool, sql }) {
         socket.on('disconnect', async () => {
             // ... (keep disconnect logic for live chat)
             for (const phone in activeChats) {
-                if (activeChats[phone].socketId === socket.id) {
-                    if (pool && sql && activeChats[phone].dbSessionId) {
+                if (activeChats[phone].socketId === socket.id || activeChats[phone].staffSocketId === socket.id) {
+                    if (localPool && sql && activeChats[phone].dbSessionId) {
                         try {
-                            await pool.request()
+                            await localPool.request()
                                 .input('id', sql.UniqueIdentifier, activeChats[phone].dbSessionId)
                                 .query(`UPDATE ChatSessions SET status = 'ended', endedAt = GETUTCDATE() WHERE id = @id`);
                         } catch (e) {}
                     }
+                    
+                    io.to(`userRoom_${phone}`).emit('end_live_chat', {
+                        message: 'Cuộc trò chuyện đã kết thúc. Trợ lý ảo AI sẽ tiếp tục hỗ trợ bạn!'
+                    });
+
                     io.to('adminRoom').emit('chat_session_ended_admin', { customerPhone: phone });
                     delete activeChats[phone];
                     io.to('adminRoom').emit('active_chats_updated', getActiveChatsSummary());
-                    break;
                 }
             }
         });
@@ -271,9 +302,9 @@ module.exports = function({ io, pool, sql }) {
             shipperIo.emit('shipperLocation', data);
 
             // Persist shipper location to DB
-            if (pool && sql && phone) {
+            if (localPool && sql && phone) {
                 try {
-                    await pool.request()
+                    await localPool.request()
                         .input('phone', sql.NVarChar, phone)
                         .input('lat', sql.Float, lat)
                         .input('lng', sql.Float, lng)

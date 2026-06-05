@@ -29,9 +29,14 @@ window.onload = async () => {
     if (logoutBtn) {
         logoutBtn.addEventListener('click', (e) => {
             e.preventDefault();
+            if (typeof socket !== 'undefined' && socket) {
+                socket.disconnect();
+            }
             localStorage.removeItem("currentuser");
             localStorage.removeItem("token");
-            window.location.href = "index.html";
+            fetch(`${window.BACKEND_URL || ''}/api/logout`, { method: 'POST' }).finally(() => {
+                window.location.href = "index.html";
+            });
         });
     }
 
@@ -147,10 +152,25 @@ function applyPermissions(userType) {
     if (userType == 2) { // Nhân viên (Staff)
         console.log("Quyền hạn: Nhân viên - Chỉ xem Đơn hàng & Hỗ trợ trực tuyến");
 
-        // Các index menu cần ẩn: 0: Tổng quát, 1: Sản phẩm, 2: Danh mục, 3: Tài khoản, 5: Nhập kho, 6: Khuyến mãi, 7: Thống kê, 8: Đánh giá, 9: Nhật ký
-        const forbiddenIndexes = [0, 1, 2, 3, 5, 6, 7, 8, 9];
+        // Các index menu cần ẩn: 0: Tổng quát, 1: Sản phẩm, 2: Danh mục, 3: Tài khoản, 5: Nhập kho, 6: Khuyến mãi, 7: Thống kê, 8: Đánh giá, 9: Nhật ký, 11: Liên hệ, 12: Tin tức
+        const forbiddenIndexes = [0, 1, 2, 3, 5, 6, 7, 8, 9, 11, 12];
         forbiddenIndexes.forEach(index => {
             if (sidebarItems[index]) sidebarItems[index].style.display = 'none';
+        });
+
+        // Ẩn các tiêu đề (sidebar-group) nếu tất cả các item con của nó đều bị ẩn
+        const sidebarGroups = document.querySelectorAll(".sidebar-group");
+        sidebarGroups.forEach(group => {
+            const items = group.querySelectorAll(".sidebar-list-item");
+            let allHidden = true;
+            items.forEach(item => {
+                if (item.style.display !== 'none') {
+                    allHidden = false;
+                }
+            });
+            if (allHidden) {
+                group.style.display = 'none';
+            }
         });
 
         // Tự động gỡ bỏ active khỏi các mục khác và chuyển sang mục Đơn hàng (Index 4)
@@ -199,8 +219,8 @@ for (let i = 0; i < sidebars.length; i++) {
         const isStaff = currentUser && currentUser.userType == 2;
 
         // Kiểm tra quyền truy cập cho nhân viên
-        // Chỉ cho phép Staff truy cập Đơn hàng (Index 4) và Hỗ trợ trực tuyến (Index 10)
-        const forbiddenForStaff = [0, 1, 2, 3, 5, 6, 7, 8, 9];
+        // Chỉ cho phép Staff truy cập Đơn hàng (Index 4), Hỗ trợ trực tuyến (Index 10)
+        const forbiddenForStaff = [0, 1, 2, 3, 5, 6, 7, 8, 9, 11, 12];
         if (isStaff && forbiddenForStaff.includes(i)) {
             toast({ title: 'Từ chối', message: 'Bạn không có quyền truy cập mục này!', type: 'error', duration: 3000 });
             return;
@@ -222,6 +242,21 @@ for (let i = 0; i < sidebars.length; i++) {
             await showCategories();
         }
 
+        // Nếu là tab Đơn hàng (Index 4)
+        if (i === 4) {
+            // Tự động đánh dấu các thông báo đơn hàng là đã đọc
+            if (typeof adminNotifications !== 'undefined') {
+                const unreadOrderNotis = adminNotifications.filter(n => !n.read && (n.type === 'order' || (n.title && n.title.toLowerCase().includes('đơn hàng'))));
+                if (unreadOrderNotis.length > 0) {
+                    for (let noti of unreadOrderNotis) {
+                        if (typeof markAsRead === 'function') {
+                            markAsRead(noti.id);
+                        }
+                    }
+                }
+            }
+        }
+
         // Nếu là tab Nhập kho (Index 5)
         if (i === 5) {
             await loadPurchaseOrders();
@@ -239,6 +274,14 @@ for (let i = 0; i < sidebars.length; i++) {
         // Nếu là tab Đánh giá (Index 8)
         if (i === 8) {
             await showReviews();
+            if (typeof adminNotifications !== 'undefined') {
+                const unreadNotis = adminNotifications.filter(n => !n.read && (n.type === 'review' || (n.title && n.title.toLowerCase().includes('đánh giá'))));
+                if (unreadNotis.length > 0) {
+                    for (let noti of unreadNotis) {
+                        if (typeof markAsRead === 'function') markAsRead(noti.id);
+                    }
+                }
+            }
         }
 
         // Nếu là tab Nhật ký hệ thống (Index 9)
@@ -249,11 +292,27 @@ for (let i = 0; i < sidebars.length; i++) {
         // Nếu là tab Hỗ trợ trực tuyến (Index 10)
         if (i === 10) {
             await loadLiveChatSessionsAdmin();
+            if (typeof adminNotifications !== 'undefined') {
+                const unreadNotis = adminNotifications.filter(n => !n.read && (n.type === 'chat' || (n.title && n.title.toLowerCase().includes('tin nhắn'))));
+                if (unreadNotis.length > 0) {
+                    for (let noti of unreadNotis) {
+                        if (typeof markAsRead === 'function') markAsRead(noti.id);
+                    }
+                }
+            }
         }
 
         // Nếu là tab Liên hệ (Index 11)
         if (i === 11) {
             await showContacts();
+            if (typeof adminNotifications !== 'undefined') {
+                const unreadNotis = adminNotifications.filter(n => !n.read && (n.type === 'contact' || (n.title && n.title.toLowerCase().includes('liên hệ'))));
+                if (unreadNotis.length > 0) {
+                    for (let noti of unreadNotis) {
+                        if (typeof markAsRead === 'function') markAsRead(noti.id);
+                    }
+                }
+            }
         }
 
         // Nếu là tab Tin tức (Index 12)

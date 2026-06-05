@@ -81,12 +81,9 @@
                         <i class="fa-light fa-house"></i>
                         <span>Về trang chủ</span>
                     </a>
-                    <a href="#" class="profile-item">
-                        <i class="fa-light fa-user-gear"></i>
-                        <span>Cài đặt tài khoản</span>
-                    </a>
+
                     <div class="profile-divider"></div>
-                    <a href="index.html" class="profile-item logout" onclick="logOut()">
+                    <a href="#" class="profile-item logout" id="logout-acc">
                         <i class="fa-light fa-right-from-bracket"></i>
                         <span>Đăng xuất</span>
                     </a>
@@ -107,12 +104,24 @@
             </div>
             <div class="middle-sidebar">
                 <ul class="sidebar-list">
+                    <li class="sidebar-group">
+                        <div class="sidebar-heading hidden-sidebar" onclick="this.parentElement.classList.toggle('collapsed')">
+                            <span>Tổng quan</span> <i class="fa-light fa-chevron-up toggle-icon"></i>
+                        </div>
+                        <ul class="sidebar-group-items">
                     <li class="sidebar-list-item tab-content active">
                         <a href="#" class="sidebar-link">
                             <div class="sidebar-icon"><i class="fa-light fa-house"></i></div>
                             <div class="hidden-sidebar">Trang tổng quát</div>
                         </a>
                     </li>
+                        </ul>
+                    </li>
+                    <li class="sidebar-group">
+                        <div class="sidebar-heading hidden-sidebar" onclick="this.parentElement.classList.toggle('collapsed')">
+                            <span>Sản phẩm & Danh mục</span> <i class="fa-light fa-chevron-up toggle-icon"></i>
+                        </div>
+                        <ul class="sidebar-group-items">
                     <li class="sidebar-list-item tab-content">
                         <a href="#" class="sidebar-link">
                             <div class="sidebar-icon"><i class="fa-light fa-pot-food"></i></div>
@@ -125,15 +134,32 @@
                             <div class="hidden-sidebar">Danh mục</div>
                         </a>
                     </li>
+                        </ul>
+                    </li>
+                    <li class="sidebar-group">
+                        <div class="sidebar-heading hidden-sidebar" onclick="this.parentElement.classList.toggle('collapsed')">
+                            <span>Người dùng</span> <i class="fa-light fa-chevron-up toggle-icon"></i>
+                        </div>
+                        <ul class="sidebar-group-items">
                     <li class="sidebar-list-item tab-content">
                         <a href="#" class="sidebar-link">
                             <div class="sidebar-icon"><i class="fa-light fa-users"></i></div>
                             <div class="hidden-sidebar">Tài khoản</div>
                         </a>
                     </li>
+                        </ul>
+                    </li>
+                    <li class="sidebar-group">
+                        <div class="sidebar-heading hidden-sidebar" onclick="this.parentElement.classList.toggle('collapsed')">
+                            <span>Bán hàng</span> <i class="fa-light fa-chevron-up toggle-icon"></i>
+                        </div>
+                        <ul class="sidebar-group-items">
                     <li class="sidebar-list-item tab-content">
                         <a href="#" class="sidebar-link">
-                            <div class="sidebar-icon"><i class="fa-light fa-basket-shopping"></i></div>
+                            <div class="sidebar-icon">
+                                <i class="fa-light fa-basket-shopping"></i>
+                                <span class="order-badge" id="sidebar-order-badge" style="display: none;"></span>
+                            </div>
                             <div class="hidden-sidebar">Đơn hàng</div>
                         </a>
                     </li>
@@ -149,6 +175,13 @@
                             <div class="hidden-sidebar">Khuyến mãi</div>
                         </a>
                     </li>
+                        </ul>
+                    </li>
+                    <li class="sidebar-group">
+                        <div class="sidebar-heading hidden-sidebar" onclick="this.parentElement.classList.toggle('collapsed')">
+                            <span>Báo cáo & Hệ thống</span> <i class="fa-light fa-chevron-up toggle-icon"></i>
+                        </div>
+                        <ul class="sidebar-group-items">
                     <li class="sidebar-list-item tab-content">
                         <a href="#" class="sidebar-link">
                             <div class="sidebar-icon"><i class="fa-light fa-chart-simple"></i></div>
@@ -157,7 +190,10 @@
                     </li>
                     <li class="sidebar-list-item tab-content">
                         <a href="#" class="sidebar-link">
-                            <div class="sidebar-icon"><i class="fa-light fa-star"></i></div>
+                            <div class="sidebar-icon">
+                                <i class="fa-light fa-star"></i>
+                                <span class="order-badge" id="sidebar-review-badge" style="display: none;"></span>
+                            </div>
                             <div class="hidden-sidebar">Đánh giá</div>
                         </a>
                     </li>
@@ -167,15 +203,28 @@
                             <div class="hidden-sidebar">Nhật ký hệ thống</div>
                         </a>
                     </li>
+                        </ul>
+                    </li>
+                    <li class="sidebar-group">
+                        <div class="sidebar-heading hidden-sidebar" onclick="this.parentElement.classList.toggle('collapsed')">
+                            <span>CSKH & Nội dung</span> <i class="fa-light fa-chevron-up toggle-icon"></i>
+                        </div>
+                        <ul class="sidebar-group-items">
                     <li class="sidebar-list-item tab-content">
                         <a href="#" class="sidebar-link">
-                            <div class="sidebar-icon"><i class="fa-light fa-comments"></i></div>
+                            <div class="sidebar-icon">
+                                <i class="fa-light fa-comments"></i>
+                                <span class="order-badge" id="sidebar-chat-badge" style="display: none;"></span>
+                            </div>
                             <div class="hidden-sidebar">Hỗ trợ trực tuyến</div>
                         </a>
                     </li>
                     <li class="sidebar-list-item tab-content">
                         <a href="#" class="sidebar-link">
-                            <div class="sidebar-icon"><i class="fa-light fa-envelope-open-text"></i></div>
+                            <div class="sidebar-icon">
+                                <i class="fa-light fa-envelope-open-text"></i>
+                                <span class="order-badge" id="sidebar-contact-badge" style="display: none;"></span>
+                            </div>
                             <div class="hidden-sidebar">Liên hệ</div>
                         </a>
                     </li>
@@ -185,7 +234,9 @@
                             <div class="hidden-sidebar">Tin tức</div>
                         </a>
                     </li>
-                </ul>
+                
+                        </ul>
+                    </li></ul>
             </div>
         </aside>
 

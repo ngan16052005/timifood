@@ -157,6 +157,31 @@ function updateAdminNotificationUI() {
         badge.style.display = 'none';
     }
     
+    const orderBadge = document.getElementById('sidebar-order-badge');
+    const contactBadge = document.getElementById('sidebar-contact-badge');
+    const reviewBadge = document.getElementById('sidebar-review-badge');
+    const chatBadge = document.getElementById('sidebar-chat-badge');
+
+    if (orderBadge) {
+        const unreadOrdersCount = adminNotifications.filter(n => !n.read && (n.type === 'order' || (n.title && n.title.toLowerCase().includes('đơn hàng')))).length;
+        orderBadge.style.display = unreadOrdersCount > 0 ? 'block' : 'none';
+    }
+    
+    if (contactBadge) {
+        const unreadContactsCount = adminNotifications.filter(n => !n.read && (n.type === 'contact' || (n.title && n.title.toLowerCase().includes('liên hệ')))).length;
+        contactBadge.style.display = unreadContactsCount > 0 ? 'block' : 'none';
+    }
+    
+    if (reviewBadge) {
+        const unreadReviewsCount = adminNotifications.filter(n => !n.read && (n.type === 'review' || (n.title && n.title.toLowerCase().includes('đánh giá')))).length;
+        reviewBadge.style.display = unreadReviewsCount > 0 ? 'block' : 'none';
+    }
+    
+    if (chatBadge) {
+        const unreadChatsCount = adminNotifications.filter(n => !n.read && (n.type === 'chat' || (n.title && n.title.toLowerCase().includes('tin nhắn')))).length;
+        chatBadge.style.display = unreadChatsCount > 0 ? 'block' : 'none';
+    }
+    
     if (adminNotifications.length === 0) {
         list.innerHTML = '<div class="no-notification">Không có thông báo mới</div>';
         return;

@@ -440,6 +440,27 @@ window.api = {
         }
     },
 
+    simulatePayosPayment: async (orderId) => {
+        showLoader();
+        try {
+            const response = await fetch(`${BASE_URL}/payos/simulate-payment`, {
+                method: 'POST',
+                headers: getHeaders(),
+                body: JSON.stringify({ orderId })
+            });
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.message || 'Lỗi mô phỏng thanh toán');
+            }
+            return await response.json();
+        } catch (error) {
+            console.error("Simulate PayOS payment error:", error);
+            throw error;
+        } finally {
+            hideLoader();
+        }
+    },
+
     updateOrderStatus: async (orderId, status) => {
         showLoader();
         try {
@@ -1105,6 +1126,45 @@ window.api = {
                 method: 'POST',
                 headers: getHeaders(),
                 body: JSON.stringify(data)
+            });
+            return await response.json();
+        } catch (error) {
+            console.error('API Error:', error);
+            throw error;
+        }
+    },
+    
+    deleteSupplier: async (id) => {
+        try {
+            const response = await fetch(`${BASE_URL}/admin/suppliers/${id}`, {
+                method: 'DELETE',
+                headers: getHeaders()
+            });
+            return await response.json();
+        } catch (error) {
+            console.error('API Error:', error);
+            throw error;
+        }
+    },
+    
+    deletePurchaseOrder: async (id) => {
+        try {
+            const response = await fetch(`${BASE_URL}/admin/purchase-orders/${id}`, {
+                method: 'DELETE',
+                headers: getHeaders()
+            });
+            return await response.json();
+        } catch (error) {
+            console.error('API Error:', error);
+            throw error;
+        }
+    },
+    
+    deleteStockHistory: async (id) => {
+        try {
+            const response = await fetch(`${BASE_URL}/admin/stock-history/${id}`, {
+                method: 'DELETE',
+                headers: getHeaders()
             });
             return await response.json();
         } catch (error) {

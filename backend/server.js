@@ -19,7 +19,7 @@ const { globalLimiter, loginLimiter, otpLimiter, resetPasswordLimiter, registerL
 const { cacheMiddleware, clearCache } = require('./src/middleware/cache');
 const { transporter, sendOrderEmail, sendContactEmail, sendReplyEmail } = require('./src/helpers/email');
 
-const PayOS = require('@payos/node');
+const { PayOS } = require('@payos/node');
 const payos = (process.env.PAYOS_CLIENT_ID && process.env.PAYOS_API_KEY && process.env.PAYOS_CHECKSUM_KEY)
     ? new PayOS(process.env.PAYOS_CLIENT_ID, process.env.PAYOS_API_KEY, process.env.PAYOS_CHECKSUM_KEY)
     : null;

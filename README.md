@@ -389,5 +389,11 @@
 
 - Tích hợp Redis Caching giảm tải hệ thống. Thiết lập Rate Limiting chặn Spam và DDoS.
 
+### ✅ Giai đoạn 44: Quản lý Phiên Live Chat & Đồng bộ Đăng xuất (Session & Live Chat Management)
+
+- **Đồng bộ Đăng xuất (Cross-Session Logout):** Tự động dọn dẹp bộ nhớ (localStorage, token), gửi yêu cầu xóa phiên máy chủ (Server Session) và ngắt kết nối WebSocket khi đăng xuất từ bất kỳ giao diện nào (Admin/User).
+- **Ngăn chặn lỗi "Bóng ma" (Ghost Sessions):** Cập nhật bộ quản lý Socket (handlers.js) lưu ID nhân viên. Khi nhân viên hoặc khách hàng ngắt kết nối/đăng xuất, hệ thống tự động lưu trữ trạng thái vào cơ sở dữ liệu (`ChatSessions`), đồng thời phát tín hiệu kết thúc để giải phóng phòng chat và chuyển phiên về trợ lý AI một cách mượt mà.
+- **Tối ưu UI Phân quyền Quản trị:** Lược bỏ phần cài đặt tài khoản dư thừa, chuẩn hóa nút đăng xuất thông qua ID đồng bộ (`logout-acc`), đảm bảo hiệu năng và tính nhất quán giữa frontend Admin và Khách hàng.
+
 ---
-*Cập nhật lần cuối: 28/05/2026 bởi thaingan & AI Assistant.*
+*Cập nhật lần cuối: 05/06/2026 bởi thaingan & AI Assistant.*

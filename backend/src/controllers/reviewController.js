@@ -66,6 +66,10 @@ const reviewController = {
             .input('comment', sql.NVarChar, comment || '')
             .query('INSERT INTO Reviews (productId, userId, rating, comment, createdAt) VALUES (@productId, @userId, @rating, @comment, GETUTCDATE())');
 
+        if (req.app.locals.createNotification) {
+            await req.app.locals.createNotification("ADMIN", "Đánh giá mới", `Có đánh giá ${rating} sao từ khách hàng ${customerName}`, "review");
+        }
+
         res.json({ success: true, message: 'Đánh giá của bạn đã được gửi!' });
     } catch (error) {
         console.error("Submit review error:", error);

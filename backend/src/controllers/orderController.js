@@ -4,7 +4,7 @@ const crypto = require('crypto');
 const webpush = require('web-push');
 const { sendOrderEmail } = require('../helpers/email');
 const { startSimulation, stopSimulation } = require('../helpers/shipperSimulation');
-const PayOS = require('@payos/node');
+const { PayOS } = require('@payos/node');
 const payos = (process.env.PAYOS_CLIENT_ID && process.env.PAYOS_API_KEY && process.env.PAYOS_CHECKSUM_KEY)
     ? new PayOS(process.env.PAYOS_CLIENT_ID, process.env.PAYOS_API_KEY, process.env.PAYOS_CHECKSUM_KEY)
     : null;
@@ -446,8 +446,8 @@ exports.updateOrder = async (req, res) => {
             const itemQty = item.quantity || item.soluong || 0;
 
             await transaction.request()
-                .input('orderId', sql.NVarChar, id)
-                .input('productId', sql.Int, item.id)
+                .input('orderId', sql.UniqueIdentifier, id)
+                .input('productId', sql.UniqueIdentifier, item.id)
                 .input('quantity', sql.Int, itemQty)
                 .input('price', sql.Float, itemPrice)
                 .input('note', sql.NVarChar, item.note || '')
