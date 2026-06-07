@@ -28,7 +28,7 @@
     <link rel="icon" type="image/png" sizes="32x32" href="./assets/img/icons/favicon-32x32.png">
     <link rel="apple-touch-icon" sizes="180x180" href="./assets/img/icons/apple-touch-icon.png">
     <link rel="icon" type="image/png" sizes="192x192" href="./assets/img/icons/android-chrome-192x192.png">
-    <link rel="stylesheet" href="./assets/css/main.css">
+    <link rel="stylesheet" href="./assets/css/main.css?v=4">
     <link rel="stylesheet" href="./assets/css/home-responsive.css">
     <link rel="stylesheet" href="./assets/css/toast-message.css">
     <link rel="stylesheet" href="./assets/font/font-awesome-pro-v6-6.2.0/css/all.min.css" />
@@ -91,7 +91,7 @@
                     </div>
                 </div>
                 <div class="header-middle-center">
-                    <form action="" class="form-search">
+                    <form action="" id="search-box" class="form-search">
                         <span class="search-btn"><i class="fa-light fa-magnifying-glass"></i></span>
                         <input type="text" class="form-search-input" placeholder="Tìm kiếm món ăn..."
                             oninput="searchProducts()">
@@ -293,6 +293,18 @@
                     <h3>Thông tin tài khoản của bạn</h3>
                     <p>Quản lý thông tin để bảo mật tài khoản</p>
                 </div>
+                
+                <div class="loyalty-points-card tier-bronze" style="margin-bottom: 25px; border-radius: 12px; padding: 20px; display: flex; justify-content: space-between; align-items: center; color: #fff; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
+                    <div class="loyalty-info">
+                        <h4 style="margin: 0; font-size: 1.2rem; display: flex; align-items: center; gap: 8px;"><i class="fa-solid fa-crown" style="color: #FFD700;"></i> <span id="member-tier-name">Hạng Đồng</span></h4>
+                        <p style="margin: 5px 0 0 0; font-size: 0.9rem; opacity: 0.9;">Tích lũy để thăng hạng và nhận nhiều ưu đãi</p>
+                    </div>
+                    <div class="loyalty-points" style="text-align: right;">
+                        <span style="font-size: 2rem; font-weight: bold; display: block;" id="member-points-value">0</span>
+                        <span style="font-size: 0.9rem; font-weight: 500;">TiMi Points</span>
+                    </div>
+                </div>
+
                 <div class="main-account-body">
                     <div class="main-account-body-col">
                         <form action="" class="info-user">
@@ -1348,7 +1360,7 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
     <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
     <script src="./assets/js/api.js?v=3"></script>
-    <script src="./assets/js/main.js?v=3"></script>
+    <script src="./assets/js/main.js?v=6"></script>
     <script src="assets/js/checkout.js?v=3"></script>
     <script src="assets/js/firebase-auth.js"></script>
     <script src="./assets/js/initialization.js"></script>
@@ -1365,6 +1377,7 @@
         }
     </script>
     <script type="text/javascript" src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+    <button id="scrollToTopBtn" title="Lên đầu trang" style="display: none;"><i class="fa-regular fa-arrow-up"></i></button>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="./assets/js/map.js"></script>
 </body>

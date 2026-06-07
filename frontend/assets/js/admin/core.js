@@ -100,23 +100,7 @@ window.onload = async () => {
         });
     });
 
-    const quickSearch = document.getElementById('quick-search-admin');
-    if (quickSearch) {
-        quickSearch.addEventListener('input', async (e) => {
-            const query = e.target.value.toLowerCase();
-            if (query.length > 0) {
-                const orderTab = document.querySelector('.sidebar-list-item:nth-child(5)');
-                if (orderTab && !orderTab.classList.contains('active')) {
-                    orderTab.click();
-                }
-                const searchInput = document.getElementById('form-search-order');
-                if (searchInput) {
-                    searchInput.value = query;
-                    findOrder();
-                }
-            }
-        });
-    }
+
 
     try {
         await initAdmin();
@@ -380,6 +364,160 @@ function setupPagination(totalPages) {
         document.querySelector('.page-nav-list').appendChild(li);
     }
 }
+
+function printAdminInvoice(invoiceHTML) {
+    let printWindow = window.open('', '_blank');
+    printWindow.document.write(invoiceHTML);
+    printWindow.document.close();
+    printWindow.print();
+}
+
+// Global Admin Search Logic
+let cachedAdminData = { products: null, orders: null, users: null };
+
+async function loadAdminDataIfNeeded() {
+    try {
+        if (!cachedAdminData.products) cachedAdminData.products = await window.api.getProducts("", true);
+    } catch (e) { cachedAdminData.products = []; }
+
+    try {
+        if (!cachedAdminData.orders) cachedAdminData.orders = await window.api.getOrders(true);
+    } catch (e) { cachedAdminData.orders = []; }
+
+    try {
+        if (!cachedAdminData.users) cachedAdminData.users = await window.api.getUsers(true);
+    } catch (e) { cachedAdminData.users = []; }
+}
+
+async function handleGlobalAdminSearch() {
+    const input = document.getElementById('quick-search-admin').value.trim().toLowerCase();
+    const suggestBox = document.getElementById('admin-search-suggest');
+    
+    if (input === "") {
+        suggestBox.classList.remove('show');
+        return;
+    }
+
+    // Show loading text while fetching initially
+    if (!cachedAdminData.products || !cachedAdminData.orders || !cachedAdminData.users) {
+        suggestBox.innerHTML = '<div class="admin-suggest-empty">Đang tải dữ liệu...</div>';
+        suggestBox.classList.add('show');
+        await loadAdminDataIfNeeded();
+    }
+
+    const products = Array.isArray(cachedAdminData.products) ? cachedAdminData.products : [];
+    const orders = Array.isArray(cachedAdminData.orders) ? cachedAdminData.orders : [];
+    const users = Array.isArray(cachedAdminData.users) ? cachedAdminData.users : [];
+
+    const currentUser = JSON.parse(localStorage.getItem("currentuser"));
+    const isStaff = currentUser && currentUser.userType == 2;
+
+    // Filter Products (Skip if Staff)
+    let pResult = isStaff ? [] : products.filter(p => (p.title || "").toLowerCase().includes(input) || String(p.id || "").toLowerCase().includes(input)).slice(0, 3);
+    // Filter Orders
+    let oResult = orders.filter(o => String(o.id || "").toLowerCase().includes(input) || String(o.khachhang || "").toLowerCase().includes(input)).slice(0, 3);
+    // Filter Users (Skip if Staff)
+    let uResult = isStaff ? [] : users.filter(u => String(u.phone || "").includes(input) || (u.name || "").toLowerCase().includes(input)).slice(0, 3);
+
+    if (pResult.length === 0 && oResult.length === 0 && uResult.length === 0) {
+        suggestBox.innerHTML = '<div class="admin-suggest-empty">Không tìm thấy kết quả nào.</div>';
+        return;
+    }
+
+    let html = '';
+
+    // Render Orders
+    oResult.forEach(o => {
+        html += `
+        <div class="admin-suggest-item" onclick="jumpToAdminOrder('${o.id}')">
+            <div class="admin-suggest-icon" style="color: #ff9800; background: #fff3e0;"><i class="fa-light fa-receipt"></i></div>
+            <div class="admin-suggest-info">
+                <span class="admin-suggest-title">Đơn hàng: ${o.id}</span>
+                <span class="admin-suggest-subtitle">Khách: ${o.khachhang || 'N/A'} - ${vnd(o.tongtien)}</span>
+            </div>
+            <span class="admin-suggest-type">Đơn hàng</span>
+        </div>`;
+    });
+
+    // Render Products
+    pResult.forEach(p => {
+        let imgSrc = p.img || './assets/img/blank-image.png';
+        html += `
+        <div class="admin-suggest-item" onclick="jumpToAdminProduct('${p.id}')">
+            <div class="admin-suggest-icon" style="background: transparent; padding: 0; overflow: hidden;">
+                <img src="${imgSrc}" alt="${p.title}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 8px;">
+            </div>
+            <div class="admin-suggest-info">
+                <span class="admin-suggest-title">${p.title}</span>
+                <span class="admin-suggest-subtitle">Mã: ${p.id} - ${vnd(p.price)}</span>
+            </div>
+            <span class="admin-suggest-type">Sản phẩm</span>
+        </div>`;
+    });
+
+    // Render Users
+    uResult.forEach(u => {
+        html += `
+        <div class="admin-suggest-item" onclick="jumpToAdminUser('${u.phone}')">
+            <div class="admin-suggest-icon" style="color: #2196f3; background: #e3f2fd;"><i class="fa-light fa-user"></i></div>
+            <div class="admin-suggest-info">
+                <span class="admin-suggest-title">${u.name}</span>
+                <span class="admin-suggest-subtitle">SĐT: ${u.phone}</span>
+            </div>
+            <span class="admin-suggest-type">Khách hàng</span>
+        </div>`;
+    });
+
+    suggestBox.innerHTML = html;
+    suggestBox.classList.add('show');
+}
+
+// Navigation helpers for search results
+function jumpToAdminOrder(id) {
+    document.getElementById('quick-search-admin').value = '';
+    document.getElementById('admin-search-suggest').classList.remove('show');
+    switchAdminTab("Đơn hàng");
+    if(typeof detailOrder === 'function') detailOrder(id);
+}
+
+function jumpToAdminProduct(id) {
+    document.getElementById('quick-search-admin').value = '';
+    document.getElementById('admin-search-suggest').classList.remove('show');
+    switchAdminTab("Sản phẩm");
+    if(typeof editProduct === 'function') editProduct(id);
+}
+
+function jumpToAdminUser(phone) {
+    document.getElementById('quick-search-admin').value = '';
+    document.getElementById('admin-search-suggest').classList.remove('show');
+    switchAdminTab("Tài khoản");
+    if(typeof editAccount === 'function') editAccount(phone);
+}
+
+function switchAdminTab(name) {
+    const sidebars = document.querySelectorAll('.sidebar-list-item.tab-content');
+    const sections = document.querySelectorAll('.section');
+    for (let i = 0; i < sidebars.length; i++) {
+        if (sidebars[i].innerText.includes(name)) {
+            document.querySelector(".sidebar-list-item.active")?.classList.remove("active");
+            document.querySelector(".section.active")?.classList.remove("active");
+            sidebars[i].classList.add("active");
+            sections[i].classList.add("active");
+            break;
+        }
+    }
+}
+
+// Hide suggest box on click outside
+document.addEventListener('click', (e) => {
+    const suggestBox = document.getElementById('admin-search-suggest');
+    const searchInput = document.getElementById('quick-search-admin');
+    if (suggestBox && suggestBox.classList.contains('show')) {
+        if (!e.target.closest('.header-search')) {
+            suggestBox.classList.remove('show');
+        }
+    }
+});
 
 function paginationChange(page) {
     let node = document.createElement(`li`);

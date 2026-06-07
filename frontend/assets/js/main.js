@@ -356,7 +356,7 @@ async function addCart(index) {
             closeModal();
             toast({ title: 'Thành công', message: 'Đã thêm món ăn vào giỏ hàng!', type: 'success', duration: 2000 });
         } catch (error) {
-            toast({ title: 'Lỗi', message: 'Không thể đồng bộ giỏ hàng!', type: 'error', duration: 3000 });
+        toast({ title: 'Lỗi', message: 'Không thể kết nối đến máy chủ', type: 'error', duration: 3000 });
         }
     } else {
         // Guest user
@@ -464,7 +464,7 @@ async function deleteCartItem(id, el) {
             await window.api.updateCart(currentUser.cart);
             localStorage.setItem('currentuser', JSON.stringify(currentUser));
         } catch (error) {
-            toast({ title: 'Lỗi', message: 'Không thể cập nhật giỏ hàng!', type: 'error', duration: 3000 });
+        toast({ title: 'Lỗi', message: 'Không thể kết nối đến máy chủ', type: 'error', duration: 3000 });
             return;
         }
     } else {
@@ -699,7 +699,7 @@ recoveryRadios.forEach(radio => {
 document.getElementById('send-otp-btn').addEventListener('click', async () => {
     const method = document.querySelector('input[name="recovery-method"]:checked').value;
     const inputValue = recoveryInput.value.trim();
-    
+
     if (method === 'email' && !emailIsValid(inputValue)) {
         recoveryError.innerHTML = 'Vui lòng nhập email hợp lệ';
         return;
@@ -724,7 +724,7 @@ document.getElementById('send-otp-btn').addEventListener('click', async () => {
             if (data.success) {
                 recoveryError.innerHTML = '';
                 recoveryInput.readOnly = true;
-                toast({ title: 'Thành công', message: data.message || 'Mã OTP đã được gửi!', type: 'success', duration: 5000 });
+        toast({ title: 'Thành công', message: `Đổi thành công! Mã của bạn là: ${code}`, type: 'success', duration: 5000 });
                 startCountdown(sendBtn);
             } else {
                 recoveryError.innerHTML = data.message || 'Lỗi gửi mã';
@@ -737,7 +737,7 @@ document.getElementById('send-otp-btn').addEventListener('click', async () => {
             if (result.success) {
                 recoveryError.innerHTML = '';
                 recoveryInput.readOnly = true;
-                toast({ title: 'Thành công', message: 'Mã OTP SMS đã được gửi!', type: 'success', duration: 5000 });
+        toast({ title: 'Thành công', message: `Đổi thành công! Mã của bạn là: ${code}`, type: 'success', duration: 5000 });
                 startCountdown(sendBtn);
             } else {
                 recoveryError.innerHTML = 'Lỗi gửi mã SMS: ' + result.message;
@@ -785,7 +785,7 @@ forgotPasswordBtn.addEventListener('click', async (e) => {
 
         try {
             forgotPasswordBtn.innerText = 'Đang xác thực...';
-            
+
             if (method === 'email') {
                 const response = await fetch(`${window.BACKEND_URL || ''}/api/verify-otp`, {
                     method: 'POST',
@@ -811,7 +811,7 @@ forgotPasswordBtn.addEventListener('click', async (e) => {
                     forgotPasswordBtn.innerText = 'Tiếp theo';
                     return;
                 }
-                
+
                 try {
                     await window.confirmationResult.confirm(otp);
                     currentResetStep = 2;
@@ -1048,7 +1048,7 @@ loginButton.addEventListener('click', async () => {
                     toast({ title: 'Cảnh báo', message: 'Tài khoản của bạn đã bị khóa!', type: 'warning', duration: 3000 });
                 } else {
                     result.user = await syncCartOnLogin(result.user);
-                    
+
                     localStorage.setItem('currentuser', JSON.stringify(result.user));
                     toast({ title: 'Thành công', message: 'Đăng nhập thành công!', type: 'success', duration: 3000 });
                     closeModal();
@@ -1061,21 +1061,31 @@ loginButton.addEventListener('click', async () => {
                 toast({ title: 'Lỗi', message: result.message || 'Số điện thoại hoặc mật khẩu không đúng!', type: 'error', duration: 3000 });
             }
         } catch (err) {
-            toast({ title: 'Lỗi', message: 'Không thể kết nối đến máy chủ!', type: 'error', duration: 3000 });
+        toast({ title: 'Lỗi', message: 'Không thể kết nối đến máy chủ', type: 'error', duration: 3000 });
         }
     }
 })
+
+function getMemberTier(points) {
+    if (!points) return { name: 'Hạng Đồng', class: 'tier-bronze' };
+    if (points >= 20000) return { name: 'Kim Cương', class: 'tier-diamond' };
+    if (points >= 5000) return { name: 'Hạng Vàng', class: 'tier-gold' };
+    if (points >= 1000) return { name: 'Hạng Bạc', class: 'tier-silver' };
+    return { name: 'Hạng Đồng', class: 'tier-bronze' };
+}
 
 // Kiểm tra xem có tài khoản đăng nhập không ?
 function kiemtradangnhap() {
     let currentUser = localStorage.getItem('currentuser');
     if (currentUser != null) {
         let user = JSON.parse(currentUser);
-        document.querySelector('#account-dropdown .auth-container').innerHTML = `<span class="text-dndk">Tài khoản</span>
+        let tier = getMemberTier(user.points || 0);
+        document.querySelector('#account-dropdown .auth-container').innerHTML = `<span class="text-dndk">Tài khoản <span class="member-tier-badge ${tier.class}" style="font-size:0.7rem; padding: 2px 6px; border-radius: 4px; margin-left: 5px; font-weight:bold;">${tier.name}</span></span>
             <span class="text-tk">${user.fullname} <i class="fa-sharp fa-solid fa-caret-down"></span>`
         document.querySelector('#account-dropdown .header-middle-right-menu').innerHTML = `<li><a href="javascript:;" onclick="myAccount()"><i class="fa-light fa-circle-user"></i> Tài khoản của tôi</a></li>
             <li><a href="javascript:;" onclick="orderHistory()"><i class="fa-regular fa-bags-shopping"></i> Đơn hàng đã mua</a></li>
             <li><a href="javascript:;" onclick="openWishlist()"><i class="fa-regular fa-heart"></i> Sản phẩm yêu thích</a></li>
+            <li><a href="javascript:;" onclick="openLoyaltyPage()"><i class="fa-light fa-crown"></i> Khách hàng thân thiết</a></li>
             <li><a href="javascript:;" onclick="window.api.subscribePushNotification()"><i class="fa-regular fa-bell"></i> Bật thông báo đẩy</a></li>
             <li class="border"><a id="logout" href="javascript:;"><i class="fa-light fa-right-from-bracket"></i> Thoát tài khoản</a></li>`
         document.querySelector('#logout').addEventListener('click', logOut)
@@ -1088,6 +1098,42 @@ function kiemtradangnhap() {
         // Đăng ký nhận thông báo đẩy (Web Push)
         if (window.api && window.api.subscribePushNotification) {
             window.api.subscribePushNotification(true);
+        }
+
+        // Populate loyalty page details
+        let loyaltyPageTierName = document.getElementById('loyalty-page-tier-name');
+        let loyaltyPagePointsValue = document.getElementById('loyalty-page-points-value');
+        let loyaltyPointsCard = document.querySelector('.loyalty-points-card');
+        
+        if (loyaltyPageTierName) loyaltyPageTierName.innerText = tier.name;
+        if (loyaltyPagePointsValue) loyaltyPagePointsValue.innerText = (user.points || 0).toLocaleString();
+        if (loyaltyPointsCard) {
+            loyaltyPointsCard.className = 'loyalty-points-card ' + tier.class;
+        }
+    } else {
+        let accountDropdown = document.querySelector('#account-dropdown .auth-container');
+        if (accountDropdown) {
+            accountDropdown.innerHTML = `<span class='text-dndk'>Đăng nhập / Đăng ký</span><span class='text-tk'>Tài khoản <i class='fa-sharp fa-solid fa-caret-down'></i></span>`;
+        }
+        let accountMenu = document.querySelector('#account-dropdown .header-middle-right-menu');
+        if (accountMenu) {
+            accountMenu.innerHTML = `<li><a id='login' href='javascript:;'><i class='fa-light fa-right-to-bracket'></i> Đăng nhập</a></li><li><a id='signup' href='javascript:;'><i class='fa-light fa-user-plus'></i> Đăng ký</a></li>`;
+
+            let lBtn = document.getElementById('login');
+            let sBtn = document.getElementById('signup');
+            if (lBtn) lBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                document.querySelector('.form-message-check-login').innerHTML = '';
+                document.querySelector('.modal.signup-login').classList.add('open');
+                document.querySelector('.signup-login .modal-container').classList.add('active');
+                document.body.style.overflow = 'hidden';
+            });
+            if (sBtn) sBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                document.querySelector('.modal.signup-login').classList.add('open');
+                document.querySelector('.signup-login .modal-container').classList.remove('active');
+                document.body.style.overflow = 'hidden';
+            });
         }
     }
 }
@@ -1117,7 +1163,7 @@ window.addEventListener('load', async () => {
     checkAdmin();
 
     let user = localStorage.getItem('currentuser') ? JSON.parse(localStorage.getItem('currentuser')) : null;
-    
+
     // Execute multiple init tasks in parallel to significantly reduce load time
     const initTasks = [];
 
@@ -1146,12 +1192,26 @@ window.addEventListener('load', async () => {
     initSlider();
 });
 
+// Chuyển sang trang Khách hàng thân thiết
+function openLoyaltyPage() {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    document.getElementById('trangchu').classList.add('hide');
+    document.getElementById('order-history').classList.remove('open');
+    if (document.getElementById('wishlist-section')) document.getElementById('wishlist-section').classList.remove('open');
+    document.getElementById('account-user').classList.remove('open');
+    if (document.getElementById('loyalty-page')) document.getElementById('loyalty-page').classList.add('open');
+    if (typeof renderLoyaltyHistory === 'function') {
+        renderLoyaltyHistory();
+    }
+}
+
 // Chuyển đổi trang chủ và trang thông tin tài khoản
 function myAccount() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
     document.getElementById('trangchu').classList.add('hide');
     document.getElementById('order-history').classList.remove('open');
     if (document.getElementById('wishlist-section')) document.getElementById('wishlist-section').classList.remove('open');
+    if (document.getElementById('loyalty-page')) document.getElementById('loyalty-page').classList.remove('open');
     document.getElementById('account-user').classList.add('open');
     userInfo();
 }
@@ -1161,6 +1221,7 @@ function orderHistory() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
     document.getElementById('account-user').classList.remove('open');
     if (document.getElementById('wishlist-section')) document.getElementById('wishlist-section').classList.remove('open');
+    if (document.getElementById('loyalty-page')) document.getElementById('loyalty-page').classList.remove('open');
     document.getElementById('trangchu').classList.add('hide');
     document.getElementById('order-history').classList.add('open');
     renderOrderProduct();
@@ -1171,6 +1232,7 @@ async function openWishlist() {
     document.getElementById('trangchu').classList.add('hide');
     document.getElementById('account-user').classList.remove('open');
     document.getElementById('order-history').classList.remove('open');
+    if (document.getElementById('loyalty-page')) document.getElementById('loyalty-page').classList.remove('open');
     if (document.getElementById('wishlist-section')) document.getElementById('wishlist-section').classList.add('open');
     await renderFavorites();
 }
@@ -1222,7 +1284,7 @@ async function changeInformation() {
             toast({ title: 'Lỗi', message: result.message || 'Không thể cập nhật thông tin!', type: 'error', duration: 3000 });
         }
     } catch (error) {
-        toast({ title: 'Lỗi', message: 'Không thể cập nhật thông tin!', type: 'error', duration: 3000 });
+        toast({ title: 'Lỗi', message: 'Không thể kết nối đến máy chủ', type: 'error', duration: 3000 });
     }
 }
 // Đổi mật khẩu 
@@ -1258,7 +1320,7 @@ async function changePassword() {
             passwordConfirm.value = "";
         }
     } catch (error) {
-        toast({ title: 'Lỗi', message: error.message || 'Không thể đổi mật khẩu!', type: 'error', duration: 3000 });
+        toast({ title: 'Lỗi', message: 'Không thể kết nối đến máy chủ', type: 'error', duration: 3000 });
     }
 }
 
@@ -1444,7 +1506,7 @@ async function reorderProducts(orderId) {
         }
     } catch (e) {
         console.error(e);
-        toast({ title: 'Lỗi', message: 'Không thể đặt lại đơn hàng!', type: 'error', duration: 3000 });
+        toast({ title: 'Lỗi', message: 'Không thể kết nối đến máy chủ', type: 'error', duration: 3000 });
     }
 }
 
@@ -1588,7 +1650,7 @@ async function editOrderUser(id) {
         toast({ title: 'Chế độ chỉnh sửa', message: `Đang chỉnh sửa đơn hàng ${id}`, type: 'info', duration: 3000 });
     } catch (error) {
         console.error("Error redirecting to edit:", error);
-        toast({ title: 'Lỗi', message: 'Không thể tải thông tin đơn hàng!', type: 'error', duration: 3000 });
+        toast({ title: 'Lỗi', message: 'Không thể kết nối đến máy chủ', type: 'error', duration: 3000 });
     }
 }
 
@@ -1662,14 +1724,14 @@ async function detailOrderUser(id) {
                 if (window.shipperMap) { window.shipperMap.remove(); }
                 window.shipperMap = L.map('shipper-map-' + detail.id).setView([10.762622, 106.660172], 15);
                 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(window.shipperMap);
-                
+
                 const shipperIcon = L.icon({
                     iconUrl: 'https://cdn-icons-png.flaticon.com/512/3063/3063822.png',
                     iconSize: [40, 40]
                 });
-                window.shipperMarker = L.marker([10.762622, 106.660172], {icon: shipperIcon}).addTo(window.shipperMap);
+                window.shipperMarker = L.marker([10.762622, 106.660172], { icon: shipperIcon }).addTo(window.shipperMap);
                 window.shipperMarker.bindPopup("<b>Shipper đang giao hàng</b>").openPopup();
-                
+
                 window.trackingOrderId = detail.id;
             }, 300);
         }
@@ -1763,6 +1825,31 @@ function renderProducts(showProduct) {
     homeProducts.innerHTML = productHtml;
 }
 
+function renderSkeletons(count = 12) {
+    const homeProducts = document.getElementById('home-products');
+    if (!homeProducts) return;
+
+    let skeletonHtml = '';
+    for (let i = 0; i < count; i++) {
+        skeletonHtml += `
+        <div class="col-product">
+            <div class="skeleton-card">
+                <div class="skeleton skeleton-image"></div>
+                <div class="skeleton-content">
+                    <div class="skeleton skeleton-text title"></div>
+                    <div class="skeleton skeleton-text price"></div>
+                    <div style="display: flex; gap: 5px; margin-top: 5px;">
+                        <div class="skeleton skeleton-text" style="width: 20%; height: 14px;"></div>
+                        <div class="skeleton skeleton-text" style="width: 30%; height: 14px;"></div>
+                    </div>
+                    <div class="skeleton skeleton-button"></div>
+                </div>
+            </div>
+        </div>`;
+    }
+    homeProducts.innerHTML = skeletonHtml;
+}
+
 // Find Product
 let productAll = [];
 async function searchProducts(mode) {
@@ -1775,7 +1862,10 @@ async function searchProducts(mode) {
     }
 
     try {
-        if (productAll.length == 0) productAll = (await window.api.getProducts()).filter(item => item.status == 1);
+        if (productAll.length == 0) {
+            renderSkeletons(12);
+            productAll = (await window.api.getProducts()).filter(item => item.status == 1);
+        }
 
         let result = valueCategory == "Tất cả" ? productAll : productAll.filter((item) => {
             return item.category == valueCategory;
@@ -1785,6 +1875,8 @@ async function searchProducts(mode) {
             return item.title.toString().toUpperCase().includes(valeSearchInput.toString().toUpperCase());
         })
 
+
+
         if (minPrice == "" && maxPrice != "") {
             result = result.filter((item) => item.price <= maxPrice);
         } else if (minPrice != "" && maxPrice == "") {
@@ -1793,7 +1885,9 @@ async function searchProducts(mode) {
             result = result.filter((item) => item.price <= maxPrice && item.price >= minPrice);
         }
 
-        document.getElementById("home-service").scrollIntoView();
+        if (mode !== undefined) {
+            document.getElementById("home-service").scrollIntoView();
+        }
         switch (mode) {
             case 0:
                 result = await window.api.getProducts();
@@ -1838,6 +1932,7 @@ function showHomeProduct(products) {
 // Thay thế window.onload cũ bằng hàm load dữ liệu thật
 async function showProductHome() {
     try {
+        renderSkeletons(12);
         const products = await window.api.getProducts();
         productAll = products.filter(item => item.status == 1);
         showHomeProduct(products);
@@ -1884,17 +1979,18 @@ async function showCategory(category) {
     document.getElementById('account-user').classList.remove('open');
     document.getElementById('order-history').classList.remove('open');
     const ns = document.getElementById('news-section');
-    if(ns) ns.style.display = 'none';
+    if (ns) ns.style.display = 'none';
     const nds = document.getElementById('news-detail-section');
-    if(nds) nds.style.display = 'none';
+    if (nds) nds.style.display = 'none';
     const ws = document.getElementById('wishlist-section');
-    if(ws) {
+    if (ws) {
         ws.style.display = 'none';
         ws.classList.remove('open');
     }
 
     try {
         if (productAll.length == 0) {
+            renderSkeletons(12);
             const products = await window.api.getProducts();
             productAll = products.filter(item => item.status == 1);
         }
@@ -2046,16 +2142,8 @@ async function syncNotificationsFromServer() {
                 const latest = serverNotis[0];
                 if (lastNotificationId !== null && latest.id > lastNotificationId && !latest.isRead) {
                     toast({ title: latest.title, message: latest.message, type: latest.type === 'order' ? 'success' : 'info', duration: 8000 });
-                    
-                    // Phát âm thanh
-                    try {
-                        const audioUrl = latest.type === 'cancel' || latest.title.toLowerCase().includes('hủy') 
-                            ? './assets/audio/warning.mp3' 
-                            : './assets/audio/success.mp3';
-                        const audio = new Audio(audioUrl);
-                        audio.volume = 1.0;
-                        audio.play().catch(e => console.log('Audio autoplay prevented. User must interact with the page first.', e));
-                    } catch(err) { console.error('Audio error:', err); }
+
+                    // Phát âm thanh đã bị loại bỏ theo yêu cầu
                 }
                 lastNotificationId = latest.id;
             }
@@ -2145,21 +2233,7 @@ async function clearAllNotifications(event) {
 
 
 
-// --- Audio Unlocking Logic ---
-let audioUnlocked = false;
-function unlockAudio() {
-    if (audioUnlocked) return;
-    const audio = new Audio('./assets/audio/success.mp3');
-    audio.muted = true;
-    audio.play().then(() => {
-        audioUnlocked = true;
-        console.log("User Audio system: Ready");
-        document.removeEventListener('click', unlockAudio);
-        document.removeEventListener('keydown', unlockAudio);
-    }).catch(() => {});
-}
-document.addEventListener('click', unlockAudio);
-document.addEventListener('keydown', unlockAudio);
+// --- Audio Unlocking Logic (Removed) ---
 
 // Khởi chạy hệ thống thông báo khi trang web tải xong
 window.addEventListener('load', () => {
@@ -2195,6 +2269,7 @@ window.addEventListener('load', () => {
 async function loadCategories() {
     try {
         const categories = await window.api.getCategories();
+
 
         // 1. Top Menu
         const mainMenu = document.getElementById("main-menu-categories");
@@ -2295,7 +2370,7 @@ async function toggleFavorite(productId, event, btnElement) {
             renderFavorites();
         }
     } catch (e) {
-        toast({ title: 'Lỗi', message: 'Không thể cập nhật danh sách yêu thích', type: 'error', duration: 3000 });
+        toast({ title: 'Lỗi', message: 'Không thể kết nối đến máy chủ', type: 'error', duration: 3000 });
     }
 }
 
@@ -2484,13 +2559,13 @@ function loginWithFacebook() {
         return;
     }
 
-    FB.login(function(response) {
+    FB.login(function (response) {
         if (response.authResponse) {
             handleFacebookCredentialResponse(response.authResponse.accessToken);
         } else {
             console.log('User cancelled login or did not fully authorize.');
         }
-    }, {scope: 'public_profile,email'});
+    }, { scope: 'public_profile,email' });
 }
 
 async function handleFacebookCredentialResponse(accessToken) {
@@ -2599,7 +2674,7 @@ async function showNewsSection() {
         wishlistSection.style.display = 'none';
         wishlistSection.classList.remove('open');
     }
-    
+
     document.getElementById('news-detail-section').style.display = 'none';
     document.getElementById('news-section').style.display = 'block';
 
@@ -2607,7 +2682,7 @@ async function showNewsSection() {
     if (res.success) {
         globalNewsList = res.data;
         const newsListContainer = document.getElementById('news-list');
-        
+
         if (globalNewsList.length === 0) {
             newsListContainer.innerHTML = '<div class="no-result" style="grid-column: 1 / -1; margin-top: 40px;"><div class="no-result-i" style="font-size: 80px; color: #cbd5e1; margin-bottom: 20px;"><i class="fa-light fa-newspaper"></i></div><div class="no-result-h" style="font-size: 1.2rem; color: #64748b;">Chưa có bài viết / tin tức nào</div></div>';
             return;
@@ -2652,7 +2727,7 @@ function readNews(id) {
             ${item.content}
         </div>
     `;
-    
+
     document.getElementById('news-detail-content').innerHTML = html;
     window.scrollTo(0, 0);
 }
@@ -2673,7 +2748,7 @@ document.addEventListener('DOMContentLoaded', () => {
 async function syncCartOnLogin(user) {
     let serverCart = user.cart || [];
     let guestCart = localStorage.getItem('cart') ? JSON.parse(localStorage.getItem('cart')) : [];
-    
+
     if (guestCart.length > 0) {
         guestCart.forEach(guestItem => {
             let vitri = serverCart.findIndex(serverItem => serverItem.id == guestItem.id);
@@ -2698,17 +2773,17 @@ async function syncCartOnLogin(user) {
 
 
 // Shipper Socket Listener
-if(typeof io !== 'undefined') { 
+if (typeof io !== 'undefined') {
     const shipperSocket = io(window.BACKEND_URL + '/shipperLocation', { transports: ['websocket'] });
-    shipperSocket.on('shipperLocation', (data) => { 
-        if (window.shipperMap && window.shipperMarker && window.trackingOrderId === data.orderId) { 
-            window.shipperMarker.setLatLng([data.lat, data.lng]); 
-            window.shipperMap.panTo([data.lat, data.lng]); 
-        } 
-    }); 
+    shipperSocket.on('shipperLocation', (data) => {
+        if (window.shipperMap && window.shipperMarker && window.trackingOrderId === data.orderId) {
+            window.shipperMarker.setLatLng([data.lat, data.lng]);
+            window.shipperMap.panTo([data.lat, data.lng]);
+        }
+    });
 }
 
-window.trackOrderUser = async function(id, address) {
+window.trackOrderUser = async function (id, address) {
     try {
         let trackingModal = document.querySelector('.modal.tracking-order');
         if (!trackingModal) {
@@ -2734,31 +2809,31 @@ window.trackOrderUser = async function(id, address) {
                 }
             });
         }
-        
+
         document.getElementById('tracking-order-id-label').innerText = id;
         trackingModal.classList.add('open');
 
         setTimeout(() => {
-            if (window.shipperMap) { 
+            if (window.shipperMap) {
                 window.shipperMap.off();
-                window.shipperMap.remove(); 
+                window.shipperMap.remove();
                 window.shipperMap = null;
             }
             // re-create the map container if leaflet complains about "Map container is already initialized"
             const mapParent = document.getElementById('shipper-map-standalone').parentElement;
             document.getElementById('shipper-map-standalone').remove();
             mapParent.insertAdjacentHTML('afterbegin', '<div id="shipper-map-standalone" style="height: 350px; border-radius: 10px; z-index: 1; width: 100%; position: relative;"></div>');
-            
+
             window.shipperMap = L.map('shipper-map-standalone').setView([10.762622, 106.660172], 15);
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(window.shipperMap);
-            
+
             const shipperIcon = L.icon({
                 iconUrl: 'https://cdn-icons-png.flaticon.com/512/3063/3063822.png',
                 iconSize: [40, 40]
             });
-            window.shipperMarker = L.marker([10.762622, 106.660172], {icon: shipperIcon}).addTo(window.shipperMap);
+            window.shipperMarker = L.marker([10.762622, 106.660172], { icon: shipperIcon }).addTo(window.shipperMap);
             window.shipperMarker.bindPopup("<b>Shipper đang giao hàng</b>").openPopup();
-            
+
             // Hàm vẽ marker của người dùng/điểm đến
             const drawUserMarker = (lat, lng, popupText = "<b>Điểm giao hàng của bạn</b>") => {
                 const userIcon = L.icon({
@@ -2774,7 +2849,7 @@ window.trackOrderUser = async function(id, address) {
                 }
                 window.userMarker = L.marker([lat, lng], { icon: userIcon }).addTo(window.shipperMap);
                 window.userMarker.bindPopup(popupText).openPopup();
-                
+
                 // Tự động zoom để thấy cả shipper và bạn
                 if (window.shipperMarker) {
                     const bounds = L.latLngBounds([
@@ -2803,13 +2878,13 @@ window.trackOrderUser = async function(id, address) {
             }
 
             window.trackingOrderId = id;
-            
+
             // force map resize
             window.shipperMap.invalidateSize();
         }, 300);
     } catch (error) {
         console.error(error);
-        toast({ title: 'Lỗi', message: 'Không thể mở theo dõi đơn hàng', type: 'error', duration: 3000 });
+        toast({ title: 'Lỗi', message: 'Không thể kết nối đến máy chủ', type: 'error', duration: 3000 });
     }
 };
 
@@ -2824,15 +2899,15 @@ document.addEventListener('DOMContentLoaded', () => {
         wrapper.style.display = 'flex';
         wrapper.style.alignItems = 'center';
         wrapper.style.width = '100%';
-        
+
         // Chèn wrapper vào trước input
         input.parentNode.insertBefore(wrapper, input);
         // Di chuyển input vào trong wrapper
         wrapper.appendChild(input);
-        
+
         // Thêm padding right để chữ không đè lên icon
         input.style.paddingRight = '40px';
-        
+
         // Tạo icon mắt
         const icon = document.createElement('i');
         icon.className = 'fa-regular fa-eye-slash toggle-password-icon';
@@ -2842,9 +2917,9 @@ document.addEventListener('DOMContentLoaded', () => {
         icon.style.color = '#888';
         icon.style.zIndex = '10';
         icon.title = 'Hiện mật khẩu';
-        
+
         // Xử lý sự kiện click để ẩn/hiện
-        icon.addEventListener('click', function() {
+        icon.addEventListener('click', function () {
             if (input.type === 'password') {
                 input.type = 'text';
                 icon.classList.remove('fa-eye-slash');
@@ -2857,9 +2932,131 @@ document.addEventListener('DOMContentLoaded', () => {
                 icon.title = 'Hiện mật khẩu';
             }
         });
-        
+
         // Thêm icon vào wrapper
         wrapper.appendChild(icon);
     });
 });
+
+
+
+// --- Scroll To Top ---
+const scrollToTopBtn = document.getElementById('scrollToTopBtn');
+
+if (scrollToTopBtn) {
+    window.addEventListener('scroll', () => {
+        if (document.body.scrollTop > 300 || document.documentElement.scrollTop > 300) {
+            scrollToTopBtn.style.display = 'flex';
+            scrollToTopBtn.classList.add('show');
+        } else {
+            scrollToTopBtn.style.display = 'none';
+            scrollToTopBtn.classList.remove('show');
+        }
+    });
+
+    scrollToTopBtn.addEventListener('click', () => {
+        window.scrollTo({
+            top: 0,
+            behavior: 'smooth'
+        });
+    });
+}
+
+
+// === LOYALTY FEATURE ===
+async function redeemVoucher(cost, type, name) {
+    let user = JSON.parse(localStorage.getItem('currentuser'));
+    let token = localStorage.getItem('token');
+    if (!user || !token) {
+        toast({ title: 'Lỗi', message: 'Vui lòng đăng nhập để đổi ưu đãi', type: 'error', duration: 3000 });
+        return;
+    }
+    
+    // Tạo mã code
+    let code = type + '-' + Math.random().toString(36).substr(2, 5).toUpperCase();
+    
+    let discountType = 1; // Fixed
+    let discountValue = 0;
+    let minOrder = 0;
+    
+    if (type === 'TIMI20K') {
+        discountValue = 20000;
+        minOrder = 100000;
+    } else if (type === 'TIMI50K') {
+        discountValue = 50000;
+        minOrder = 200000;
+    } else if (type === 'FREESHIP30') {
+        discountType = 2; // Shipping
+        discountValue = 30000;
+        minOrder = 0;
+    }
+
+    try {
+        const response = await fetch(window.BACKEND_URL + '/api/users/redeem', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({ cost, code, discountType, discountValue, minOrder })
+        });
+        
+        const data = await response.json();
+        if (!response.ok || !data.success) {
+            toast({ title: 'Thất bại', message: data.message || 'Lỗi khi đổi ưu đãi', type: 'error', duration: 3000 });
+            return;
+        }
+        
+        // Cập nhật điểm từ server (chính xác từ DB)
+        user.points = (data.newPoints !== undefined) ? data.newPoints : Math.max(0, (user.points || 0) - cost);
+        localStorage.setItem('currentuser', JSON.stringify(user));
+        
+        // Lưu lịch sử
+        let history = JSON.parse(localStorage.getItem('loyalty_history')) || [];
+        history.unshift({
+            name: name,
+            cost: cost,
+            code: code,
+            date: new Date().toISOString()
+        });
+        localStorage.setItem('loyalty_history', JSON.stringify(history));
+        
+        kiemtradangnhap();
+        if (typeof renderLoyaltyHistory === 'function') renderLoyaltyHistory();
+        
+        toast({ title: 'Thành công', message: `Đổi thành công! Mã của bạn là: ${code}`, type: 'success', duration: 5000 });
+    } catch(err) {
+        toast({ title: 'Lỗi', message: 'Không thể kết nối đến máy chủ', type: 'error', duration: 3000 });
+    }
+}
+
+function renderLoyaltyHistory() {
+    let history = JSON.parse(localStorage.getItem('loyalty_history')) || [];
+    let listContainer = document.getElementById('loyalty-history-list');
+    if (!listContainer) return;
+    
+    if (history.length === 0) {
+        listContainer.innerHTML = 'Chưa có lịch sử đổi ưu đãi nào.';
+        return;
+    }
+    
+    let html = '';
+    history.forEach(item => {
+        let d = new Date(item.date);
+        let dateStr = d.toLocaleDateString('vi-VN') + ' ' + d.toLocaleTimeString('vi-VN');
+        html += `
+        <div style="border-bottom: 1px solid #eee; padding: 12px 0; display: flex; justify-content: space-between; align-items: center;">
+            <div>
+                <strong style="color: #333;">${item.name}</strong>
+                <div style="font-size: 0.8rem; color: #888; margin-top: 4px;">${dateStr}</div>
+            </div>
+            <div style="text-align: right;">
+                <div style="color: #ef4444; font-weight: bold; margin-bottom: 4px;">-${item.cost} Điểm</div>
+                <div style="background: #e2e8f0; padding: 3px 8px; border-radius: 4px; font-family: monospace; color: #3b82f6; font-size: 0.85rem; letter-spacing: 1px; font-weight: bold;">${item.code}</div>
+            </div>
+        </div>
+        `;
+    });
+    listContainer.innerHTML = html;
+}
 

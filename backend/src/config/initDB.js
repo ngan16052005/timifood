@@ -80,6 +80,19 @@ const initDatabase = async (pool) => {
                 EXEC('UPDATE Products SET minStock = 5 WHERE minStock IS NULL');
             END
             
+            -- Thêm cột điểm tích lũy và tổng chi tiêu cho Loyalty Program
+            IF COL_LENGTH('Users', 'points') IS NULL
+            BEGIN
+                ALTER TABLE Users ADD points INT DEFAULT 0;
+                EXEC('UPDATE Users SET points = 0 WHERE points IS NULL');
+            END
+            
+            IF COL_LENGTH('Users', 'totalSpent') IS NULL
+            BEGIN
+                ALTER TABLE Users ADD totalSpent INT DEFAULT 0;
+                EXEC('UPDATE Users SET totalSpent = 0 WHERE totalSpent IS NULL');
+            END
+            
             -- Thêm Index để tối ưu tìm kiếm
             IF NOT EXISTS (SELECT * FROM sys.indexes WHERE name = 'IDX_Users_Phone' AND object_id = OBJECT_ID('Users'))
             BEGIN

@@ -26,35 +26,58 @@ exports.getInventoryStats = async (req, res) => {
 exports.getStatsReport = async (req, res) => {
     try {
         // Using global pool
+        const { startDate, endDate } = req.query;
+        let dateFilterOrders = "1=1";
+        const request1 = pool.request();
+        const request2 = pool.request();
+        const request3 = pool.request();
+
+        if (startDate) {
+            dateFilterOrders += " AND o.orderDate >= @startDate";
+            const start = new Date(startDate);
+            start.setHours(0, 0, 0, 0);
+            request1.input('startDate', sql.DateTime, start);
+            request2.input('startDate', sql.DateTime, start);
+            request3.input('startDate', sql.DateTime, start);
+        }
+        if (endDate) {
+            dateFilterOrders += " AND o.orderDate <= @endDate";
+            const end = new Date(endDate);
+            end.setHours(23, 59, 59, 999);
+            request1.input('endDate', sql.DateTime, end);
+            request2.input('endDate', sql.DateTime, end);
+            request3.input('endDate', sql.DateTime, end);
+        }
 
         // 1. Top 5 Best Sellers
-        const topProducts = await pool.request().query(`
+        const topProducts = await request1.query(`
             SELECT TOP 5 p.title, SUM(od.quantity) as totalQuantity, SUM(od.quantity * od.price) as totalRevenue
             FROM OrderDetails od
             JOIN Products p ON od.productId = p.id
             JOIN Orders o ON od.orderId = o.id
-            WHERE o.status = 2 -- Only Paid orders
+            WHERE o.status = 2 AND ${dateFilterOrders}
             GROUP BY p.id, p.title
             ORDER BY totalQuantity DESC
         `);
 
         // 2. Monthly Revenue (Current Year)
-        const monthlyRevenue = await pool.request().query(`
+        const monthlyRevenue = await request2.query(`
             SELECT MONTH(CAST(o.orderDate AS DATE)) as month, SUM(o.totalPrice) as revenue
             FROM Orders o
             WHERE o.status = 2 
             AND YEAR(CAST(o.orderDate AS DATE)) = YEAR(GETUTCDATE())
+            AND ${dateFilterOrders}
             GROUP BY MONTH(CAST(o.orderDate AS DATE))
             ORDER BY month ASC
         `);
 
         // 3. Category Distribution
-        const categoryStats = await pool.request().query(`
+        const categoryStats = await request3.query(`
             SELECT p.category, SUM(od.quantity * od.price) as revenue
             FROM OrderDetails od
             JOIN Products p ON od.productId = p.id
             JOIN Orders o ON od.orderId = o.id
-            WHERE o.status = 2
+            WHERE o.status = 2 AND ${dateFilterOrders}
             GROUP BY p.category
         `);
 
@@ -94,6 +117,11 @@ exports.deleteAdmin_reviews_id = async (req, res) => {
         await pool.request()
             .input('id', sql.UniqueIdentifier, id)
             .query('DELETE FROM Reviews WHERE id = @id');
+            
+        if (req.app.locals.createLog && req.user) {
+            await req.app.locals.createLog(req.user.id, 'DELETE_REVIEW', `Xóa đánh giá ID: ${id}`);
+        }
+            
         res.json({ success: true, message: 'Xóa đánh giá thành công' });
     } catch (error) {
         console.error("Admin delete review error:", error);
@@ -275,6 +303,11 @@ exports.createAdmin_stock_in = async (req, res) => {
                 .query('UPDATE Products SET stock = ISNULL(stock, 0) + @quantity WHERE id = @productId');
 
             await transaction.commit();
+            
+            if (req.app.locals.createLog && req.user) {
+                await req.app.locals.createLog(req.user.id, 'STOCK_IN', `Nhập ${quantity} sản phẩm (ID: ${productId}). Ghi chú: ${note}`);
+            }
+            
             res.status(201).json({ success: true, message: 'Nhập kho thành công!' });
         } catch (err) {
             await transaction.rollback();

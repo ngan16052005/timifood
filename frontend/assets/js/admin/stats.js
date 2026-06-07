@@ -63,7 +63,7 @@ async function thongKe(mode) {
                 );
             });
         }
-        await showThongKe(result, mode);
+        await showThongKe(result, mode, timeStart, timeEnd);
     } catch (error) {
         console.error("Error generating statistics:", error);
     }
@@ -76,12 +76,12 @@ function showOverview(arr) {
     document.getElementById("quantity-sale").innerText = vnd(arr.reduce((sum, cur) => (sum + parseInt(cur.doanhthu)), 0));
 }
 
-async function showThongKe(arr, mode) {
+async function showThongKe(arr, mode, timeStart, timeEnd) {
     let orderHtml = "";
     let mergeObj = mergeObjThongKe(arr);
     showOverview(mergeObj);
     // Use background fetch for advanced charts to avoid blocking the table render
-    initAdvancedCharts();
+    initAdvancedCharts(timeStart, timeEnd);
 
     if (mode === 0) {
         document.getElementById("the-loai-tk").value = "Tất cả";
@@ -118,10 +118,10 @@ async function showThongKe(arr, mode) {
     })
 }
 
-async function initAdvancedCharts() {
+async function initAdvancedCharts(timeStart, timeEnd) {
     try {
-        console.log("Fetching advanced stats report...");
-        const report = await window.api.getStatsReport();
+        console.log("Fetching advanced stats report with dates:", timeStart, timeEnd);
+        const report = await window.api.getStatsReport(timeStart, timeEnd);
         console.log("Stats Report received:", report);
         if (report) {
             updateStatisticsChart(report.topProducts);

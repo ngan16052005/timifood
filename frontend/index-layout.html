@@ -305,6 +305,18 @@
                     <h3>Thông tin tài khoản của bạn</h3>
                     <p>Quản lý thông tin để bảo mật tài khoản</p>
                 </div>
+                
+                <div class="loyalty-points-card tier-bronze" style="margin-bottom: 25px; border-radius: 12px; padding: 20px; display: flex; justify-content: space-between; align-items: center; color: #fff; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
+                    <div class="loyalty-info">
+                        <h4 style="margin: 0; font-size: 1.2rem; display: flex; align-items: center; gap: 8px;"><i class="fa-solid fa-crown" style="color: #FFD700;"></i> <span id="member-tier-name">Hạng Đồng</span></h4>
+                        <p style="margin: 5px 0 0 0; font-size: 0.9rem; opacity: 0.9;">Tích lũy để thăng hạng và nhận nhiều ưu đãi</p>
+                    </div>
+                    <div class="loyalty-points" style="text-align: right;">
+                        <span style="font-size: 2rem; font-weight: bold; display: block;" id="member-points-value">0</span>
+                        <span style="font-size: 0.9rem; font-weight: 500;">TiMi Points</span>
+                    </div>
+                </div>
+
                 <div class="main-account-body">
                     <div class="main-account-body-col">
                         <form action="" class="info-user">
@@ -377,6 +389,7 @@
             </div>
         </div>
 
+        <!-- INCLUDE: loyalty.html -->
         <div class="container" id="order-history">
             <div class="main-account">
                 <div class="main-account-header">
@@ -1476,8 +1489,8 @@
         integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
     <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
     <script src="./assets/js/api.js?v=3"></script>
-    <script src="./assets/js/main.js?v=3"></script>
-    <script src="assets/js/checkout.js?v=3"></script>
+    <script src="./assets/js/main.js?v=12"></script>
+    <script src="assets/js/checkout.js?v=5"></script>
     <script src="assets/js/firebase-auth.js"></script>
     <script src="./assets/js/initialization.js"></script>
     <script src="./assets/js/toast-message.js"></script>

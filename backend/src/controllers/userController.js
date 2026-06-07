@@ -78,6 +78,11 @@ exports.updateUser = async (req, res) => {
             .query('SELECT * FROM Users WHERE phone = @phone');
         
         const { password: _, ...userWithoutPassword } = updatedUserResult.recordset[0];
+        
+        if (req.app.locals.createLog && req.user) {
+            await req.app.locals.createLog(req.user.id, 'UPDATE_USER', `Cập nhật thông tin tài khoản: ${phone}`);
+        }
+        
         res.json({ success: true, message: 'Cập nhật thành công', user: userWithoutPassword });
     } catch (error) {
         console.error("Update user error:", error);
@@ -98,3 +103,57 @@ exports.deleteUser = async (req, res) => {
     }
 };
 
+exports.redeemVoucher = async (req, res) => {
+    try {
+        const { cost, code, discountType, discountValue, minOrder } = req.body;
+        const userId = req.user.id;
+        
+        // Use global pool
+        const userResult = await pool.request()
+            .input('id', sql.UniqueIdentifier, userId)
+            .query('SELECT points, phone FROM Users WHERE id = @id');
+            
+        if (userResult.recordset.length === 0) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+        
+        const userPoints = userResult.recordset[0].points || 0;
+        
+        if (userPoints < cost) {
+            return res.status(400).json({ message: 'Not enough points' });
+        }
+        
+        // Deduct points
+        await pool.request()
+            .input('id', sql.UniqueIdentifier, userId)
+            .input('cost', sql.Int, cost)
+            .query('UPDATE Users SET points = points - @cost WHERE id = @id');
+            
+        // Insert into Vouchers
+        const maxDiscount = 0;
+        // 30 days from now
+        const expiryDate = new Date();
+        expiryDate.setDate(expiryDate.getDate() + 30);
+        
+        await pool.request()
+            .input('code', sql.NVarChar, code)
+            .input('discountValue', sql.Int, discountValue)
+            .input('discountType', sql.NVarChar, discountType.toString())
+            .input('minOrder', sql.Int, minOrder)
+            .input('maxDiscount', sql.Int, maxDiscount)
+            .input('expiryDate', sql.DateTime, expiryDate)
+            .query(`INSERT INTO Vouchers (code, description, discountType, discountValue, minOrderValue, maxDiscount, startDate, endDate, usageLimit, usedCount, status) 
+                    VALUES (@code, 'Loyalty Reward', @discountType, @discountValue, @minOrder, @maxDiscount, GETUTCDATE(), @expiryDate, 1, 0, 1)`);
+                    
+        // Fetch updated points
+        const updatedUser = await pool.request()
+            .input('id2', sql.UniqueIdentifier, userId)
+            .query('SELECT points FROM Users WHERE id = @id2');
+        const newPoints = updatedUser.recordset[0]?.points || 0;
+        
+        res.json({ success: true, message: 'Voucher redeemed successfully', newPoints });
+    } catch (error) {
+        console.error('Redeem error:', error);
+        res.status(500).json({ message: 'Server error: ' + error.message });
+    }
+};

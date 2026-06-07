@@ -495,6 +495,33 @@ exports.updateOrderStatus = async (req, res) => {
             const statusNames = ["Chờ xử lý", "Đang giao", "Hoàn thành", "Đã hủy"];
             const statusName = statusNames[status] || "Cập nhật";
             
+            // Logic tích điểm Loyalty (1 điểm = 1000 VNĐ)
+            if (status === 2) {
+                const addedPoints = Math.floor(orderInfo.totalPrice / 1000);
+                try {
+                    await pool.request()
+                        .input('userId', sql.UniqueIdentifier, orderInfo.userId)
+                        .input('points', sql.Int, addedPoints)
+                        .input('totalSpent', sql.Int, orderInfo.totalPrice)
+                        .query(`
+                            UPDATE Users 
+                            SET points = ISNULL(points, 0) + @points, 
+                                totalSpent = ISNULL(totalSpent, 0) + @totalSpent 
+                            WHERE id = @userId
+                        `);
+                    
+                    // Gửi thông báo cộng điểm cho khách hàng
+                    await req.app.locals.createNotification(
+                        orderInfo.userId, 
+                        "Tích điểm TiMi Points", 
+                        `Bạn được cộng ${addedPoints} TiMi Points từ đơn hàng #${id}.`, 
+                        "loyalty"
+                    );
+                } catch (e) {
+                    console.error("Lỗi cập nhật điểm thưởng:", e);
+                }
+            }
+
             await req.app.locals.createLog(req.user.id, 'UPDATE_ORDER_STATUS', `Cập nhật đơn hàng #${id} sang: ${statusName}`);
 
             // System Notification

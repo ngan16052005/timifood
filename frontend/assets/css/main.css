@@ -4572,3 +4572,206 @@ body {
 
 
 
+
+/* Skeleton Loading Animations */
+@keyframes skeleton-loading {
+  0% { background-color: #e2e8f0; }
+  100% { background-color: #f8fafc; }
+}
+
+.skeleton {
+  animation: skeleton-loading 1s linear infinite alternate;
+  border-radius: 8px;
+}
+
+.skeleton-card {
+  width: 100%;
+  border-radius: 12px;
+  overflow: hidden;
+  background: white;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  display: flex;
+  flex-direction: column;
+}
+
+.skeleton-image {
+  width: 100%;
+  height: 200px;
+  border-radius: 0;
+}
+
+.skeleton-content {
+  padding: 15px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.skeleton-text {
+  width: 100%;
+  height: 16px;
+}
+
+.skeleton-text.title {
+  width: 70%;
+  height: 24px;
+}
+
+.skeleton-text.price {
+  width: 40%;
+  height: 20px;
+}
+
+.skeleton-button {
+  width: 100%;
+  height: 38px;
+  margin-top: auto;
+}
+
+/* Scroll To Top Button */
+#scrollToTopBtn {
+  display: none;
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 999;
+  font-size: 20px;
+  border: none;
+  outline: none;
+  background-color: var(--red);
+  color: white;
+  cursor: pointer;
+  border-radius: 50%;
+  width: 55px;
+  height: 55px;
+  box-shadow: 0 4px 15px rgba(238, 77, 45, 0.4);
+  transition: opacity 0.3s, transform 0.3s;
+  opacity: 0.9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none; /* hidden state initially, will change via js */
+}
+
+#scrollToTopBtn.show {
+  pointer-events: auto;
+}
+
+#scrollToTopBtn:hover {
+  background-color: #d73a21;
+  opacity: 1;
+  transform: translateY(-5px);
+}
+
+/* Live Search Auto-suggest */
+#search-box {
+  position: relative;
+}
+
+.search-suggest {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  width: 300px;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  margin-top: 10px;
+  z-index: 999;
+  max-height: 400px;
+  overflow-y: auto;
+  display: none;
+  flex-direction: column;
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  padding: 10px;
+  /* Scrollbar */
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e1 transparent;
+}
+
+.search-suggest::-webkit-scrollbar {
+  width: 6px;
+}
+.search-suggest::-webkit-scrollbar-thumb {
+  background-color: #cbd5e1;
+  border-radius: 10px;
+}
+
+.search-suggest.show {
+  display: flex;
+}
+
+.suggest-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-decoration: none;
+  color: var(--text-color);
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.suggest-item:last-child {
+  border-bottom: none;
+}
+
+.suggest-item:hover {
+  background: rgba(238, 77, 45, 0.08);
+  transform: translateX(5px);
+}
+
+.suggest-img {
+  width: 50px;
+  height: 50px;
+  border-radius: 8px;
+  object-fit: cover;
+}
+
+.suggest-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.suggest-title {
+  font-weight: 600;
+  font-size: 14px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  width: 190px;
+}
+
+.suggest-price {
+  color: var(--red);
+  font-weight: bold;
+  font-size: 13px;
+}
+
+.suggest-empty {
+  padding: 20px;
+  text-align: center;
+  color: #64748b;
+  font-size: 14px;
+}
+/* Loyalty Tier Badges & Cards */
+.member-tier-badge {
+    color: #fff;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+}
+.tier-bronze { background: linear-gradient(135deg, #cd7f32 0%, #e8a86a 100%); }
+.tier-silver { background: linear-gradient(135deg, #bdc3c7 0%, #2c3e50 100%); }
+.tier-gold { background: linear-gradient(135deg, #f1c40f 0%, #f39c12 100%); }
+.tier-diamond { background: linear-gradient(135deg, #00c6ff 0%, #0072ff 100%); }
+#loyalty-page {
+    display: none !important;
+}
+#loyalty-page.open {
+    display: flex !important;
+    justify-content: center;
+}

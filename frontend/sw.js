@@ -1,4 +1,4 @@
-const CACHE_NAME = 'timifood-cache-v14';
+const CACHE_NAME = 'timifood-cache-v20';
 const urlsToCache = [
   '/',
   '/index-layout.html',
@@ -82,7 +82,8 @@ self.addEventListener('push', function(event) {
                 dateOfArrival: Date.now(),
                 primaryKey: '2',
                 url: payload.url || '/'
-            }
+            },
+            silent: true
         };
         event.waitUntil(
             self.registration.showNotification(payload.title, options)

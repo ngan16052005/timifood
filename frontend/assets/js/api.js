@@ -501,10 +501,14 @@ window.api = {
     checkVoucher: async (code) => {
         try {
             const response = await fetch(`${BASE_URL}/vouchers/${code}`);
+            if (!response.ok) {
+                const errData = await response.json().catch(() => ({}));
+                return { success: false, message: errData.message || 'Lỗi server khi kiểm tra mã' };
+            }
             return await response.json();
         } catch (error) {
             console.error("Check voucher error:", error);
-            throw error;
+            return { success: false, message: 'Không thể kết nối đến máy chủ' };
         }
     },
 
@@ -691,9 +695,18 @@ window.api = {
         }
     },
 
-    getStatsReport: async () => {
+    getStatsReport: async (startDate = '', endDate = '') => {
         try {
-            const response = await fetch(`${BASE_URL}/admin/stats/report`, {
+            let url = `${BASE_URL}/admin/stats/report`;
+            const params = new URLSearchParams();
+            if (startDate) params.append('startDate', startDate);
+            if (endDate) params.append('endDate', endDate);
+            
+            if (params.toString()) {
+                url += `?${params.toString()}`;
+            }
+
+            const response = await fetch(url, {
                 headers: getHeaders()
             });
             return await response.json();

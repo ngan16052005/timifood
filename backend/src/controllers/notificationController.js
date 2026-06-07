@@ -50,7 +50,7 @@ const notificationController = {
         query += ')';
 
         await pool.request()
-            .input('id', sql.Int, id)
+            .input('id', sql.UniqueIdentifier, id)
             .input('userId', sql.NVarChar, userId)
             .query(query);
         res.json({ success: true });
@@ -93,7 +93,7 @@ const notificationController = {
         query += ')';
 
         await pool.request()
-            .input('id', sql.Int, id)
+            .input('id', sql.UniqueIdentifier, id)
             .input('userId', sql.NVarChar, userId)
             .query(query);
         res.json({ success: true });

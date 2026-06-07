@@ -13,7 +13,7 @@
     <link rel="icon" type="image/png" sizes="32x32" href="./assets/img/icons/favicon-32x32.png">
     <link rel="apple-touch-icon" sizes="180x180" href="./assets/img/icons/apple-touch-icon.png">
     <link rel="icon" type="image/png" sizes="192x192" href="./assets/img/icons/android-chrome-192x192.png">
-    <link rel="stylesheet" href="assets/css/admin.css">
+    <link rel="stylesheet" href="assets/css/admin.css?v=2">
     <link rel="stylesheet" href="./assets/css/toast-message.css">
     <link href="./assets/font/font-awesome-pro-v6-6.2.0/css/all.min.css" rel="stylesheet" type="text/css" />
     <link rel="stylesheet" href="./assets/css/admin-responsive.css">
@@ -46,9 +46,10 @@
         </div>
 
         <div class="header-center">
-            <div class="header-search">
+            <div class="header-search" style="position: relative;">
                 <i class="fa-light fa-magnifying-glass"></i>
-                <input type="text" placeholder="Tìm nhanh đơn hàng, khách hàng..." id="quick-search-admin">
+                <input type="text" placeholder="Tìm nhanh đơn hàng, khách hàng..." id="quick-search-admin" oninput="handleGlobalAdminSearch()" onfocus="handleGlobalAdminSearch()">
+                <div id="admin-search-suggest" class="admin-suggest-box"></div>
             </div>
         </div>
 
@@ -864,6 +865,13 @@
                                 <!-- Messages flow dynamically -->
                             </div>
                             
+                            <div class="chat-quick-replies">
+                                <button class="quick-reply-btn" onclick="insertQuickReply('Dạ, TiMiFood xin nghe ạ. Em có thể giúp gì cho mình?')">👋 Chào hỏi</button>
+                                <button class="quick-reply-btn" onclick="insertQuickReply('Dạ, đơn hàng của mình đang được nhà bếp chuẩn bị, sẽ giao đến trong ít phút nữa ạ.')">🍳 Đang nấu</button>
+                                <button class="quick-reply-btn" onclick="insertQuickReply('Dạ, shipper đã lấy món và đang trên đường giao đến bạn rồi ạ. Bạn chú ý điện thoại nhé!')">🛵 Đang giao</button>
+                                <button class="quick-reply-btn" onclick="insertQuickReply('Dạ, TiMiFood xin lỗi vì sự bất tiện này. Em sẽ kiểm tra lại ngay ạ.')">🙏 Xin lỗi</button>
+                                <button class="quick-reply-btn" onclick="insertQuickReply('Cảm ơn bạn đã liên hệ TiMiFood. Chúc bạn một ngày vui vẻ!')">💖 Cảm ơn</button>
+                            </div>
                             <div class="chat-window-input-area">
                                 <input type="text" id="chat-admin-input" placeholder="Nhập câu trả lời..." onkeypress="handleAdminChatKeypress(event)" style="flex: 1; border: 1px solid #cbd5e1; border-radius: 6px; padding: 10px; font-size: 13.5px; outline: none;">
                                 <button id="chat-admin-send-btn" onclick="sendAdminChatMessage()" style="background-color: var(--red); color: white; border: none; border-radius: 6px; padding: 10px 16px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px;"><i class="fa-light fa-paper-plane"></i> Gửi</button>
@@ -1186,7 +1194,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script src="./assets/js/api.js?v=3"></script>
     <script src="./assets/js/admin-noti.js"></script>
-    <script src="./assets/js/admin/core.js"></script>
+    <script src="./assets/js/admin/core.js?v=3"></script>
     <script src="./assets/js/admin/products.js"></script>
     <script src="./assets/js/admin/orders.js"></script>
     <script src="./assets/js/admin/stats.js"></script>

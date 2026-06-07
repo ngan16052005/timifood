@@ -11,7 +11,11 @@ let currentTotalBill = 0;
 // Trang thanh toan
 async function thanhtoanpage(option, product) {
     currentCheckoutProduct = product; // Lưu lại để dùng khi bấm đặt hàng
-
+    currentVoucher = null;
+    currentDiscount = 0;
+    if (document.getElementById('voucher-code')) document.getElementById('voucher-code').value = "";
+    if (document.getElementById('voucher-message')) document.getElementById('voucher-message').innerHTML = "";
+    if (document.getElementById('discount-amount-row')) document.getElementById('discount-amount-row').style.display = "none";
     // Kiểm tra xem có đang sửa đơn không
     const editingOrder = localStorage.getItem('editingOrder') ? JSON.parse(localStorage.getItem('editingOrder')) : null;
     const checkoutBtn = document.querySelector('.complete-checkout-btn');
@@ -395,6 +399,7 @@ async function closecheckout() {
     currentDiscount = 0;
     if (document.getElementById('voucher-code')) document.getElementById('voucher-code').value = "";
     if (document.getElementById('discount-amount-row')) document.getElementById('discount-amount-row').style.display = "none";
+    if (document.getElementById('voucher-message')) document.getElementById('voucher-message').innerHTML = "";
 }
 
 // Add this function to fill info when editing
@@ -430,7 +435,9 @@ async function applyVoucher() {
 
     try {
         console.log("Checking voucher:", code);
+        
         const result = await window.api.checkVoucher(code);
+        
         console.log("Voucher result:", result);
 
         if (result.success) {

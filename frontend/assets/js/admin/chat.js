@@ -127,6 +127,15 @@ function handleAdminChatKeypress(event) {
     }
 }
 
+// Insert quick reply text into input
+function insertQuickReply(text) {
+    const input = document.getElementById('chat-admin-input');
+    if (input) {
+        input.value = text;
+        input.focus();
+    }
+}
+
 // End Live Chat Session (Admin closes it)
 function endLiveChatSessionAdmin() {
     if (!currentActiveCustomerPhone) return;
