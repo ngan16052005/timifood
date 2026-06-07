@@ -20,6 +20,25 @@ exports.getUsers = async (req, res) => {
     }
 };
 
+exports.getCurrentUser = async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const result = await pool.request()
+            .input('id', sql.UniqueIdentifier, userId)
+            .query('SELECT * FROM Users WHERE id = @id');
+            
+        if (result.recordset.length === 0) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+        
+        const { password: _, ...userWithoutPassword } = result.recordset[0];
+        res.json({ success: true, user: userWithoutPassword });
+    } catch (err) {
+        console.error("Get current user error:", err);
+        res.status(500).json({ message: 'Error fetching current user' });
+    }
+};
+
 exports.updateUser = async (req, res) => {
     try {
         const { phone } = req.params;

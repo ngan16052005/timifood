@@ -1,6 +1,6 @@
 ## Chạy server trên local
-- Khởi động server: npm run start:cluster
-- Tắt server: npx pm2 stop all
+- Khởi động server: npm run dev
+- Tắt server: Ctrl + C
 
 ## Chạy server trên internet với ngrok
 - Vào ngrok.exe để tạo tunnel với địa chỉ:" ngrok http --domain=dejected-radio-myspace.ngrok-free.dev 3500 "

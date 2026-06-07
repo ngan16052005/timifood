@@ -400,6 +400,19 @@ window.api = {
         }
     },
 
+    getCurrentUser: async () => {
+        try {
+            const response = await fetch(`${BASE_URL}/users/me`, {
+                headers: getHeaders()
+            });
+            if (!response.ok) throw new Error('Network response was not ok');
+            return await response.json();
+        } catch (error) {
+            console.error("Get current user error:", error);
+            throw error;
+        }
+    },
+
     updateUser: async (phone, userData) => {
         try {
             const response = await fetch(`${BASE_URL}/users/${phone}`, {

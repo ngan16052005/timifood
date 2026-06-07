@@ -1354,10 +1354,29 @@ async function renderOrderProduct() {
         let arrDonHang = orders.filter(o => o.userId === currentUser.id);
         const products = await window.api.getProducts();
 
+        // Cập nhật lại user profile từ server để lấy points mới nhất
+        try {
+            const freshUserRes = await window.api.getCurrentUser();
+            if (freshUserRes && freshUserRes.success && freshUserRes.user) {
+                currentUser.points = freshUserRes.user.points || 0;
+                localStorage.setItem('currentuser', JSON.stringify(currentUser));
+                
+                // Cập nhật luôn giá trị trên trang khách hàng thân thiết nếu đang mở
+                const loyaltyPagePointsValue = document.getElementById('loyalty-page-points-value');
+                if (loyaltyPagePointsValue) loyaltyPagePointsValue.innerText = (currentUser.points).toLocaleString();
+            }
+        } catch (err) {
+            console.error('Không thể cập nhật thông tin TiMi Points mới nhất', err);
+        }
+
         // Tính tổng chi tiêu (trạng thái = 2 là Hoàn thành)
         let totalSpent = arrDonHang.filter(o => o.trangthai === 2).reduce((sum, o) => sum + o.tongtien, 0);
         const totalSpentEl = document.getElementById('total-spent-amount');
         if (totalSpentEl) totalSpentEl.innerText = vnd(totalSpent);
+
+        // Hiển thị TiMi Points
+        const timiPointsEl = document.getElementById('timi-points-amount');
+        if (timiPointsEl) timiPointsEl.innerText = (currentUser.points || 0).toLocaleString();
 
         // Lọc theo tab trạng thái
         if (currentOrderFilter !== 'all') {
