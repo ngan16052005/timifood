@@ -1,4 +1,4 @@
-@font-face {
+﻿@font-face {
     font-family: 'SFProDisplay';
     src: url('../font/SFPRODISPLAY/SFProDisplay-Regular.ttf') format('truetype');
     font-weight: 400;
@@ -249,7 +249,7 @@ input[type="checkbox"]:checked+label:before {
     margin: 0 auto;
 }
 
-/* SEO: Screen Reader Only - áº¨n trá»±c quan nhÆ°ng váº«n Ä‘á»c Ä‘Æ°á»£c bá»Ÿi crawler/screen reader */
+/* SEO: Screen Reader Only - Ã¡ÂºÂ¨n trÃ¡Â»Â±c quan nhÃ†Â°ng vÃ¡ÂºÂ«n Ã„â€˜Ã¡Â»Âc Ã„â€˜Ã†Â°Ã¡Â»Â£c bÃ¡Â»Å¸i crawler/screen reader */
 .sr-only {
     position: absolute;
     width: 1px;
@@ -1512,13 +1512,13 @@ label a {
 
 .cart-item-title {
     font-size: 15px;
-    width: 70%;
+    width: 65%;
 }
 
 .cart-item-price {
     color: #666666;
     font-weight: 500;
-    width: 30%;
+    width: 35%;
     text-align: right;
     font-size: 14px;
 }
@@ -2462,12 +2462,12 @@ input[type=number] {
 }
 
 .checkout-col-left {
-    width: 70%;
+    width: 65%;
 
 }
 
 .checkout-col-right {
-    width: 30%;
+    width: 35%;
 
 }
 
@@ -3126,7 +3126,7 @@ input[type=number] {
 }
 
 .detail-order-item-left {
-    width: 40%;
+    width: 35%;
 }
 
 .detail-order-item-right {
@@ -3781,7 +3781,7 @@ input[type=number] {
 }
 
 /* ==========================================
-   âœ¨ PREMIUM MICRO-INTERACTIONS & TRANSITIONS 
+   Ã¢Å“Â¨ PREMIUM MICRO-INTERACTIONS & TRANSITIONS 
    ========================================== */
 
 /* 1. Backdrop Glassmorphism for Modals */
@@ -3887,7 +3887,7 @@ button.thanh-toan:hover:not(.disabled) {
 }
 
 /* ==========================================
-   ðŸ’¬ SMART AI CHATBOT WIDGET (GLASSMORPHISM)
+   Ã°Å¸â€™Â¬ SMART AI CHATBOT WIDGET (GLASSMORPHISM)
    ========================================== */
 
 /* 1. Chatbot Floating Toggle Button */
@@ -4614,12 +4614,12 @@ body {
 }
 
 .skeleton-text.title {
-  width: 70%;
+  width: 65%;
   height: 24px;
 }
 
 .skeleton-text.price {
-  width: 40%;
+  width: 35%;
   height: 20px;
 }
 

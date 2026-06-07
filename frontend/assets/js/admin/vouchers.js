@@ -1,9 +1,12 @@
 function showVoucherArr(arr) {
-    let html = "";
-    if (!arr || arr.length == 0) {
-        html = `<tr><td colspan="7" style="text-align:center;">Không có mã giảm giá nào</td></tr>`;
-    } else {
-        arr.forEach((v) => {
+    const systemVouchers = arr ? arr.filter(v => v.description !== 'Loyalty Reward') : [];
+
+    const generateHtml = (vouchers) => {
+        if (!vouchers || vouchers.length == 0) {
+            return `<tr><td colspan="7" style="text-align:center;">Không có mã giảm giá nào</td></tr>`;
+        }
+        let html = "";
+        vouchers.forEach((v) => {
             let type = v.discountType == 0 ? "%" : (v.discountType == 2 ? "Phí ship" : (v.discountType == 3 ? "Freeship" : "VND"));
             let status = v.status == 1 ? `<span class="status-complete">Hoạt động</span>` : `<span class="status-no-complete">Tạm dừng</span>`;
             let expiry = formatDate(v.expiryDate);
@@ -21,9 +24,11 @@ function showVoucherArr(arr) {
                 </td>
             </tr>`;
         });
-    }
+        return html;
+    };
+
     const target = document.getElementById("show-vouchers");
-    if (target) target.innerHTML = html;
+    if (target) target.innerHTML = generateHtml(systemVouchers);
 }
 
 function openVoucherModal() {

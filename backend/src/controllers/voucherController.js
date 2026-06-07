@@ -18,13 +18,41 @@ exports.getVouchers = async (req, res) => {
     }
 };
 
+exports.getActiveVouchers = async (req, res) => {
+    try {
+        let query = 'SELECT * FROM Vouchers WHERE status = 1 AND CAST(endDate AS DATE) >= CAST(GETUTCDATE() AS DATE) AND (userId IS NULL';
+        const request = pool.request();
+        if (req.user) {
+            query += ' OR userId = @userId';
+            request.input('userId', sql.UniqueIdentifier, req.user.id);
+        }
+        query += ') ORDER BY endDate DESC';
+        const result = await request.query(query);
+        const vouchers = result.recordset.map(v => ({
+            ...v,
+            minOrder: v.minOrderValue,
+            expiryDate: v.endDate
+        }));
+        res.json(vouchers);
+    } catch (error) {
+        console.error("Get active vouchers error:", error);
+        res.status(500).json({ message: 'Lỗi server khi lấy danh sách voucher' });
+    }
+};
+
 exports.getVoucherByCode = async (req, res) => {
     try {
         const { code } = req.params;
-        // Using global pool
-        const result = await pool.request()
-            .input('code', sql.NVarChar, code)
-            .query('SELECT * FROM Vouchers WHERE code = @code AND status = 1 AND CAST(endDate AS DATE) >= CAST(GETUTCDATE() AS DATE)');
+        const request = pool.request().input('code', sql.NVarChar, code);
+        
+        let query = 'SELECT * FROM Vouchers WHERE code = @code AND status = 1 AND CAST(endDate AS DATE) >= CAST(GETUTCDATE() AS DATE) AND (userId IS NULL';
+        if (req.user) {
+            query += ' OR userId = @userId';
+            request.input('userId', sql.UniqueIdentifier, req.user.id);
+        }
+        query += ')';
+
+        const result = await request.query(query);
 
         if (result.recordset && result.recordset.length > 0) {
             const voucher = result.recordset[0];

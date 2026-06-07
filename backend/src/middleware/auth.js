@@ -69,4 +69,27 @@ const isStaffAdminOrShipper = (req, res, next) => {
     }
 };
 
-module.exports = { authenticateToken, isAdmin, isStaffOrAdmin, isShipper, isStaffAdminOrShipper, SECRET_KEY };
+const optionalAuthenticateToken = (req, res, next) => {
+    let token = null;
+    const cookies = parseCookies(req);
+    
+    if (cookies.token) {
+        token = cookies.token;
+    } else {
+        const authHeader = req.headers['authorization'];
+        token = authHeader && authHeader.split(' ')[1];
+    }
+
+    if (!token) {
+        req.user = null;
+        return next();
+    }
+
+    jwt.verify(token, SECRET_KEY, (err, user) => {
+        if (!err) req.user = user;
+        else req.user = null;
+        next();
+    });
+};
+
+module.exports = { authenticateToken, optionalAuthenticateToken, isAdmin, isStaffOrAdmin, isShipper, isStaffAdminOrShipper, SECRET_KEY };

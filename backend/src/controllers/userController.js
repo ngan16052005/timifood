@@ -142,8 +142,9 @@ exports.redeemVoucher = async (req, res) => {
             .input('minOrder', sql.Int, minOrder)
             .input('maxDiscount', sql.Int, maxDiscount)
             .input('expiryDate', sql.DateTime, expiryDate)
-            .query(`INSERT INTO Vouchers (code, description, discountType, discountValue, minOrderValue, maxDiscount, startDate, endDate, usageLimit, usedCount, status) 
-                    VALUES (@code, 'Loyalty Reward', @discountType, @discountValue, @minOrder, @maxDiscount, GETUTCDATE(), @expiryDate, 1, 0, 1)`);
+            .input('userId', sql.UniqueIdentifier, userId)
+            .query(`INSERT INTO Vouchers (code, description, discountType, discountValue, minOrderValue, maxDiscount, startDate, endDate, usageLimit, usedCount, status, userId) 
+                    VALUES (@code, 'Loyalty Reward', @discountType, @discountValue, @minOrder, @maxDiscount, GETUTCDATE(), @expiryDate, 1, 0, 1, @userId)`);
                     
         // Fetch updated points
         const updatedUser = await pool.request()

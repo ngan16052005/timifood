@@ -3,18 +3,23 @@ let PHIVANCHUYEN = 30000;
 // You should change this to your actual store's coordinates.
 const STORE_LATLNG = [10.762622, 106.660172];
 let priceFinal = document.getElementById("checkout-cart-price-final");
-let currentVoucher = null;
-let currentDiscount = 0;
+let currentOrderVoucher = null;
+let currentOrderDiscount = 0;
+let currentShippingVoucher = null;
+let currentShippingDiscount = 0;
 let currentCheckoutProduct = null;
 let currentTotalBill = 0;
 
 // Trang thanh toan
 async function thanhtoanpage(option, product) {
     currentCheckoutProduct = product; // Lưu lại để dùng khi bấm đặt hàng
-    currentVoucher = null;
-    currentDiscount = 0;
-    if (document.getElementById('voucher-code')) document.getElementById('voucher-code').value = "";
-    if (document.getElementById('voucher-message')) document.getElementById('voucher-message').innerHTML = "";
+    currentOrderVoucher = null;
+    currentOrderDiscount = 0;
+    currentShippingVoucher = null;
+    currentShippingDiscount = 0;
+    if (document.getElementById('unified-voucher-code')) document.getElementById('unified-voucher-code').value = "";
+    if (document.getElementById('unified-voucher-message')) document.getElementById('unified-voucher-message').innerHTML = "";
+    if (typeof renderAppliedVouchers === 'function') renderAppliedVouchers();
     if (document.getElementById('discount-amount-row')) document.getElementById('discount-amount-row').style.display = "none";
     // Kiểm tra xem có đang sửa đơn không
     const editingOrder = localStorage.getItem('editingOrder') ? JSON.parse(localStorage.getItem('editingOrder')) : null;
@@ -134,13 +139,11 @@ async function thanhtoanpage(option, product) {
                 break;
         }
 
-        if (currentVoucher) {
-            const codeInput = document.getElementById('voucher-code');
-            if (!codeInput.value) codeInput.value = currentVoucher.code;
-            await applyVoucher();
+        if (currentOrderVoucher || currentShippingVoucher) {
+            recalculateTotals(); 
         } else {
-            // Apply current discount just in case (should be 0)
-            updateCheckoutTotal(currentTotalBill - currentDiscount);
+            let totalPrice = option === 1 ? await getCartTotal() : (product.soluong * product.price);
+            updateCheckoutTotal(totalPrice);
         }
     })
 
@@ -168,12 +171,11 @@ async function thanhtoanpage(option, product) {
                 break;
         }
 
-        if (currentVoucher) {
-            const codeInput = document.getElementById('voucher-code');
-            if (!codeInput.value) codeInput.value = currentVoucher.code;
-            await applyVoucher();
+        if (currentOrderVoucher || currentShippingVoucher) {
+            recalculateTotals(); 
         } else {
-            updateCheckoutTotal(currentTotalBill - currentDiscount);
+            let totalPrice = option === 1 ? await getCartTotal() : (product.soluong * product.price);
+            updateCheckoutTotal(totalPrice + PHIVANCHUYEN);
         }
     })
 
@@ -288,12 +290,10 @@ window.changeQtyCheckout = async function (index, delta) {
     // Update the price display
     document.getElementById('checkout-cart-total').innerText = vnd(cartTotal);
     
-    if (currentVoucher) {
-        const codeInput = document.getElementById('voucher-code');
-        if (!codeInput.value) codeInput.value = currentVoucher.code;
-        await applyVoucher();
+    if (currentOrderVoucher || currentShippingVoucher) {
+        recalculateTotals(); 
     } else {
-        updateCheckoutTotal((cartTotal + shippingFee) - currentDiscount);
+        updateCheckoutTotal(cartTotal + shippingFee);
     }
 }
 
@@ -334,12 +334,10 @@ window.changeQtyBuyNow = function (delta) {
     const giaotannoi = document.querySelector("#giaotannoi");
     const shippingFee = (giaotannoi && giaotannoi.classList.contains("active")) ? PHIVANCHUYEN : 0;
 
-    if (currentVoucher) {
-        const codeInput = document.getElementById('voucher-code');
-        if (!codeInput.value) codeInput.value = currentVoucher.code;
-        applyVoucher(); // applyVoucher is async but we don't await here since changeQtyBuyNow is not async
+    if (currentOrderVoucher || currentShippingVoucher) {
+        recalculateTotals(); 
     } else {
-        updateCheckoutTotal((itemTotal + shippingFee) - currentDiscount);
+        updateCheckoutTotal(itemTotal + shippingFee);
     }
 }
 
@@ -395,11 +393,14 @@ async function closecheckout() {
     // Reset editing state
     localStorage.removeItem('editingOrder');
     // Reset voucher state for next time
-    currentVoucher = null;
-    currentDiscount = 0;
-    if (document.getElementById('voucher-code')) document.getElementById('voucher-code').value = "";
+    currentOrderVoucher = null;
+    currentOrderDiscount = 0;
+    currentShippingVoucher = null;
+    currentShippingDiscount = 0;
+    if (document.getElementById('unified-voucher-code')) document.getElementById('unified-voucher-code').value = "";
     if (document.getElementById('discount-amount-row')) document.getElementById('discount-amount-row').style.display = "none";
-    if (document.getElementById('voucher-message')) document.getElementById('voucher-message').innerHTML = "";
+    if (document.getElementById('unified-voucher-message')) document.getElementById('unified-voucher-message').innerHTML = "";
+    if (typeof renderAppliedVouchers === 'function') renderAppliedVouchers();
 }
 
 // Add this function to fill info when editing
@@ -421,117 +422,164 @@ window.fillEditOrderInfo = function (order) {
     }, 200);
 }
 
-async function applyVoucher() {
-    const codeInput = document.getElementById('voucher-code');
-    const code = codeInput.value.trim();
-    const msgBox = document.getElementById('voucher-message');
-    const discountRow = document.getElementById('discount-amount-row');
-    const discountValEl = document.getElementById('checkout-voucher-discount');
+window.removeUnifiedVoucher = function(type) {
+    if (type === 'order') {
+        currentOrderVoucher = null;
+        currentOrderDiscount = 0;
+    } else if (type === 'shipping') {
+        currentShippingVoucher = null;
+        currentShippingDiscount = 0;
+    }
+    
+    document.getElementById('unified-voucher-code').value = "";
+    document.getElementById('unified-voucher-message').innerHTML = "";
+    
+    recalculateTotals();
+    renderAppliedVouchers();
+}
+
+window.renderAppliedVouchers = function() {
+    const container = document.getElementById('applied-vouchers-container');
+    if (!container) return;
+    
+    let html = '';
+    if (currentOrderVoucher) {
+        html += `
+        <div style="display: flex; justify-content: space-between; align-items: center; background: #e6f7ff; border: 1px solid #91d5ff; border-radius: 4px; padding: 6px 10px; font-size: 12px;">
+            <div><span style="font-weight: 600; color: #0050b3;">[Đơn hàng]</span> ${currentOrderVoucher.code}</div>
+            <button onclick="removeUnifiedVoucher('order')" style="background: none; border: none; color: #ff4d4f; cursor: pointer; font-weight: bold;"><i class="fa-solid fa-times"></i></button>
+        </div>`;
+    }
+    if (currentShippingVoucher) {
+        html += `
+        <div style="display: flex; justify-content: space-between; align-items: center; background: #e6f7ff; border: 1px solid #91d5ff; border-radius: 4px; padding: 6px 10px; font-size: 12px;">
+            <div><span style="font-weight: 600; color: #0050b3;">[Vận chuyển]</span> ${currentShippingVoucher.code}</div>
+            <button onclick="removeUnifiedVoucher('shipping')" style="background: none; border: none; color: #ff4d4f; cursor: pointer; font-weight: bold;"><i class="fa-solid fa-times"></i></button>
+        </div>`;
+    }
+    container.innerHTML = html;
+}
+
+window.applyUnifiedVoucher = async function(inputCode) {
+    const codeInput = document.getElementById('unified-voucher-code');
+    const msgBox = document.getElementById('unified-voucher-message');
+    
+    let code = '';
+    if (typeof inputCode === 'string') {
+        code = inputCode;
+    } else if (codeInput) {
+        code = codeInput.value.trim();
+    }
 
     if (!code) {
-        msgBox.innerHTML = '<span style="color: #ef4444; font-size: 13px;">Vui lòng nhập mã giảm giá</span>';
+        if (msgBox) msgBox.innerHTML = '<span style="color: #ef4444; font-size: 13px;">Vui lòng nhập mã giảm giá</span>';
         return;
     }
 
     try {
         console.log("Checking voucher:", code);
-        
         const result = await window.api.checkVoucher(code);
-        
         console.log("Voucher result:", result);
 
         if (result.success) {
-            currentVoucher = result.voucher;
-
-            // Calculate base total
-            let baseTotal = 0;
-            if (currentCheckoutProduct) {
-                baseTotal = currentCheckoutProduct.price * currentCheckoutProduct.soluong;
-            } else {
-                baseTotal = await getCartTotal();
+            const voucher = result.voucher;
+            
+            if (voucher.discountType == 0 || voucher.discountType == 1) {
+                currentOrderVoucher = voucher;
+                if (codeInput && !codeInput.value) codeInput.value = "";
+            } else if (voucher.discountType == 2 || voucher.discountType == 3) {
+                currentShippingVoucher = voucher;
+                if (codeInput && !codeInput.value) codeInput.value = "";
             }
-
-            // check minOrder
-            if (baseTotal < (currentVoucher.minOrder || 0)) {
-                currentVoucher = null;
-                currentDiscount = 0;
-                discountRow.style.display = "none";
-                msgBox.innerHTML = `<span style="color: #ef4444; font-size: 13px;">Đơn hàng tối thiểu ${vnd(currentVoucher.minOrder)} để dùng mã này</span>`;
-                return;
-            }
-
-            const giaotannoi = document.querySelector("#giaotannoi");
-            const shippingFee = (giaotannoi && giaotannoi.classList.contains("active")) ? PHIVANCHUYEN : 0;
-
-            // discountType: 0 = Percent, 1 = Fixed, 2 = Shipping
-            if (currentVoucher.discountType == 0) {
-                currentDiscount = (baseTotal * currentVoucher.discountValue) / 100;
-                // Limit to maxDiscount if set
-                if (currentVoucher.maxDiscount > 0 && currentDiscount > currentVoucher.maxDiscount) {
-                    currentDiscount = currentVoucher.maxDiscount;
-                }
-                if (currentDiscount > baseTotal) currentDiscount = baseTotal;
-            } else if (currentVoucher.discountType == 1) {
-                currentDiscount = currentVoucher.discountValue;
-                if (currentDiscount > baseTotal) currentDiscount = baseTotal;
-            } else if (currentVoucher.discountType == 2) {
-                currentDiscount = currentVoucher.discountValue;
-                if (currentDiscount > shippingFee) currentDiscount = shippingFee;
-                if (shippingFee === 0) {
-                    currentVoucher = null;
-                    currentDiscount = 0;
-                    discountRow.style.display = "none";
-                    msgBox.innerHTML = `<span style="color: #ef4444; font-size: 13px;">Đơn hàng không có phí vận chuyển</span>`;
-                    updateCheckoutTotal(baseTotal + shippingFee);
-                    return;
-                }
-            } else if (currentVoucher.discountType == 3) {
-                currentDiscount = shippingFee;
-                if (shippingFee === 0) {
-                    currentVoucher = null;
-                    currentDiscount = 0;
-                    discountRow.style.display = "none";
-                    msgBox.innerHTML = `<span style="color: #ef4444; font-size: 13px;">Đơn hàng không có phí vận chuyển</span>`;
-                    updateCheckoutTotal(baseTotal + shippingFee);
-                    return;
-                }
-            }
-
-            // Update UI
-            discountRow.style.display = "flex";
-            discountValEl.innerText = "-" + vnd(currentDiscount);
-            msgBox.innerHTML = `<span style="color: #00b894; font-size: 13px;">Đã áp dụng mã: ${currentVoucher.code}</span>`;
-
-            // Recalculate Final Total
-            updateCheckoutTotal((baseTotal + shippingFee) - currentDiscount);
-
+            
+            if (msgBox) msgBox.innerHTML = `<span style="color: #00b894; font-size: 13px;">Đã áp dụng mã: ${voucher.code}</span>`;
+            if (codeInput) codeInput.value = "";
+            
+            await recalculateTotals();
+            renderAppliedVouchers();
             toast({ title: 'Thành công', message: 'Áp dụng mã giảm giá thành công!', type: 'success', duration: 3000 });
         } else {
-            currentVoucher = null;
-            currentDiscount = 0;
-            discountRow.style.display = "none";
-            msgBox.innerHTML = `<span style="color: #ef4444; font-size: 13px;">${result.message || 'Mã không hợp lệ'}</span>`;
-
-            // Recalculate Final Total without discount
-            let baseTotal = 0;
-            if (currentCheckoutProduct) {
-                baseTotal = currentCheckoutProduct.price * currentCheckoutProduct.soluong;
-            } else {
-                baseTotal = await getCartTotal();
-            }
-            const giaotannoi = document.querySelector("#giaotannoi");
-            const shippingFee = (giaotannoi && giaotannoi.classList.contains("active")) ? PHIVANCHUYEN : 0;
-            updateCheckoutTotal(baseTotal + shippingFee);
+            if (msgBox) msgBox.innerHTML = `<span style="color: #ef4444; font-size: 13px;">${result.message || 'Mã không hợp lệ'}</span>`;
         }
     } catch (error) {
         console.error("Voucher application error:", error);
-        msgBox.innerHTML = '<span style="color: #ef4444; font-size: 13px;">Lỗi hệ thống khi kiểm tra mã</span>';
-
-        // Reset state on error
-        currentVoucher = null;
-        currentDiscount = 0;
-        discountRow.style.display = "none";
+        if (msgBox) msgBox.innerHTML = '<span style="color: #ef4444; font-size: 13px;">Lỗi hệ thống khi kiểm tra mã</span>';
     }
+};
+
+window.recalculateTotals = async function() {
+    let baseTotal = 0;
+    if (currentCheckoutProduct) {
+        baseTotal = currentCheckoutProduct.price * currentCheckoutProduct.soluong;
+    } else {
+        baseTotal = await getCartTotal();
+    }
+
+    const giaotannoi = document.querySelector("#giaotannoi");
+    const shippingFee = (giaotannoi && giaotannoi.classList.contains("active")) ? PHIVANCHUYEN : 0;
+    
+    // Process Order Voucher
+    if (currentOrderVoucher) {
+        if (baseTotal < (currentOrderVoucher.minOrder || 0)) {
+            currentOrderVoucher = null;
+            currentOrderDiscount = 0;
+            const msgBox = document.getElementById('unified-voucher-message');
+            if (msgBox) msgBox.innerHTML = `<span style="color: #ef4444; font-size: 13px;">Đơn hàng chưa đạt tối thiểu ${vnd(currentOrderVoucher.minOrder)} để dùng mã đơn hàng</span>`;
+        } else {
+            if (currentOrderVoucher.discountType == 0) {
+                currentOrderDiscount = (baseTotal * currentOrderVoucher.discountValue) / 100;
+                if (currentOrderVoucher.maxDiscount > 0 && currentOrderDiscount > currentOrderVoucher.maxDiscount) {
+                    currentOrderDiscount = currentOrderVoucher.maxDiscount;
+                }
+            } else if (currentOrderVoucher.discountType == 1) {
+                currentOrderDiscount = currentOrderVoucher.discountValue;
+            }
+            if (currentOrderDiscount > baseTotal) currentOrderDiscount = baseTotal;
+        }
+    } else {
+        currentOrderDiscount = 0;
+    }
+    
+    // Process Shipping Voucher
+    if (currentShippingVoucher) {
+        if (baseTotal < (currentShippingVoucher.minOrder || 0)) {
+            currentShippingVoucher = null;
+            currentShippingDiscount = 0;
+            const msgBox = document.getElementById('unified-voucher-message');
+            if (msgBox) msgBox.innerHTML = `<span style="color: #ef4444; font-size: 13px;">Đơn hàng chưa đạt tối thiểu ${vnd(currentShippingVoucher.minOrder)} để dùng mã Freeship</span>`;
+        } else if (shippingFee === 0) {
+            currentShippingVoucher = null;
+            currentShippingDiscount = 0;
+            const msgBox = document.getElementById('unified-voucher-message');
+            if (msgBox) msgBox.innerHTML = `<span style="color: #ef4444; font-size: 13px;">Đơn hàng không có phí vận chuyển</span>`;
+        } else {
+            if (currentShippingVoucher.discountType == 2) {
+                currentShippingDiscount = currentShippingVoucher.discountValue;
+            } else if (currentShippingVoucher.discountType == 3) {
+                currentShippingDiscount = shippingFee;
+            }
+            if (currentShippingDiscount > shippingFee) currentShippingDiscount = shippingFee;
+        }
+    } else {
+        currentShippingDiscount = 0;
+    }
+    
+    if (typeof renderAppliedVouchers === 'function') renderAppliedVouchers();
+    
+    // Update discount amount UI
+    const discountRow = document.getElementById('discount-amount-row');
+    const discountValEl = document.getElementById('checkout-voucher-discount');
+    const totalDiscount = currentOrderDiscount + currentShippingDiscount;
+    if (discountRow && discountValEl) {
+        if (totalDiscount > 0) {
+            discountRow.style.display = "flex";
+            discountValEl.innerText = "-" + vnd(totalDiscount);
+        } else {
+            discountRow.style.display = "none";
+        }
+    }
+    
+    updateCheckoutTotal(baseTotal + shippingFee - currentOrderDiscount - currentShippingDiscount);
 }
 
 async function getCartTotal() {
@@ -1089,3 +1137,86 @@ document.addEventListener('keydown', (e) => {
         searchAddressOnMap(e);
     }
 });
+
+window.closeVoucherModal = function() {
+    let modal = document.querySelector('.voucher-list-modal');
+    if (modal) modal.classList.remove('open');
+}
+
+window.applyVoucherFromModal = function(code) {
+    let input = document.getElementById('unified-voucher-code');
+    if (input) {
+        input.value = code;
+        closeVoucherModal();
+        applyUnifiedVoucher();
+    }
+}
+
+window.showAvailableVouchers = async function() {
+    try {
+        let modal = document.querySelector('.voucher-list-modal');
+        if (!modal) {
+            modal = document.createElement('div');
+            modal.className = 'modal voucher-list-modal';
+            modal.innerHTML = `
+                <div class="modal-container" style="max-width: 450px; background: #f8fafc; border-radius: 12px; padding: 0;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 15px 20px; background: #fff; border-bottom: 1px solid #eee; border-radius: 12px 12px 0 0;">
+                        <h3 style="margin: 0; font-size: 16px; font-weight: 600; color: #333;"><i class="fa-solid fa-ticket" style="color: #ffb30e; margin-right: 8px;"></i> Chọn mã ưu đãi</h3>
+                        <button onclick="closeVoucherModal()" style="background: none; border: none; font-size: 18px; color: #888; cursor: pointer;"><i class="fa-solid fa-xmark"></i></button>
+                    </div>
+                    <div id="voucher-list-content" style="padding: 15px 20px; max-height: 400px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px;">
+                        <div style="text-align: center; color: #888; font-size: 14px;">Đang tải...</div>
+                    </div>
+                    <div style="padding: 15px 20px; background: #fff; border-top: 1px solid #eee; border-radius: 0 0 12px 12px; text-align: right;">
+                        <button onclick="closeVoucherModal()" style="padding: 8px 16px; background: #f1f5f9; color: #334155; border: none; border-radius: 6px; font-weight: 600; cursor: pointer;">Đóng</button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+            
+            // Add click outside to close
+            modal.addEventListener('click', function(e) {
+                if (e.target === modal) {
+                    closeVoucherModal();
+                }
+            });
+        }
+        
+        modal.classList.add('open');
+        let contentDiv = document.getElementById('voucher-list-content');
+        contentDiv.innerHTML = '<div style="text-align: center; color: #888; font-size: 14px;">Đang tải...</div>';
+
+        const vouchers = await window.api.getActiveVouchers(true);
+        if (vouchers && vouchers.length > 0) {
+            let html = '';
+            vouchers.forEach(v => {
+                let isShipping = v.type === "shipping";
+                let iconColor = isShipping ? "#10b981" : "#f97316";
+                let bgBadge = isShipping ? "#ecfdf5" : "#fff7ed";
+                let textBadge = isShipping ? "#059669" : "#c2410c";
+                let typeText = isShipping ? "Freeship" : (v.type === "percent" ? "Giảm %" : "Giảm tiền");
+                
+                html += `
+                    <div style='display: flex; background: #fff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px; align-items: center; gap: 12px; transition: 0.2s; box-shadow: 0 2px 4px rgba(0,0,0,0.02);'>
+                        <div style='width: 48px; height: 48px; background: ${bgBadge}; border-radius: 50%; display: flex; justify-content: center; align-items: center; flex-shrink: 0;'>
+                            <i class='fa-solid fa-ticket' style='color: ${iconColor}; font-size: 20px;'></i>
+                        </div>
+                        <div style='flex: 1;'>
+                            <h4 style='margin: 0; font-size: 14px; font-weight: 700; color: #1e293b;'>${v.code}</h4>
+                            <p style='margin: 4px 0 0 0; font-size: 13px; color: #64748b;'>${v.description || 'Ưu đãi đặc biệt'}</p>
+                            <span style='display: inline-block; margin-top: 6px; padding: 2px 8px; background: ${bgBadge}; color: ${textBadge}; font-size: 11px; font-weight: 600; border-radius: 4px;'>${typeText}</span>
+                        </div>
+                        <button onclick="applyVoucherFromModal('${v.code}')" style='background: #ef4444; color: #fff; border: none; padding: 6px 14px; border-radius: 6px; font-weight: 600; font-size: 13px; cursor: pointer; white-space: nowrap;'>Dùng ngay</button>
+                    </div>
+                `;
+            });
+            contentDiv.innerHTML = html;
+        } else {
+            contentDiv.innerHTML = '<div style="text-align: center; color: #888; font-size: 14px; padding: 20px 0;">Hiện chưa có mã ưu đãi nào khả dụng!</div>';
+        }
+    } catch (err) {
+        console.error("Lỗi khi tải mã giảm giá:", err);
+        let contentDiv = document.getElementById('voucher-list-content');
+        if (contentDiv) contentDiv.innerHTML = '<div style="text-align: center; color: #ef4444; font-size: 14px; padding: 20px 0;">Lỗi khi tải danh sách mã!</div>';
+    }
+}

@@ -294,16 +294,7 @@
                     <p>Quản lý thông tin để bảo mật tài khoản</p>
                 </div>
                 
-                <div class="loyalty-points-card tier-bronze" style="margin-bottom: 25px; border-radius: 12px; padding: 20px; display: flex; justify-content: space-between; align-items: center; color: #fff; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
-                    <div class="loyalty-info">
-                        <h4 style="margin: 0; font-size: 1.2rem; display: flex; align-items: center; gap: 8px;"><i class="fa-solid fa-crown" style="color: #FFD700;"></i> <span id="member-tier-name">Hạng Đồng</span></h4>
-                        <p style="margin: 5px 0 0 0; font-size: 0.9rem; opacity: 0.9;">Tích lũy để thăng hạng và nhận nhiều ưu đãi</p>
-                    </div>
-                    <div class="loyalty-points" style="text-align: right;">
-                        <span style="font-size: 2rem; font-weight: bold; display: block;" id="member-points-value">0</span>
-                        <span style="font-size: 0.9rem; font-weight: 500;">TiMi Points</span>
-                    </div>
-                </div>
+
 
                 <div class="main-account-body">
                     <div class="main-account-body-col">
@@ -1183,11 +1174,20 @@
                 <p class="checkout-content-label">Đơn hàng</p>
                 <div class="bill-total" id="list-order-checkout">
                 </div>
-                <div class="voucher-input-group">
-                    <input type="text" id="voucher-code" placeholder="Nhập mã giảm giá">
-                    <button class="btn-apply-voucher" onclick="applyVoucher()">Áp dụng</button>
+                <div style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 15px; border: 1px dashed #ffb30e; padding: 12px; border-radius: 8px; background: #fff9f0;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
+                        <span style="font-size: 14px; font-weight: 600; color: #333;"><i class="fa-solid fa-ticket" style="color: #ffb30e; margin-right: 5px;"></i> Ưu đãi & Giảm giá</span>
+                        <a href="javascript:void(0)" onclick="showAvailableVouchers()" style="font-size: 13px; color: #007bff; text-decoration: none; font-weight: 500;">Chọn mã <i class="fa-solid fa-chevron-right" style="font-size: 10px;"></i></a>
+                    </div>
+                    
+                    <div style="display: flex; background: #fff; border: 1px solid #fbdc9f; border-radius: 6px; overflow: hidden; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
+                        <div style="padding: 8px 10px; background: #fff3da; border-right: 1px solid #fbdc9f; color: #d97706; font-size: 12px; font-weight: 600; display: flex; align-items: center; min-width: 85px; justify-content: center;"><i class="fa-solid fa-ticket-simple" style="margin-right: 4px;"></i> Voucher</div>
+                        <input type="text" id="unified-voucher-code" placeholder="Nhập mã ưu đãi" style="flex: 1; border: none; padding: 8px 12px; outline: none; font-size: 13px; color: #333;">
+                        <button onclick="applyUnifiedVoucher()" style="background: transparent; color: #ffb30e; border: none; font-weight: bold; padding: 0 15px; cursor: pointer; font-size: 13px; transition: 0.2s;">Áp dụng</button>
+                    </div>
+                    <div id="unified-voucher-message" style="margin-top: -4px;"></div>
+                    <div id="applied-vouchers-container" style="display: flex; flex-direction: column; gap: 6px;"></div>
                 </div>
-                <div id="voucher-message"></div>
                 <div class="bill-payment">
                     <div class="total-bill-order">
                     </div>

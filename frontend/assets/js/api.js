@@ -498,6 +498,22 @@ window.api = {
         }
     },
 
+    getActiveVouchers: async (silent = false) => {
+        if (!silent) showLoader();
+        try {
+            const response = await fetch(`${BASE_URL}/vouchers/active`, {
+                headers: getHeaders()
+            });
+            if (!response.ok) throw new Error('Failed to load active vouchers');
+            return await response.json();
+        } catch (error) {
+            console.error("Get active vouchers error:", error);
+            throw error;
+        } finally {
+            if (!silent) hideLoader();
+        }
+    },
+
     checkVoucher: async (code) => {
         try {
             const response = await fetch(`${BASE_URL}/vouchers/${code}`);

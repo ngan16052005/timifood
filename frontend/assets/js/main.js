@@ -1080,8 +1080,8 @@ function kiemtradangnhap() {
     if (currentUser != null) {
         let user = JSON.parse(currentUser);
         let tier = getMemberTier(user.points || 0);
-        document.querySelector('#account-dropdown .auth-container').innerHTML = `<span class="text-dndk">Tài khoản <span class="member-tier-badge ${tier.class}" style="font-size:0.7rem; padding: 2px 6px; border-radius: 4px; margin-left: 5px; font-weight:bold;">${tier.name}</span></span>
-            <span class="text-tk">${user.fullname} <i class="fa-sharp fa-solid fa-caret-down"></span>`
+        document.querySelector('#account-dropdown .auth-container').innerHTML = `<span class="text-dndk">Tài khoản</span>
+            <span class="text-tk">${user.fullname} <i class="fa-sharp fa-solid fa-caret-down"></i></span>`
         document.querySelector('#account-dropdown .header-middle-right-menu').innerHTML = `<li><a href="javascript:;" onclick="myAccount()"><i class="fa-light fa-circle-user"></i> Tài khoản của tôi</a></li>
             <li><a href="javascript:;" onclick="orderHistory()"><i class="fa-regular fa-bags-shopping"></i> Đơn hàng đã mua</a></li>
             <li><a href="javascript:;" onclick="openWishlist()"><i class="fa-regular fa-heart"></i> Sản phẩm yêu thích</a></li>
@@ -1978,6 +1978,7 @@ async function showCategory(category) {
     document.getElementById('trangchu').style.display = 'block';
     document.getElementById('account-user').classList.remove('open');
     document.getElementById('order-history').classList.remove('open');
+    if (document.getElementById('loyalty-page')) document.getElementById('loyalty-page').classList.remove('open');
     const ns = document.getElementById('news-section');
     if (ns) ns.style.display = 'none';
     const nds = document.getElementById('news-detail-section');
