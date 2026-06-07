@@ -19,50 +19,10 @@
         <div class="main-account-body" style="display: block; background: transparent; padding: 0; box-shadow: none;">
             <h4 style="margin-bottom: 20px; color: #333; font-weight: 600;"><i class="fa-regular fa-gift" style="color: #ef4444; margin-right: 8px;"></i> Đổi ưu đãi đặc biệt</h4>
             
-            <div class="voucher-list" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px;">
-                <!-- Voucher Item -->
-                <div class="voucher-item" style="border: 1px solid #eee; border-radius: 12px; padding: 20px; background: #fff; box-shadow: 0 4px 6px rgba(0,0,0,0.05); position: relative; overflow: hidden; transition: transform 0.2s;">
-                    <div style="position: absolute; top: 0; left: 0; width: 4px; height: 100%; background: #FFD700;"></div>
-                    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 15px;">
-                        <div>
-                            <h5 style="margin: 0 0 5px 0; font-size: 1.1rem; color: #333;">Giảm 20.000đ</h5>
-                            <p style="margin: 0; font-size: 0.85rem; color: #666;">Áp dụng cho đơn hàng từ 100k</p>
-                        </div>
-                        <div style="background: #fff8e1; color: #f59e0b; padding: 4px 8px; border-radius: 4px; font-weight: bold; font-size: 0.85rem;">
-                            200 Điểm
-                        </div>
-                    </div>
-                    <button class="btn btn-primary" onclick="redeemVoucher(200, 'TIMI20K', 'Giảm 20.000đ')" style="width: 100%; padding: 10px; border-radius: 6px; font-weight: 500; border: none; background: #ef4444; color: white; cursor: pointer;">Đổi ngay</button>
-                </div>
-                
-                <!-- Voucher Item -->
-                <div class="voucher-item" style="border: 1px solid #eee; border-radius: 12px; padding: 20px; background: #fff; box-shadow: 0 4px 6px rgba(0,0,0,0.05); position: relative; overflow: hidden; transition: transform 0.2s;">
-                    <div style="position: absolute; top: 0; left: 0; width: 4px; height: 100%; background: #ef4444;"></div>
-                    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 15px;">
-                        <div>
-                            <h5 style="margin: 0 0 5px 0; font-size: 1.1rem; color: #333;">Giảm 50.000đ</h5>
-                            <p style="margin: 0; font-size: 0.85rem; color: #666;">Áp dụng cho đơn hàng từ 200k</p>
-                        </div>
-                        <div style="background: #fee2e2; color: #ef4444; padding: 4px 8px; border-radius: 4px; font-weight: bold; font-size: 0.85rem;">
-                            500 Điểm
-                        </div>
-                    </div>
-                    <button class="btn btn-primary" onclick="redeemVoucher(500, 'TIMI50K', 'Giảm 50.000đ')" style="width: 100%; padding: 10px; border-radius: 6px; font-weight: 500; border: none; background: #ef4444; color: white; cursor: pointer;">Đổi ngay</button>
-                </div>
-
-                <!-- Voucher Item -->
-                <div class="voucher-item" style="border: 1px solid #eee; border-radius: 12px; padding: 20px; background: #fff; box-shadow: 0 4px 6px rgba(0,0,0,0.05); position: relative; overflow: hidden; transition: transform 0.2s;">
-                    <div style="position: absolute; top: 0; left: 0; width: 4px; height: 100%; background: #8b5cf6;"></div>
-                    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 15px;">
-                        <div>
-                            <h5 style="margin: 0 0 5px 0; font-size: 1.1rem; color: #333;">Freeship 30k</h5>
-                            <p style="margin: 0; font-size: 0.85rem; color: #666;">Miễn phí vận chuyển</p>
-                        </div>
-                        <div style="background: #ede9fe; color: #8b5cf6; padding: 4px 8px; border-radius: 4px; font-weight: bold; font-size: 0.85rem;">
-                            300 Điểm
-                        </div>
-                    </div>
-                    <button class="btn btn-primary" onclick="redeemVoucher(300, 'FREESHIP30', 'Freeship 30k')" style="width: 100%; padding: 10px; border-radius: 6px; font-weight: 500; border: none; background: #ef4444; color: white; cursor: pointer;">Đổi ngay</button>
+            <div class="voucher-list" id="reward-packages-container" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px;">
+                <!-- Reward packages will be rendered here dynamically -->
+                <div style="text-align: center; width: 100%; grid-column: 1/-1; padding: 20px;">
+                    <i class="fa-solid fa-spinner fa-spin" style="font-size: 24px; color: #ef4444;"></i> Đang tải gói ưu đãi...
                 </div>
             </div>
             

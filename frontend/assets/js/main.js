@@ -1200,6 +1200,9 @@ function openLoyaltyPage() {
     if (document.getElementById('wishlist-section')) document.getElementById('wishlist-section').classList.remove('open');
     document.getElementById('account-user').classList.remove('open');
     if (document.getElementById('loyalty-page')) document.getElementById('loyalty-page').classList.add('open');
+    if (typeof renderRewardPackages === 'function') {
+        renderRewardPackages();
+    }
     if (typeof renderLoyaltyHistory === 'function') {
         renderLoyaltyHistory();
     }
@@ -2984,7 +2987,52 @@ if (scrollToTopBtn) {
 
 
 // === LOYALTY FEATURE ===
-async function redeemVoucher(cost, type, name) {
+async function renderRewardPackages() {
+    const container = document.getElementById('reward-packages-container');
+    if (!container) return;
+
+    try {
+        const response = await window.api.getRewardPackages();
+        if (response.success && response.rewards) {
+            let html = '';
+            response.rewards.forEach(pkg => {
+                // Determine styling based on color
+                let bgLight = '#fff8e1';
+                let textCol = pkg.color || '#f59e0b';
+                
+                // Quick hack to map colors to light backgrounds
+                if (pkg.color === '#ef4444') { bgLight = '#fee2e2'; }
+                else if (pkg.color === '#8b5cf6') { bgLight = '#ede9fe'; }
+                else if (pkg.color === '#FFD700') { bgLight = '#fff8e1'; }
+                else { bgLight = pkg.color + '20'; } // 20% opacity hex if needed
+                
+                html += `
+                <div class="voucher-item" style="border: 1px solid #eee; border-radius: 12px; padding: 20px; background: #fff; box-shadow: 0 4px 6px rgba(0,0,0,0.05); position: relative; overflow: hidden; transition: transform 0.2s;">
+                    <div style="position: absolute; top: 0; left: 0; width: 4px; height: 100%; background: ${pkg.color};"></div>
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 15px;">
+                        <div>
+                            <h5 style="margin: 0 0 5px 0; font-size: 1.1rem; color: #333;">${pkg.name}</h5>
+                            <p style="margin: 0; font-size: 0.85rem; color: #666;">${pkg.description}</p>
+                        </div>
+                        <div style="background: ${bgLight}; color: ${textCol}; padding: 4px 8px; border-radius: 4px; font-weight: bold; font-size: 0.85rem; white-space: nowrap;">
+                            ${pkg.cost} Điểm
+                        </div>
+                    </div>
+                    <button class="btn btn-primary" onclick="redeemVoucher(${pkg.id}, '${pkg.name}', ${pkg.cost})" style="width: 100%; padding: 10px; border-radius: 6px; font-weight: 500; border: none; background: #ef4444; color: white; cursor: pointer;">Đổi ngay</button>
+                </div>
+                `;
+            });
+            container.innerHTML = html;
+        } else {
+            container.innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: #666;">Không có ưu đãi nào hiện hành.</div>';
+        }
+    } catch (err) {
+        console.error('Lỗi khi tải gói ưu đãi:', err);
+        container.innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: #ef4444;">Đã xảy ra lỗi khi tải ưu đãi.</div>';
+    }
+}
+
+async function redeemVoucher(packageId, name, cost) {
     let user = JSON.parse(localStorage.getItem('currentuser'));
     let token = localStorage.getItem('token');
     if (!user || !token) {
@@ -2992,23 +3040,10 @@ async function redeemVoucher(cost, type, name) {
         return;
     }
     
-    // Tạo mã code
-    let code = type + '-' + Math.random().toString(36).substr(2, 5).toUpperCase();
-    
-    let discountType = 1; // Fixed
-    let discountValue = 0;
-    let minOrder = 0;
-    
-    if (type === 'TIMI20K') {
-        discountValue = 20000;
-        minOrder = 100000;
-    } else if (type === 'TIMI50K') {
-        discountValue = 50000;
-        minOrder = 200000;
-    } else if (type === 'FREESHIP30') {
-        discountType = 2; // Shipping
-        discountValue = 30000;
-        minOrder = 0;
+    // Check points optimistic UI validation
+    if ((user.points || 0) < cost) {
+        toast({ title: 'Lỗi', message: 'Không đủ điểm để đổi', type: 'error', duration: 3000 });
+        return;
     }
 
     try {
@@ -3018,7 +3053,7 @@ async function redeemVoucher(cost, type, name) {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${token}`
             },
-            body: JSON.stringify({ cost, code, discountType, discountValue, minOrder })
+            body: JSON.stringify({ packageId })
         });
         
         const data = await response.json();

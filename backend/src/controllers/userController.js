@@ -124,10 +124,20 @@ exports.deleteUser = async (req, res) => {
 
 exports.redeemVoucher = async (req, res) => {
     try {
-        const { cost, code, discountType, discountValue, minOrder } = req.body;
+        const { packageId } = req.body;
         const userId = req.user.id;
         
-        // Use global pool
+        // Lookup the reward package
+        const packageResult = await pool.request()
+            .input('packageId', sql.Int, packageId)
+            .query('SELECT * FROM RewardPackages WHERE id = @packageId AND isActive = 1');
+            
+        if (packageResult.recordset.length === 0) {
+            return res.status(404).json({ message: 'Gói ưu đãi không tồn tại hoặc đã bị ẩn' });
+        }
+        const pkg = packageResult.recordset[0];
+        
+        // Check user points
         const userResult = await pool.request()
             .input('id', sql.UniqueIdentifier, userId)
             .query('SELECT points, phone FROM Users WHERE id = @id');
@@ -137,28 +147,29 @@ exports.redeemVoucher = async (req, res) => {
         }
         
         const userPoints = userResult.recordset[0].points || 0;
-        
-        if (userPoints < cost) {
-            return res.status(400).json({ message: 'Not enough points' });
+        if (userPoints < pkg.cost) {
+            return res.status(400).json({ message: 'Không đủ điểm để đổi' });
         }
         
         // Deduct points
         await pool.request()
             .input('id', sql.UniqueIdentifier, userId)
-            .input('cost', sql.Int, cost)
+            .input('cost', sql.Int, pkg.cost)
             .query('UPDATE Users SET points = points - @cost WHERE id = @id');
+            
+        // Generate Code
+        const code = pkg.codePrefix + '-' + Math.random().toString(36).substr(2, 5).toUpperCase();
             
         // Insert into Vouchers
         const maxDiscount = 0;
-        // 30 days from now
         const expiryDate = new Date();
         expiryDate.setDate(expiryDate.getDate() + 30);
         
         await pool.request()
             .input('code', sql.NVarChar, code)
-            .input('discountValue', sql.Int, discountValue)
-            .input('discountType', sql.NVarChar, discountType.toString())
-            .input('minOrder', sql.Int, minOrder)
+            .input('discountValue', sql.Int, pkg.discountValue)
+            .input('discountType', sql.NVarChar, pkg.discountType.toString())
+            .input('minOrder', sql.Int, pkg.minOrder)
             .input('maxDiscount', sql.Int, maxDiscount)
             .input('expiryDate', sql.DateTime, expiryDate)
             .input('userId', sql.UniqueIdentifier, userId)

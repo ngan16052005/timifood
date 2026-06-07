@@ -527,6 +527,19 @@ window.api = {
         }
     },
 
+    getRewardPackages: async () => {
+        try {
+            const response = await fetch(`${BASE_URL}/vouchers/rewards`, {
+                headers: getHeaders()
+            });
+            if (!response.ok) throw new Error('Failed to fetch rewards');
+            return await response.json();
+        } catch (error) {
+            console.error("Get reward packages error:", error);
+            throw error;
+        }
+    },
+
     checkVoucher: async (code) => {
         try {
             const response = await fetch(`${BASE_URL}/vouchers/${code}`);

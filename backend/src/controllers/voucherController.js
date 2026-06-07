@@ -124,3 +124,12 @@ exports.deleteVoucher = async (req, res) => {
     }
 };
 
+exports.getRewardPackages = async (req, res) => {
+    try {
+        const result = await pool.request().query('SELECT * FROM RewardPackages WHERE isActive = 1 ORDER BY cost ASC');
+        res.json({ success: true, rewards: result.recordset });
+    } catch (err) {
+        console.error("Get reward packages error:", err);
+        res.status(500).json({ success: false, message: 'Error fetching reward packages' });
+    }
+};
