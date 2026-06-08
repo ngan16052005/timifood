@@ -17,19 +17,32 @@
         </div>
 
         <div class="main-account-body" style="display: block; background: transparent; padding: 0; box-shadow: none;">
-            <h4 style="margin-bottom: 20px; color: #333; font-weight: 600;"><i class="fa-regular fa-gift" style="color: #ef4444; margin-right: 8px;"></i> Đổi ưu đãi đặc biệt</h4>
-            
-            <div class="voucher-list" id="reward-packages-container" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px;">
-                <!-- Reward packages will be rendered here dynamically -->
-                <div style="text-align: center; width: 100%; grid-column: 1/-1; padding: 20px;">
-                    <i class="fa-solid fa-spinner fa-spin" style="font-size: 24px; color: #ef4444;"></i> Đang tải gói ưu đãi...
+            <div class="loyalty-tabs" style="display: flex; gap: 15px; margin-bottom: 25px; border-bottom: 2px solid #e2e8f0; padding-bottom: 10px;">
+                <div id="tab-reward-packages" onclick="switchLoyaltyTab('packages')" style="cursor: pointer; font-weight: 600; padding: 5px 10px; color: var(--red); border-bottom: 3px solid var(--red); margin-bottom: -12px; transition: color 0.2s, border-color 0.2s;">
+                    <i class="fa-regular fa-gift" style="margin-right: 5px;"></i> Đổi ưu đãi
+                </div>
+                <div id="tab-loyalty-history" onclick="switchLoyaltyTab('history')" style="cursor: pointer; font-weight: 600; padding: 5px 10px; color: #64748b; border-bottom: 3px solid transparent; margin-bottom: -12px; transition: color 0.2s, border-color 0.2s;">
+                    <i class="fa-regular fa-clock-rotate-left" style="margin-right: 5px;"></i> Lịch sử đổi
                 </div>
             </div>
-            
-            <div style="margin-top: 30px; padding: 20px; background: #f8fafc; border-radius: 8px; border-left: 4px solid #3b82f6;">
-                <h5 style="margin: 0 0 10px 0; color: #1e293b; font-size: 1rem;"><i class="fa-solid fa-clock-rotate-left"></i> Lịch sử đổi ưu đãi</h5>
-                <div id="loyalty-history-list" style="color: #64748b; font-size: 0.9rem; line-height: 1.6;">
-                    Chưa có lịch sử đổi ưu đãi nào.
+
+            <!-- Tab Content: Packages -->
+            <div id="content-reward-packages">
+                <div class="voucher-list" id="reward-packages-container" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px;">
+                    <!-- Reward packages will be rendered here dynamically -->
+                    <div style="text-align: center; width: 100%; grid-column: 1/-1; padding: 20px;">
+                        <i class="fa-solid fa-spinner fa-spin" style="font-size: 24px; color: #ef4444;"></i> Đang tải gói ưu đãi...
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab Content: History -->
+            <div id="content-loyalty-history" style="display: none;">
+                <div id="loyalty-history-list" style="display: flex; flex-direction: column; gap: 15px;">
+                    <div style="text-align: center; padding: 40px 0; color: #94a3b8; font-size: 0.95rem; border: 2px dashed #e2e8f0; border-radius: 12px; background: #f8fafc;">
+                        <i class="fa-light fa-gift" style="font-size: 3rem; color: #cbd5e1; display: block; margin-bottom: 15px;"></i>
+                        Bạn chưa đổi ưu đãi nào
+                    </div>
                 </div>
             </div>
         </div>

@@ -1730,33 +1730,7 @@ async function detailOrderUser(id) {
                 <span class="detail-order-item-right">${detail.sdtnhan}</span>
             </li>
         </ul>`
-        if (detail.trangthai === 1) {
-            detailOrderHtml += `
-                <div class="shipper-tracking-container" style="margin-top: 20px;">
-                    <h3 style="font-size: 16px; margin-bottom: 10px; font-weight: 600; color: #333;"><i class="fa-solid fa-motorcycle" style="color: var(--primary-color);"></i> Theo dõi Shipper (Live)</h3>
-                    <div id="shipper-map-${detail.id}" style="height: 250px; border-radius: 10px; z-index: 1;"></div>
-                </div>
-            `;
-        }
-
         document.querySelector(".detail-order-content").innerHTML = detailOrderHtml;
-
-        if (detail.trangthai === 1) {
-            setTimeout(() => {
-                if (window.shipperMap) { window.shipperMap.remove(); }
-                window.shipperMap = L.map('shipper-map-' + detail.id).setView([10.762622, 106.660172], 15);
-                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(window.shipperMap);
-
-                const shipperIcon = L.icon({
-                    iconUrl: 'https://cdn-icons-png.flaticon.com/512/3063/3063822.png',
-                    iconSize: [40, 40]
-                });
-                window.shipperMarker = L.marker([10.762622, 106.660172], { icon: shipperIcon }).addTo(window.shipperMap);
-                window.shipperMarker.bindPopup("<b>Shipper đang giao hàng</b>").openPopup();
-
-                window.trackingOrderId = detail.id;
-            }, 300);
-        }
     } catch (error) {
         console.error("Error showing user order detail:", error);
     }
@@ -2798,10 +2772,24 @@ async function syncCartOnLogin(user) {
 // Shipper Socket Listener
 if (typeof io !== 'undefined') {
     const shipperSocket = io(window.BACKEND_URL + '/shipperLocation', { transports: ['websocket'] });
+    window.hasFirstShipperLocation = false;
     shipperSocket.on('shipperLocation', (data) => {
         if (window.shipperMap && window.shipperMarker && window.trackingOrderId === data.orderId) {
             window.shipperMarker.setLatLng([data.lat, data.lng]);
-            window.shipperMap.panTo([data.lat, data.lng]);
+            if (!window.hasFirstShipperLocation) {
+                window.hasFirstShipperLocation = true;
+                if (window.lastUserLatLng) {
+                    const bounds = L.latLngBounds([
+                        window.shipperMarker.getLatLng(),
+                        window.lastUserLatLng
+                    ]);
+                    window.shipperMap.fitBounds(bounds, { padding: [50, 50], maxZoom: 16 });
+                } else {
+                    window.shipperMap.setView([data.lat, data.lng], 16);
+                }
+            } else {
+                window.shipperMap.panTo([data.lat, data.lng]);
+            }
         }
     });
 }
@@ -2812,13 +2800,32 @@ window.trackOrderUser = async function (id, address) {
         if (!trackingModal) {
             const modalHtml = `
                 <div class="modal tracking-order">
-                    <div class="modal-container mdl-cnt" style="max-width: 800px; width: 90%;">
-                        <h3 class="modal-container-title"><i class="fa-solid fa-motorcycle" style="color: var(--primary-color);"></i> Theo dõi Shipper (Live)</h3>
-                        <button class="form-close" onclick="document.querySelector('.modal.tracking-order').classList.remove('open')"><i class="fa-regular fa-xmark"></i></button>
-                        <div class="tracking-order-content" style="padding: 20px;">
-                            <div id="shipper-map-standalone" style="height: 450px; border-radius: 10px; z-index: 1; width: 100%; position: relative;"></div>
-                            <div style="margin-top: 15px; text-align: center; font-size: 15px; font-weight: 500;">
-                                Đơn hàng: <span id="tracking-order-id-label" style="color: var(--primary-color);"></span>
+                    <div class="modal-container" onclick="event.stopPropagation()" style="width: 900px; max-width: 95vw; height: 80vh; max-height: 750px; background: #fff; border-radius: 16px; position: relative; display: flex; flex-direction: column; overflow: hidden; padding: 0; box-shadow: 0 20px 60px rgba(0,0,0,0.2);">
+                        <!-- Header -->
+                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 16px 24px; background: #fff; border-bottom: 1px solid #f1f5f9; z-index: 10;">
+                            <div style="display: flex; align-items: center; gap: 12px;">
+                                <div style="width: 40px; height: 40px; background: rgba(238, 77, 45, 0.1); border-radius: 10px; display: flex; align-items: center; justify-content: center;">
+                                    <i class="fa-solid fa-motorcycle" style="color: var(--primary-color); font-size: 18px;"></i>
+                                </div>
+                                <h3 style="margin: 0; font-size: 18px; font-weight: 700; color: #1e293b;">THEO DÕI SHIPPER (LIVE)</h3>
+                            </div>
+                            <button type="button" class="modal-close" onclick="document.querySelector('.modal.tracking-order').classList.remove('open')" style="background: #f1f5f9; border: none; width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; color: #64748b;">
+                                <i class="fa-solid fa-xmark" style="font-size: 18px;"></i>
+                            </button>
+                        </div>
+                        
+                        <!-- Map and Footer Container -->
+                        <div style="display: flex; flex: 1; flex-direction: column; position: relative;">
+                            <!-- Map container -->
+                            <div class="tracking-order-content" style="display: flex; flex: 1; flex-direction: column; position: relative; padding: 0;">
+                                <div id="shipper-map-standalone" style="flex: 1; width: 100%; background: #f8fafc; z-index: 1;"></div>
+                            </div>
+                            
+                            <!-- Bottom Footer -->
+                            <div style="padding: 20px 24px; background: #fff; border-top: 1px solid #e2e8f0; display: flex; justify-content: center; align-items: center; z-index: 10; box-shadow: 0 -4px 15px rgba(0,0,0,0.02);">
+                                <div style="font-size: 16px; font-weight: 600; color: #1e293b;">
+                                    Đơn hàng: <span id="tracking-order-id-label" style="color: var(--primary-color);"></span>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -2845,16 +2852,18 @@ window.trackOrderUser = async function (id, address) {
             // re-create the map container if leaflet complains about "Map container is already initialized"
             const mapParent = document.getElementById('shipper-map-standalone').parentElement;
             document.getElementById('shipper-map-standalone').remove();
-            mapParent.insertAdjacentHTML('afterbegin', '<div id="shipper-map-standalone" style="height: 350px; border-radius: 10px; z-index: 1; width: 100%; position: relative;"></div>');
+            mapParent.insertAdjacentHTML('afterbegin', '<div id="shipper-map-standalone" style="flex: 1; width: 100%; background: #f8fafc; z-index: 1;"></div>');
 
-            window.shipperMap = L.map('shipper-map-standalone').setView([10.762622, 106.660172], 15);
+            window.hasFirstShipperLocation = false;
+            window.lastUserLatLng = null;
+            window.shipperMap = L.map('shipper-map-standalone').setView([21.109444, 106.393889], 15);
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(window.shipperMap);
 
             const shipperIcon = L.icon({
                 iconUrl: 'https://cdn-icons-png.flaticon.com/512/3063/3063822.png',
                 iconSize: [40, 40]
             });
-            window.shipperMarker = L.marker([10.762622, 106.660172], { icon: shipperIcon }).addTo(window.shipperMap);
+            window.shipperMarker = L.marker([21.109444, 106.393889], { icon: shipperIcon }).addTo(window.shipperMap);
             window.shipperMarker.bindPopup("<b>Shipper đang giao hàng</b>").openPopup();
 
             // Hàm vẽ marker của người dùng/điểm đến
@@ -2873,13 +2882,17 @@ window.trackOrderUser = async function (id, address) {
                 window.userMarker = L.marker([lat, lng], { icon: userIcon }).addTo(window.shipperMap);
                 window.userMarker.bindPopup(popupText).openPopup();
 
-                // Tự động zoom để thấy cả shipper và bạn
-                if (window.shipperMarker) {
+                // Lưu lại vị trí để khi có shipper sẽ fitBounds
+                window.lastUserLatLng = [lat, lng];
+
+                if (window.hasFirstShipperLocation && window.shipperMarker) {
                     const bounds = L.latLngBounds([
                         window.shipperMarker.getLatLng(),
                         [lat, lng]
                     ]);
-                    window.shipperMap.fitBounds(bounds, { padding: [50, 50] });
+                    window.shipperMap.fitBounds(bounds, { padding: [50, 50], maxZoom: 16 });
+                } else {
+                    window.shipperMap.setView([lat, lng], 15);
                 }
             };
 
@@ -3062,6 +3075,7 @@ async function redeemVoucher(packageId, name, cost) {
             return;
         }
         
+        const code = data.code;
         // Cập nhật điểm từ server (chính xác từ DB)
         user.points = (data.newPoints !== undefined) ? data.newPoints : Math.max(0, (user.points || 0) - cost);
         localStorage.setItem('currentuser', JSON.stringify(user));
@@ -3077,7 +3091,13 @@ async function redeemVoucher(packageId, name, cost) {
         localStorage.setItem('loyalty_history', JSON.stringify(history));
         
         kiemtradangnhap();
-        if (typeof renderLoyaltyHistory === 'function') renderLoyaltyHistory();
+        
+        // Auto-switch to history tab when redeeming
+        if (typeof switchLoyaltyTab === 'function') {
+            switchLoyaltyTab('history');
+        } else if (typeof renderLoyaltyHistory === 'function') {
+            renderLoyaltyHistory();
+        }
         
         toast({ title: 'Thành công', message: `Đổi thành công! Mã của bạn là: ${code}`, type: 'success', duration: 5000 });
     } catch(err) {
@@ -3085,29 +3105,117 @@ async function redeemVoucher(packageId, name, cost) {
     }
 }
 
-function renderLoyaltyHistory() {
-    let history = JSON.parse(localStorage.getItem('loyalty_history')) || [];
+window.switchLoyaltyTab = function(tabName) {
+    const tabPackages = document.getElementById('tab-reward-packages');
+    const tabHistory = document.getElementById('tab-loyalty-history');
+    const contentPackages = document.getElementById('content-reward-packages');
+    const contentHistory = document.getElementById('content-loyalty-history');
+
+    if (!tabPackages || !tabHistory) return;
+
+    if (tabName === 'packages') {
+        tabPackages.style.color = 'var(--red)';
+        tabPackages.style.borderBottomColor = 'var(--red)';
+        tabHistory.style.color = '#64748b';
+        tabHistory.style.borderBottomColor = 'transparent';
+        
+        contentPackages.style.display = 'block';
+        contentHistory.style.display = 'none';
+    } else {
+        tabPackages.style.color = '#64748b';
+        tabPackages.style.borderBottomColor = 'transparent';
+        tabHistory.style.color = 'var(--red)';
+        tabHistory.style.borderBottomColor = 'var(--red)';
+        
+        contentPackages.style.display = 'none';
+        contentHistory.style.display = 'block';
+        
+        if (typeof renderLoyaltyHistory === 'function') renderLoyaltyHistory();
+    }
+};
+
+async function renderLoyaltyHistory() {
     let listContainer = document.getElementById('loyalty-history-list');
     if (!listContainer) return;
     
+    let history = JSON.parse(localStorage.getItem('loyalty_history')) || [];
+    let token = localStorage.getItem('token');
+    let user = localStorage.getItem('currentuser') ? JSON.parse(localStorage.getItem('currentuser')) : null;
+
+    if (token && user) {
+        try {
+            const response = await fetch(window.BACKEND_URL + '/api/vouchers/active', {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (response.ok) {
+                const activeVouchers = await response.json();
+                const userVouchers = activeVouchers.filter(v => v.userId === user.id);
+                let changed = false;
+                userVouchers.forEach(v => {
+                    if (!history.find(h => h.code === v.code)) {
+                        let voucherName = v.description;
+                        if (voucherName === 'Loyalty Reward') {
+                            if (v.discountType == 1) voucherName = `Giảm ${v.discountValue}%`;
+                            else if (v.discountType == 3) voucherName = `Miễn phí giao hàng`;
+                            else voucherName = `Giảm ${typeof vnd === 'function' ? vnd(v.discountValue) : v.discountValue}`;
+                        }
+                        history.push({
+                            name: voucherName || 'Ưu đãi đổi từ điểm',
+                            cost: 'Đã đổi',
+                            code: v.code,
+                            date: v.startDate || new Date().toISOString()
+                        });
+                        changed = true;
+                    }
+                });
+                if (changed) {
+                    history.sort((a, b) => new Date(b.date) - new Date(a.date));
+                    localStorage.setItem('loyalty_history', JSON.stringify(history));
+                }
+            }
+        } catch (e) { console.error('Sync history error:', e); }
+    }
+
     if (history.length === 0) {
-        listContainer.innerHTML = 'Chưa có lịch sử đổi ưu đãi nào.';
+        listContainer.innerHTML = `
+            <div style="text-align: center; padding: 40px 0; color: #94a3b8; font-size: 0.95rem; border: 2px dashed #e2e8f0; border-radius: 12px; background: #f8fafc;">
+                <i class="fa-light fa-gift" style="font-size: 3rem; color: #cbd5e1; display: block; margin-bottom: 15px;"></i>
+                Bạn chưa đổi ưu đãi nào
+            </div>`;
         return;
     }
     
     let html = '';
     history.forEach(item => {
         let d = new Date(item.date);
-        let dateStr = d.toLocaleDateString('vi-VN') + ' ' + d.toLocaleTimeString('vi-VN');
+        let dateStr = d.toLocaleDateString('vi-VN') + ' &bull; ' + d.toLocaleTimeString('vi-VN');
+        
+        let displayName = item.name;
+        if (displayName === 'Loyalty Reward') {
+            if (item.code.startsWith('TIMI')) {
+                const match = item.code.match(/TIMI(\d+K)/);
+                if (match) displayName = `Giảm ${match[1]}`;
+            } else if (item.code.startsWith('FREESHIP')) {
+                displayName = `Miễn phí giao hàng`;
+            } else {
+                displayName = `Ưu đãi đặc biệt`;
+            }
+        }
+        
         html += `
-        <div style="border-bottom: 1px solid #eee; padding: 12px 0; display: flex; justify-content: space-between; align-items: center;">
-            <div>
-                <strong style="color: #333;">${item.name}</strong>
-                <div style="font-size: 0.8rem; color: #888; margin-top: 4px;">${dateStr}</div>
+        <div style="display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; background: #fff; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.03); border: 1px solid #f1f5f9; transition: transform 0.2s ease;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='none'">
+            <div style="display: flex; align-items: center; gap: 15px;">
+                <div style="width: 48px; height: 48px; border-radius: 50%; background: #eff6ff; display: flex; align-items: center; justify-content: center; color: #3b82f6; font-size: 1.2rem; flex-shrink: 0;">
+                    <i class="fa-light fa-ticket-simple"></i>
+                </div>
+                <div>
+                    <strong style="color: #1e293b; font-size: 1.05rem; display: block; margin-bottom: 4px;">${displayName}</strong>
+                    <div style="font-size: 0.85rem; color: #64748b;"><i class="fa-regular fa-clock"></i> ${dateStr}</div>
+                </div>
             </div>
-            <div style="text-align: right;">
-                <div style="color: #ef4444; font-weight: bold; margin-bottom: 4px;">-${item.cost} Điểm</div>
-                <div style="background: #e2e8f0; padding: 3px 8px; border-radius: 4px; font-family: monospace; color: #3b82f6; font-size: 0.85rem; letter-spacing: 1px; font-weight: bold;">${item.code}</div>
+            <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 8px;">
+                <div style="color: #ef4444; font-weight: 700; font-size: 1rem; display: flex; align-items: center; gap: 4px;"><i class="fa-solid fa-arrow-down-right"></i> ${item.cost} Điểm</div>
+                <div style="background: #f1f5f9; padding: 4px 10px; border-radius: 6px; font-family: monospace; color: #3b82f6; font-size: 0.9rem; font-weight: 600; border: 1px dashed #cbd5e1; display: inline-flex; align-items: center; gap: 6px;" title="Mã ưu đãi (Có thể xem trong Giỏ hàng)"><i class="fa-light fa-copy" style="color: #94a3b8;"></i> ${item.code}</div>
             </div>
         </div>
         `;

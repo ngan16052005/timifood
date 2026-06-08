@@ -176,6 +176,12 @@
                             <div class="hidden-sidebar">Khuyến mãi</div>
                         </a>
                     </li>
+                    <li class="sidebar-list-item tab-content">
+                        <a href="#" class="sidebar-link">
+                            <div class="sidebar-icon"><i class="fa-light fa-gift"></i></div>
+                            <div class="hidden-sidebar">Gói ưu đãi</div>
+                        </a>
+                    </li>
                         </ul>
                     </li>
                     <li class="sidebar-group">
@@ -252,9 +258,9 @@
             </div>
             <!-- Order  -->
             <!-- INCLUDE: orders.html -->
-            <!-- Stock Management -->
             <!-- INCLUDE: stock.html -->
             <!-- INCLUDE: vouchers.html -->
+            <!-- INCLUDE: rewards.html -->
             <!-- INCLUDE: stats.html -->
             <!-- Reviews -->
             <!-- INCLUDE: reviews.html -->
@@ -487,6 +493,61 @@
                     </div>
                     <button type="button" class="form-submit" onclick="saveVoucher()"><i
                             class="fa-regular fa-floppy-disk"></i> Lưu mã</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal reward">
+        <div class="modal-container">
+            <h3 class="modal-container-title">TẠO GÓI ƯU ĐÃI MỚI</h3>
+            <button class="modal-close" onclick="closeRewardModal()"><i class="fa-regular fa-xmark"></i></button>
+            <div class="form-content">
+                <form action="" class="reward-form">
+                    <input type="hidden" id="r-id">
+                    <div class="form-group">
+                        <label for="r-name" class="form-label">Tên gói ưu đãi</label>
+                        <input id="r-name" type="text" placeholder="VD: Giảm 20K" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label for="r-desc" class="form-label">Mô tả chi tiết</label>
+                        <textarea id="r-desc" placeholder="Chi tiết ưu đãi..." class="form-control" style="height: 60px;"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="r-cost" class="form-label">Điểm đổi (Cost)</label>
+                        <input id="r-cost" type="number" placeholder="VD: 50" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label for="r-prefix" class="form-label">Tiền tố mã (Prefix)</label>
+                        <input id="r-prefix" type="text" placeholder="VD: RWD" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label for="r-type" class="form-label">Loại giảm giá</label>
+                        <select id="r-type" class="form-control">
+                            <option value="0">Phần trăm (%)</option>
+                            <option value="1">Số tiền (VND)</option>
+                            <option value="2">Giảm phí ship (VND)</option>
+                            <option value="3">Miễn phí vận chuyển</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="r-value" class="form-label">Giá trị giảm</label>
+                        <input id="r-value" type="number" placeholder="VD: 20000" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label for="r-min" class="form-label">Đơn tối thiểu</label>
+                        <input id="r-min" type="number" placeholder="VD: 100000" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label for="r-color" class="form-label">Màu sắc (CSS class / code)</label>
+                        <input id="r-color" type="text" placeholder="VD: var(--primary-color)" class="form-control">
+                    </div>
+                    <div class="form-group" style="display:flex; align-items:center; gap: 10px; margin-top: 10px;">
+                        <input type="checkbox" id="r-active" checked style="width:16px;height:16px;">
+                        <label for="r-active" class="form-label" style="margin:0;">Kích hoạt gói</label>
+                    </div>
+                    <button type="button" class="form-submit" onclick="saveRewardPackage()" style="margin-top: 15px;"><i
+                            class="fa-regular fa-floppy-disk"></i> Lưu gói ưu đãi</button>
                 </form>
             </div>
         </div>

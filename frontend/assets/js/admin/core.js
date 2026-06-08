@@ -136,8 +136,8 @@ function applyPermissions(userType) {
     if (userType == 2) { // Nhân viên (Staff)
         console.log("Quyền hạn: Nhân viên - Chỉ xem Đơn hàng & Hỗ trợ trực tuyến");
 
-        // Các index menu cần ẩn: 0: Tổng quát, 1: Sản phẩm, 2: Danh mục, 3: Tài khoản, 5: Nhập kho, 6: Khuyến mãi, 7: Thống kê, 8: Đánh giá, 9: Nhật ký, 11: Liên hệ, 12: Tin tức
-        const forbiddenIndexes = [0, 1, 2, 3, 5, 6, 7, 8, 9, 11, 12];
+        // Các index menu cần ẩn: 0: Tổng quát, 1: Sản phẩm, 2: Danh mục, 3: Tài khoản, 5: Nhập kho, 6: Khuyến mãi, 7: Gói ưu đãi, 8: Thống kê, 9: Đánh giá, 10: Nhật ký, 12: Liên hệ, 13: Tin tức
+        const forbiddenIndexes = [0, 1, 2, 3, 5, 6, 7, 8, 9, 10, 12, 13];
         forbiddenIndexes.forEach(index => {
             if (sidebarItems[index]) sidebarItems[index].style.display = 'none';
         });
@@ -203,8 +203,8 @@ for (let i = 0; i < sidebars.length; i++) {
         const isStaff = currentUser && currentUser.userType == 2;
 
         // Kiểm tra quyền truy cập cho nhân viên
-        // Chỉ cho phép Staff truy cập Đơn hàng (Index 4), Hỗ trợ trực tuyến (Index 10)
-        const forbiddenForStaff = [0, 1, 2, 3, 5, 6, 7, 8, 9, 11, 12];
+        // Chỉ cho phép Staff truy cập Đơn hàng (Index 4), Hỗ trợ trực tuyến (Index 11)
+        const forbiddenForStaff = [0, 1, 2, 3, 5, 6, 7, 8, 9, 10, 12, 13];
         if (isStaff && forbiddenForStaff.includes(i)) {
             toast({ title: 'Từ chối', message: 'Bạn không có quyền truy cập mục này!', type: 'error', duration: 3000 });
             return;
@@ -250,13 +250,20 @@ for (let i = 0; i < sidebars.length; i++) {
             document.getElementById('tab-purchase-orders').style.display = 'block';
         }
 
-        // Nếu là tab Thống kê (Index 7)
+        // Nếu là tab Gói ưu đãi (Index 7)
         if (i === 7) {
+            if (typeof loadAdminRewardPackages === 'function') {
+                await loadAdminRewardPackages();
+            }
+        }
+
+        // Nếu là tab Thống kê (Index 8)
+        if (i === 8) {
             await thongKe(0);
         }
 
-        // Nếu là tab Đánh giá (Index 8)
-        if (i === 8) {
+        // Nếu là tab Đánh giá (Index 9)
+        if (i === 9) {
             await showReviews();
             if (typeof adminNotifications !== 'undefined') {
                 const unreadNotis = adminNotifications.filter(n => !n.read && (n.type === 'review' || (n.title && n.title.toLowerCase().includes('đánh giá'))));
@@ -268,13 +275,13 @@ for (let i = 0; i < sidebars.length; i++) {
             }
         }
 
-        // Nếu là tab Nhật ký hệ thống (Index 9)
-        if (i === 9) {
+        // Nếu là tab Nhật ký hệ thống (Index 10)
+        if (i === 10) {
             await showLogs();
         }
 
-        // Nếu là tab Hỗ trợ trực tuyến (Index 10)
-        if (i === 10) {
+        // Nếu là tab Hỗ trợ trực tuyến (Index 11)
+        if (i === 11) {
             await loadLiveChatSessionsAdmin();
             if (typeof adminNotifications !== 'undefined') {
                 const unreadNotis = adminNotifications.filter(n => !n.read && (n.type === 'chat' || (n.title && n.title.toLowerCase().includes('tin nhắn'))));
@@ -286,8 +293,8 @@ for (let i = 0; i < sidebars.length; i++) {
             }
         }
 
-        // Nếu là tab Liên hệ (Index 11)
-        if (i === 11) {
+        // Nếu là tab Liên hệ (Index 12)
+        if (i === 12) {
             await showContacts();
             if (typeof adminNotifications !== 'undefined') {
                 const unreadNotis = adminNotifications.filter(n => !n.read && (n.type === 'contact' || (n.title && n.title.toLowerCase().includes('liên hệ'))));
@@ -299,8 +306,8 @@ for (let i = 0; i < sidebars.length; i++) {
             }
         }
 
-        // Nếu là tab Tin tức (Index 12)
-        if (i === 12) {
+        // Nếu là tab Tin tức (Index 13)
+        if (i === 13) {
             if (typeof showNews === 'function') {
                 await showNews();
             }

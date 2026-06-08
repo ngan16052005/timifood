@@ -160,6 +160,19 @@ exports.createOrder = async (req, res) => {
             }
         }
 
+        // Update Voucher usage count
+        if (order.voucherCode) {
+            const voucherCodes = order.voucherCode.split(',').map(c => c.trim());
+            for (const code of voucherCodes) {
+                const updateVoucherReq = new sql.Request(transaction);
+                await updateVoucherReq
+                    .input('code', sql.NVarChar, code)
+                    .query(`UPDATE Vouchers SET usedCount = ISNULL(usedCount, 0) + 1, 
+                            status = CASE WHEN ISNULL(usedCount, 0) + 1 >= usageLimit THEN 0 ELSE status END 
+                            WHERE code = @code`);
+            }
+        }
+
         await transaction.commit();
         res.status(201).json({ success: true, message: 'Order created successfully', orderId: finalId });
     } catch (err) {

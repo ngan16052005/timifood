@@ -70,6 +70,10 @@ const reviewController = {
             await req.app.locals.createNotification("ADMIN", "Đánh giá mới", `Có đánh giá ${rating} sao từ khách hàng ${customerName}`, "review");
         }
 
+        // Clear products cache to reflect new ratings and reviews count
+        const cache = require('../config/cache');
+        cache.keys().forEach(k => { if (k.startsWith('products_')) cache.del(k); });
+
         res.json({ success: true, message: 'Đánh giá của bạn đã được gửi!' });
     } catch (error) {
         console.error("Submit review error:", error);

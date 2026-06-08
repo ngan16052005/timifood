@@ -173,8 +173,9 @@ exports.redeemVoucher = async (req, res) => {
             .input('maxDiscount', sql.Int, maxDiscount)
             .input('expiryDate', sql.DateTime, expiryDate)
             .input('userId', sql.UniqueIdentifier, userId)
+            .input('description', sql.NVarChar, pkg.name)
             .query(`INSERT INTO Vouchers (code, description, discountType, discountValue, minOrderValue, maxDiscount, startDate, endDate, usageLimit, usedCount, status, userId) 
-                    VALUES (@code, 'Loyalty Reward', @discountType, @discountValue, @minOrder, @maxDiscount, GETUTCDATE(), @expiryDate, 1, 0, 1, @userId)`);
+                    VALUES (@code, @description, @discountType, @discountValue, @minOrder, @maxDiscount, GETUTCDATE(), @expiryDate, 1, 0, 1, @userId)`);
                     
         // Fetch updated points
         const updatedUser = await pool.request()
@@ -182,7 +183,7 @@ exports.redeemVoucher = async (req, res) => {
             .query('SELECT points FROM Users WHERE id = @id2');
         const newPoints = updatedUser.recordset[0]?.points || 0;
         
-        res.json({ success: true, message: 'Voucher redeemed successfully', newPoints });
+        res.json({ success: true, message: 'Voucher redeemed successfully', newPoints, code });
     } catch (error) {
         console.error('Redeem error:', error);
         res.status(500).json({ message: 'Server error: ' + error.message });

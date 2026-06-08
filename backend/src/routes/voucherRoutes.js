@@ -6,6 +6,7 @@ const { authenticateToken, optionalAuthenticateToken, isAdmin } = require('../mi
 router.get('/', authenticateToken, isAdmin, voucherController.getVouchers);
 router.get('/active', optionalAuthenticateToken, voucherController.getActiveVouchers);
 router.get('/rewards', voucherController.getRewardPackages);
+router.get('/rewards/all', authenticateToken, isAdmin, voucherController.getAllRewardPackages);
 router.post('/rewards', authenticateToken, isAdmin, voucherController.createRewardPackage);
 router.put('/rewards/:id', authenticateToken, isAdmin, voucherController.updateRewardPackage);
 router.delete('/rewards/:id', authenticateToken, isAdmin, voucherController.deleteRewardPackage);

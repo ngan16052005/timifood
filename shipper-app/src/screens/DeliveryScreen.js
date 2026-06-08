@@ -77,7 +77,7 @@ export default function DeliveryScreen({ navigation }) {
             setCurrentLocation({ latitude, longitude });
 
             const locationData = {
-              orderId: currentOrder.orderCode || currentOrder.id,
+              orderId: currentOrder.id,
               lat: latitude,
               lng: longitude,
               phone: shipperInfo.phone,

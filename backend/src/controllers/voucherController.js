@@ -95,7 +95,19 @@ exports.createVoucher = async (req, res) => {
 exports.updateVoucher = async (req, res) => {
     try {
         const { code } = req.params;
-        const { status } = req.body;
+        const { status, discountValue, discountType, minOrderValue, maxDiscount, expiryDate } = req.body;
+        if (discountValue !== undefined) {
+            await pool.request()
+                .input('code', sql.NVarChar, code)
+                .input('discountValue', sql.Int, discountValue)
+                .input('discountType', sql.NVarChar, discountType.toString())
+                .input('minOrderValue', sql.Int, minOrderValue)
+                .input('maxDiscount', sql.Int, maxDiscount)
+                .input('expiryDate', sql.DateTime, expiryDate)
+                .query("UPDATE Vouchers SET discountType=@discountType, discountValue=@discountValue, minOrderValue=@minOrderValue, maxDiscount=@maxDiscount, endDate=@expiryDate WHERE code=@code");
+            await req.app.locals.createLog(req.user.id, 'UPDATE_VOUCHER', "C?p nh?t voucher: " + code);
+            return res.json({ success: true, message: 'C?p nh?t voucher th�nh c�ng' });
+        }
         // Using global pool
         await pool.request()
             .input('code', sql.NVarChar, code)
@@ -133,3 +145,81 @@ exports.getRewardPackages = async (req, res) => {
         res.status(500).json({ success: false, message: 'Error fetching reward packages' });
     }
 };
+
+exports.createRewardPackage = async (req, res) => {
+    try {
+        const { name, description, cost, codePrefix, discountType, discountValue, minOrder, color } = req.body;
+        await pool.request()
+            .input('name', sql.NVarChar, name)
+            .input('description', sql.NVarChar, description)
+            .input('cost', sql.Int, cost)
+            .input('codePrefix', sql.VarChar, codePrefix)
+            .input('discountType', sql.NVarChar, discountType.toString())
+            .input('discountValue', sql.Int, discountValue)
+            .input('minOrder', sql.Int, minOrder)
+            .input('color', sql.NVarChar, color || '#ef4444')
+            .query(`INSERT INTO RewardPackages (name, description, cost, codePrefix, discountType, discountValue, minOrder, color) 
+                    VALUES (@name, @description, @cost, @codePrefix, @discountType, @discountValue, @minOrder, @color)`);
+        
+        await req.app.locals.createLog(req.user.id, 'CREATE_REWARD', `Thêm gói ưu đãi: ${name}`);
+        res.json({ success: true, message: 'Thêm gói ưu đãi thành công' });
+    } catch (err) {
+        console.error("Create reward package error:", err);
+        res.status(500).json({ success: false, message: 'Lỗi khi thêm gói ưu đãi' });
+    }
+};
+
+exports.updateRewardPackage = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { name, description, cost, codePrefix, discountType, discountValue, minOrder, color, isActive } = req.body;
+        
+        await pool.request()
+            .input('id', sql.Int, id)
+            .input('name', sql.NVarChar, name)
+            .input('description', sql.NVarChar, description)
+            .input('cost', sql.Int, cost)
+            .input('codePrefix', sql.VarChar, codePrefix)
+            .input('discountType', sql.NVarChar, discountType.toString())
+            .input('discountValue', sql.Int, discountValue)
+            .input('minOrder', sql.Int, minOrder)
+            .input('color', sql.NVarChar, color || '#ef4444')
+            .input('isActive', sql.Bit, isActive !== undefined ? isActive : 1)
+            .query(`UPDATE RewardPackages 
+                    SET name=@name, description=@description, cost=@cost, codePrefix=@codePrefix, 
+                        discountType=@discountType, discountValue=@discountValue, minOrder=@minOrder, color=@color, isActive=@isActive 
+                    WHERE id=@id`);
+                    
+        await req.app.locals.createLog(req.user.id, 'UPDATE_REWARD', `Cập nhật gói ưu đãi: ID ${id}`);
+        res.json({ success: true, message: 'Cập nhật gói ưu đãi thành công' });
+    } catch (err) {
+        console.error("Update reward package error:", err);
+        res.status(500).json({ success: false, message: 'Lỗi khi cập nhật gói ưu đãi' });
+    }
+};
+
+exports.deleteRewardPackage = async (req, res) => {
+    try {
+        const { id } = req.params;
+        await pool.request()
+            .input('id', sql.Int, id)
+            .query('DELETE FROM RewardPackages WHERE id=@id');
+            
+        await req.app.locals.createLog(req.user.id, 'DELETE_REWARD', `Xóa gói ưu đãi: ID ${id}`);
+        res.json({ success: true, message: 'Xóa gói ưu đãi thành công' });
+    } catch (err) {
+        console.error("Delete reward package error:", err);
+        res.status(500).json({ success: false, message: 'Lỗi khi xóa gói ưu đãi' });
+    }
+};
+
+exports.getAllRewardPackages = async (req, res) => {
+    try {
+        const result = await pool.request().query('SELECT * FROM RewardPackages ORDER BY cost ASC');
+        res.json({ success: true, rewards: result.recordset });
+    } catch (err) {
+        console.error("Get all reward packages error:", err);
+        res.status(500).json({ success: false, message: 'Error fetching reward packages' });
+    }
+};
+

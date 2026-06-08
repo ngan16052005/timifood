@@ -796,7 +796,7 @@ async function xulyDathang(product) {
     const pickDateActive = document.querySelector(".pick-date.active");
     const isGiaoTanNoi = giaotannoi.classList.contains("active");
     const shippingFee = isGiaoTanNoi ? PHIVANCHUYEN : 0;
-    const finalTotal = (tongtien + shippingFee) - currentDiscount;
+    const finalTotal = (tongtien + shippingFee) - (currentOrderDiscount + currentShippingDiscount);
 
     // Tự động tìm tọa độ GPS nếu khách chỉ nhập chữ (không chọn trên bản đồ)
     let finalLat = selectedLatLng ? selectedLatLng.lat : null;
@@ -834,8 +834,8 @@ async function xulyDathang(product) {
         lat: finalLat,
         lng: finalLng,
         tongtien: finalTotal,
-        discountAmount: currentDiscount,
-        voucherCode: currentVoucher ? currentVoucher.code : null,
+        discountAmount: (currentOrderDiscount + currentShippingDiscount),
+        voucherCode: [currentOrderVoucher?.code, currentShippingVoucher?.code].filter(Boolean).join(', ') || null,
         shippingFee: shippingFee,
         paymentMethod: paymentMethod,
         isBuyNow: product !== undefined,
@@ -1082,12 +1082,12 @@ window.confirmMapAddress = function () {
                 // Buy Now mode
                 const itemTotal = currentCheckoutProduct.soluong * currentCheckoutProduct.price;
                 const shippingFee = (document.querySelector("#giaotannoi") && document.querySelector("#giaotannoi").classList.contains("active")) ? PHIVANCHUYEN : 0;
-                updateCheckoutTotal((itemTotal + shippingFee) - currentDiscount);
+                updateCheckoutTotal((itemTotal + shippingFee) - (currentOrderDiscount + currentShippingDiscount));
             } else {
                 // Cart mode
                 getCartTotal().then(cartTotal => {
                     const shippingFee = (document.querySelector("#giaotannoi") && document.querySelector("#giaotannoi").classList.contains("active")) ? PHIVANCHUYEN : 0;
-                    updateCheckoutTotal((cartTotal + shippingFee) - currentDiscount);
+                    updateCheckoutTotal((cartTotal + shippingFee) - (currentOrderDiscount + currentShippingDiscount));
                 });
             }
         }
