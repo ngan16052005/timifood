@@ -482,13 +482,37 @@ function initChatbot() {
                         aiChatHistory.push({ role: 'bot', text: result.reply });
 
                         let html = result.reply;
+
+                        // Parse [SUGGEST:id] tags embedded in text
+                        const suggestRegex = /\[SUGGEST:(.*?)\]/g;
+                        let match;
+                        let suggestedIds = [];
+                        
+                        while ((match = suggestRegex.exec(html)) !== null) {
+                            // Bỏ 'SP' prefix nếu có
+                            suggestedIds.push(match[1].replace('SP', '').trim());
+                        }
+                        
+                        // Remove the tags from the text so they don't show up in UI
+                        html = html.replace(/\[SUGGEST:(.*?)\]/g, '');
+                        
                         if (result.suggestedProduct) {
-                            // Tìm product dựa trên ID (Xóa SP đi nếu có)
-                            const productId = result.suggestedProduct.replace('SP', '');
+                            suggestedIds.push(result.suggestedProduct.replace('SP', '').trim());
+                        }
+
+                        // Remove duplicates
+                        suggestedIds = [...new Set(suggestedIds)];
+
+                        if (suggestedIds.length > 0) {
                             const products = await window.api.getProducts();
-                            const p = products.find(prod => prod.id == productId);
-                            if (p) {
-                                html += `<div class="chat-products-wrapper" style="margin-top: 10px;">
+                            let productsHtml = `<div class="chat-products-wrapper" style="margin-top: 10px;">`;
+                            let hasProducts = false;
+                            
+                            suggestedIds.forEach(id => {
+                                const p = products.find(prod => prod.id == id);
+                                if (p) {
+                                    hasProducts = true;
+                                    productsHtml += `
                                     <div class="chat-product-card">
                                         <img src="${p.img}" class="chat-product-img" onerror="this.src='./assets/img/blank-image.png'">
                                         <div class="chat-product-info">
@@ -496,10 +520,16 @@ function initChatbot() {
                                             <p class="chat-product-price">${chatbotFormatVND(p.price)}</p>
                                             <button class="chat-product-btn" onclick="chatbotAddCart('${p.id}')"><i class="fa-solid fa-cart-plus"></i> Đặt món</button>
                                         </div>
-                                    </div>
-                                </div>`;
+                                    </div>`;
+                                }
+                            });
+                            
+                            productsHtml += `</div>`;
+                            if (hasProducts) {
+                                html += productsHtml;
                             }
                         }
+
                         // Replace markdown bold with strong
                         html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
                                    .replace(/\*(.*?)\*/g, '<em>$1</em>')

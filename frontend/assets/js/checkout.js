@@ -1,7 +1,7 @@
 let PHIVANCHUYEN = 30000;
 // TiMiFood Store location (Lat, Lng). Default is somewhere in HCMC.
-// You should change this to your actual store's coordinates.
-const STORE_LATLNG = [10.762622, 106.660172];
+// TiMiFood Store location (Lat, Lng). Default: Trường Đại học Sao Đỏ, Chí Linh, Hải Dương
+const STORE_LATLNG = [21.116503, 106.398687];
 let priceFinal = document.getElementById("checkout-cart-price-final");
 let currentOrderVoucher = null;
 let currentOrderDiscount = 0;
@@ -818,6 +818,22 @@ async function xulyDathang(product) {
         }
     }
 
+    if (isGiaoTanNoi && finalLat && finalLng) {
+        const storePoint = L.latLng(STORE_LATLNG[0], STORE_LATLNG[1]);
+        const userPoint = L.latLng(finalLat, finalLng);
+        const distanceKm = storePoint.distanceTo(userPoint) / 1000;
+        
+        if (distanceKm > 15) {
+            toast({
+                title: 'Khoảng cách quá xa',
+                message: `Địa chỉ nhận hàng cách cửa hàng ${distanceKm.toFixed(1)}km. TiMiFood chỉ giao hàng trong bán kính 15km!`,
+                type: 'error',
+                duration: 5000
+            });
+            return; // Dừng đặt hàng
+        }
+    }
+
     // Phuong thuc thanh toan
     let paymentActive = document.querySelector('.payment-item.active');
     let paymentMethod = paymentActive ? paymentActive.getAttribute('data-payment') : 'cash';
@@ -1057,6 +1073,16 @@ window.confirmMapAddress = function () {
             const userPoint = mapMarker.getLatLng();
             const distanceMeters = storePoint.distanceTo(userPoint);
             const distanceKm = distanceMeters / 1000;
+
+            if (distanceKm > 15) {
+                toast({
+                    title: 'Rất tiếc',
+                    message: `Khoảng cách giao hàng quá xa (${distanceKm.toFixed(1)}km). TiMiFood chỉ hỗ trợ giao hàng trong bán kính 15km!`,
+                    type: 'error',
+                    duration: 5000
+                });
+                return; // Ngăn không cho lưu địa chỉ này và không đóng map
+            }
 
             if (distanceKm <= 5) {
                 PHIVANCHUYEN = 0;

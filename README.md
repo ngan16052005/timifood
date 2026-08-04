@@ -5,29 +5,31 @@
 ## Hướng dẫn chạy đồ án (Mô hình Client-Server với SQL Server)
 
 1. **Cài đặt môi trường:** Đảm bảo bạn đã cài đặt [Node.js](https://nodejs.org/) và [SQL Server](https://www.microsoft.com/en-us/sql-server/sql-server-downloads).
-2. **Cấu hình Database:**
+2. **Cấu hình Database và Biến môi trường:**
    - Tạo một Database mới trong SQL Server (ví dụ: `TiMiFoodDB`).
-   - Mở file `.env` trong thư mục dự án và cập nhật thông tin tài khoản SQL Server của bạn (`DB_USER`, `DB_PASSWORD`, `DB_SERVER`, `DB_DATABASE`).
+   - Copy (hoặc đổi tên) file `.env.example` thành `.env` ở thư mục gốc của dự án.
+   - Mở file `.env` và cập nhật thông tin tài khoản SQL Server của bạn (`DB_USER`, `DB_PASSWORD`, `DB_SERVER`, `DB_DATABASE`).
 3. **Cài đặt thư viện:** Mở terminal tại thư mục dự án và chạy lệnh:
 
    ```bash
    npm install
    ```
 
-4. **Khởi tạo Database:** Chạy lệnh sau để tự động tạo bảng và chuyển dữ liệu từ JSON vào SQL Server:
+4. **Khởi tạo Database:** Chạy lệnh sau để tự động tạo bảng và chuyển dữ liệu khởi tạo vào SQL Server:
 
    ```bash
-   node initSqlDb.js
+   node backend/src/scripts/initSqlDb.js
    ```
 
-5. **Chạy Server:** Khởi động backend bằng lệnh:
+5. **Chạy Server:** Khởi động backend bằng lệnh chuẩn của dự án:
 
    ```bash
-   node server.js
+   npm start
    ```
+   *(Ghi chú: Lệnh này sẽ chạy file `backend/server.js`. Nếu code bị lỗi hoặc bạn đang phát triển, hãy dùng `npm run dev`)*
 
-   Server sẽ chạy tại: `<http://localhost:3500>
-6. **Mở Website:** Mở file `index.html` bằng trình duyệt.
+6. **Mở Website:** Dự án đã thiết lập phục vụ giao diện (static files) qua server Node.js. Vui lòng mở trình duyệt và truy cập vào:
+   👉 **http://localhost:3500** (Không mở trực tiếp file `index.html`)
 
 ## Thông tin Admin
 
