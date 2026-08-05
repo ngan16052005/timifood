@@ -26,10 +26,11 @@
    ```bash
    npm start
    ```
+
    *(Ghi chú: Lệnh này sẽ chạy file `backend/server.js`. Nếu code bị lỗi hoặc bạn đang phát triển, hãy dùng `npm run dev`)*
 
 6. **Mở Website:** Dự án đã thiết lập phục vụ giao diện (static files) qua server Node.js. Vui lòng mở trình duyệt và truy cập vào:
-   👉 **http://localhost:3500** (Không mở trực tiếp file `index.html`)
+   👉 **<http://localhost:3500>** (Không mở trực tiếp file `index.html`)
 
 ## Thông tin Admin
 

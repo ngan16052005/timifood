@@ -2081,7 +2081,7 @@ function startUserNotifications() {
     if (typeof io !== 'undefined') {
         if (!userSocket) {
             console.log('[Socket] Initializing Socket.io for user:', currentUser.id);
-            userSocket = io(window.BACKEND_URL, { transports: ['websocket'] });
+            userSocket = io(window.SOCKET_URL, { transports: ['websocket'] });
 
             userSocket.on('connect', () => {
                 console.log('[Socket] Connected to server, joining rooms for ID and Phone');
@@ -2771,7 +2771,7 @@ async function syncCartOnLogin(user) {
 
 // Shipper Socket Listener
 if (typeof io !== 'undefined') {
-    const shipperSocket = io(window.BACKEND_URL + '/shipperLocation', { transports: ['websocket'] });
+    const shipperSocket = io(window.SOCKET_URL + '/shipperLocation', { transports: ['websocket'] });
     window.hasFirstShipperLocation = false;
     shipperSocket.on('shipperLocation', (data) => {
         if (window.shipperMap && window.shipperMarker && window.trackingOrderId === data.orderId) {

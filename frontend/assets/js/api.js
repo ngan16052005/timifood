@@ -1,13 +1,17 @@
 let BACKEND_URL;
+let SOCKET_URL;
 if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-    BACKEND_URL = 'http://localhost:3500'; // Hỗ trợ chạy qua Live Server
+    BACKEND_URL = 'http://localhost:8080'; // Hỗ trợ chạy qua Live Server
+    SOCKET_URL = 'http://localhost:9092'; // Socket Server trên Spring Boot chạy cổng 9092
 } else {
     BACKEND_URL = window.location.origin; // Hỗ trợ tự động nhận Ngrok, Render, hoặc Domain thật
+    // Nếu deploy lên hosting thực tế, nên cài đặt proxy hoặc đổi logic tương tự backend url
+    SOCKET_URL = window.location.origin; 
 }
 
 const BASE_URL = `${BACKEND_URL}/api`;
 window.BACKEND_URL = BACKEND_URL;
-
+window.SOCKET_URL = SOCKET_URL;
 const getHeaders = () => {
     const token = localStorage.getItem('token');
     return {
